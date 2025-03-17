@@ -1,0 +1,255 @@
+.chits-page {
+	min-height: 100vh;
+	background-color: #f8f9fa;
+	width: 100%;
+	overflow-x: hidden;
+}
+
+.page-container {
+	padding: 2rem;
+	max-width: 1400px;
+	margin: 0 auto;
+	width: 100%;
+}
+
+/* Page Header */
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 2rem;
+}
+
+.header-left h1 {
+	font-size: 1.8rem;
+	margin: 0;
+	color: #1a1a2e;
+}
+
+.header-left p {
+	margin: 0.5rem 0 0;
+	color: #666;
+}
+
+.create-button {
+	background-color: #2563eb;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.25rem;
+	border-radius: 0.375rem;
+	font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.create-button:hover {
+	background-color: #1d4ed8;
+}
+
+/* Filters Bar */
+.filters-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 2rem;
+	gap: 1rem;
+}
+
+.search-box {
+	flex: 1;
+	position: relative;
+	max-width: 400px;
+}
+
+.search-box input {
+	width: 100%;
+	padding: 0.75rem 1rem 0.75rem 2.5rem;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.375rem;
+	font-size: 0.875rem;
+}
+
+.search-icon {
+	position: absolute;
+	left: 0.75rem;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #9ca3af;
+}
+
+.status-filter select {
+	padding: 0.75rem 1rem;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.375rem;
+	font-size: 0.875rem;
+	background-color: white;
+	min-width: 150px;
+}
+
+/* Chits Grid */
+.chits-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+	gap: 1.5rem;
+}
+
+.chit-card {
+	background-color: white;
+	border-radius: 0.5rem;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chit-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+	padding: 1.25rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.card-header h2 {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: #1f2937;
+}
+
+.status-badge {
+	padding: 0.25rem 0.75rem;
+	border-radius: 9999px;
+	font-size: 0.75rem;
+	font-weight: 500;
+}
+
+.status-badge.active {
+	background-color: #dcfce7;
+	color: #166534;
+}
+
+.status-badge.completed {
+	background-color: #dbeafe;
+	color: #1e40af;
+}
+
+.status-badge.upcoming {
+	background-color: #fef3c7;
+	color: #92400e;
+}
+
+.card-body {
+	padding: 1.25rem;
+}
+
+.value-info {
+	margin-bottom: 1rem;
+}
+
+.value-info p {
+	font-size: 0.875rem;
+	color: #6b7280;
+	margin: 0;
+}
+
+.chit-details {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.detail-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.detail-item i {
+	color: #6b7280;
+	font-size: 0.875rem;
+}
+
+.detail-item span {
+	font-size: 0.875rem;
+	color: #374151;
+}
+
+.auction-info {
+	margin-bottom: 1.5rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid #f3f4f6;
+}
+
+.auction-info p {
+	font-size: 0.875rem;
+	color: #4b5563;
+	margin: 0;
+	font-weight: 500;
+}
+
+.card-actions {
+	display: flex;
+	gap: 0.75rem;
+}
+
+.action-button {
+	flex: 1;
+	padding: 0.5rem;
+	border-radius: 0.375rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	text-align: center;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.action-button.view {
+	background-color: #f3f4f6;
+	color: #4b5563;
+	border: none;
+}
+
+.action-button.view:hover {
+	background-color: #e5e7eb;
+}
+
+.action-button.manage {
+	background-color: #f3f4f6;
+	color: #4b5563;
+	border: none;
+}
+
+.action-button.manage:hover {
+	background-color: #e5e7eb;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+	.page-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+
+	.filters-bar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.search-box {
+		max-width: 100%;
+	}
+
+	.chits-grid {
+		grid-template-columns: 1fr;
+	}
+}
