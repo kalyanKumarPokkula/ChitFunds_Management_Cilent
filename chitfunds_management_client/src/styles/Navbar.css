@@ -60,8 +60,8 @@
 }
 
 .nav-item.active {
-	background: #f0f7ff;
-	color: #2196f3;
+	background: #2563eb;
+	color: white;
 }
 
 .navbar-right {
