@@ -70,6 +70,8 @@
 	border: 1px solid #e5e7eb;
 	border-radius: 0.375rem;
 	font-size: 0.875rem;
+	background-color: white;
+	color: #1f2937;
 }
 
 .search-icon {
@@ -87,6 +89,7 @@
 	font-size: 0.875rem;
 	background-color: white;
 	min-width: 150px;
+	color: #1f2937;
 }
 
 /* Chits Grid */

@@ -73,6 +73,17 @@ const Chits = () => {
 			nextAuction: '01 Jun 2023',
 			status: 'Active',
 		},
+		{
+			id: 7,
+			name: 'Vardhan 15L',
+			totalValue: '₹15,00,000',
+			contribution: '₹75,000',
+			members: 20,
+			duration: '20 months',
+			startDate: '01 Apr 2023',
+			nextAuction: '01 Jun 2023',
+			status: 'Upcoming',
+		},
 	];
 
 	const handleSearchChange = (e) => {

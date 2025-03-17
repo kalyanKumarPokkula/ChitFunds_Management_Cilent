@@ -1,146 +1,135 @@
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import Card from '../components/Card';
-import Button from '../components/Button';
-import '../styles/Pages.css';
+import '../styles/Members.css';
+import { useState } from 'react';
 
 const Members = () => {
+	const [searchQuery, setSearchQuery] = useState('');
+
+	const members = [
+		{
+			id: 1,
+			name: 'Ramesh Kumar',
+			phone: '+91 98765 43210',
+			email: 'ramesh@example.com',
+			activeChits: 3,
+			totalValue: '₹15,00,000',
+			status: 'Active',
+		},
+		{
+			id: 2,
+			name: 'Suresh Reddy',
+			phone: '+91 87654 32109',
+			email: 'suresh@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Active',
+		},
+		{
+			id: 3,
+			name: 'Priya Sharma',
+			phone: '+91 76543 20987',
+			email: 'priya@example.com',
+			activeChits: 1,
+			totalValue: '₹5,00,000',
+			status: 'Active',
+		},
+		{
+			id: 4,
+			name: 'Kiran Patel',
+			phone: '+91 65432 10987',
+			email: 'kiran@example.com',
+			activeChits: 4,
+			totalValue: '₹20,00,000',
+			status: 'Active',
+		},
+		{
+			id: 5,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+	];
+
+	const handleSearchChange = (e) => {
+		setSearchQuery(e.target.value);
+	};
+
+	const filteredMembers = members.filter((member) =>
+		Object.values(member).some((value) =>
+			value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+		)
+	);
+
 	return (
-		<div className="page">
+		<div className="members-page">
 			<Navbar />
 
-			<div className="page-header">
-				<h1>Members Management</h1>
-				<p>Add, view, and manage members of your chit funds</p>
-			</div>
-
-			<div className="page-content">
-				<div className="action-bar">
-					<Button variant="primary" size="medium">
-						Add New Member
-					</Button>
-					<div className="search-container">
-						<input
-							type="text"
-							placeholder="Search members..."
-							className="search-input"
-						/>
-						<Button variant="secondary" size="medium">
-							Search
-						</Button>
+			<div className="page-container">
+				<div className="page-header">
+					<div className="header-left">
+						<h1>Members</h1>
+						<p>Manage and view all members in your chit funds</p>
+					</div>
+					<div className="header-right">
+						<button className="add-member-button">
+							<i className="fas fa-plus"></i> Add New Member
+						</button>
 					</div>
 				</div>
 
+				<div className="filters-bar">
+					<div className="search-box">
+						<i className="fas fa-search search-icon"></i>
+						<input
+							type="text"
+							placeholder="Search members..."
+							value={searchQuery}
+							onChange={handleSearchChange}
+						/>
+					</div>
+					<div className="members-count">{filteredMembers.length} members</div>
+				</div>
+
 				<div className="table-container">
-					<table className="data-table">
+					<table className="members-table">
 						<thead>
 							<tr>
-								<th>ID</th>
 								<th>Name</th>
 								<th>Phone</th>
 								<th>Email</th>
-								<th>Joined Date</th>
 								<th>Active Chits</th>
+								<th>Total Value</th>
+								<th>Status</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
-								<td>M001</td>
-								<td>Rahul Sharma</td>
-								<td>+91 9876543210</td>
-								<td>rahul.sharma@example.com</td>
-								<td>01/01/2023</td>
-								<td>2</td>
-								<td className="action-cell">
-									<Button variant="primary" size="small">
-										View
-									</Button>
-									<Button variant="secondary" size="small">
-										Edit
-									</Button>
-								</td>
-							</tr>
-							<tr>
-								<td>M002</td>
-								<td>Priya Patel</td>
-								<td>+91 9876543211</td>
-								<td>priya.patel@example.com</td>
-								<td>15/02/2023</td>
-								<td>1</td>
-								<td className="action-cell">
-									<Button variant="primary" size="small">
-										View
-									</Button>
-									<Button variant="secondary" size="small">
-										Edit
-									</Button>
-								</td>
-							</tr>
-							<tr>
-								<td>M003</td>
-								<td>Amit Kumar</td>
-								<td>+91 9876543212</td>
-								<td>amit.kumar@example.com</td>
-								<td>10/03/2023</td>
-								<td>3</td>
-								<td className="action-cell">
-									<Button variant="primary" size="small">
-										View
-									</Button>
-									<Button variant="secondary" size="small">
-										Edit
-									</Button>
-								</td>
-							</tr>
-							<tr>
-								<td>M004</td>
-								<td>Sneha Reddy</td>
-								<td>+91 9876543213</td>
-								<td>sneha.reddy@example.com</td>
-								<td>05/04/2023</td>
-								<td>2</td>
-								<td className="action-cell">
-									<Button variant="primary" size="small">
-										View
-									</Button>
-									<Button variant="secondary" size="small">
-										Edit
-									</Button>
-								</td>
-							</tr>
-							<tr>
-								<td>M005</td>
-								<td>Vikram Singh</td>
-								<td>+91 9876543214</td>
-								<td>vikram.singh@example.com</td>
-								<td>20/05/2023</td>
-								<td>1</td>
-								<td className="action-cell">
-									<Button variant="primary" size="small">
-										View
-									</Button>
-									<Button variant="secondary" size="small">
-										Edit
-									</Button>
-								</td>
-							</tr>
+							{filteredMembers.map((member) => (
+								<tr key={member.id}>
+									<td>{member.name}</td>
+									<td>{member.phone}</td>
+									<td>{member.email}</td>
+									<td>{member.activeChits}</td>
+									<td>{member.totalValue}</td>
+									<td>
+										<span
+											className={`status-badge ${member.status.toLowerCase()}`}
+										>
+											{member.status}
+										</span>
+									</td>
+									<td>
+										<button className="action-button">View</button>
+									</td>
+								</tr>
+							))}
 						</tbody>
 					</table>
 				</div>
-
-				<div className="pagination">
-					<Button variant="secondary" size="small">
-						Previous
-					</Button>
-					<span className="page-info">Page 1 of 3</span>
-					<Button variant="secondary" size="small">
-						Next
-					</Button>
-				</div>
 			</div>
-
-			<Footer />
 		</div>
 	);
 };
