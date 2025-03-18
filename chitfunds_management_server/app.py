@@ -1,16 +1,27 @@
-import gspread
-from google.oauth2.service_account import Credentials
-from datetime import datetime
-import random
+from chit_groups import chit_groups
+from flask import Flask , request , jsonify
+from flask_cors import CORS 
+
+app = Flask(__name__)
+
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+
+@app.route('/chit', methods=['GET'])
+def chit_funds():
+    return jsonify({"messages" : "Welcome to Chit Funds Management"})
+
+@app.route('/chit-groups', methods=['GET'])
+def get_chit_groups():
+    data = chit_groups()
+    return jsonify({"message" : "Recevied data" , "data" : data})
 
 
-scopes =[
-    "https://www.googleapis.com/auth/spreadsheets"
-]
+# Run the Flask app
+if __name__ == '__main__':
+    app.run(debug=True)
 
-creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
-client = gspread.authorize(creds)
 
-sheet_id = "1HMSYZ8WiBovB3ibBxeeWWCMgHRblEHmia5NQbRS3AFQ"
-spreadsheet = client.open_by_key(sheet_id)
+
+
+
 
