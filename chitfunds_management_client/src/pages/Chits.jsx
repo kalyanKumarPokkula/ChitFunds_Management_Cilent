@@ -7,6 +7,15 @@ const Chits = () => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [statusFilter, setStatusFilter] = useState('All Status');
 
+	const handleManageClick = (chitId) => {
+		window.history.pushState({}, '', `/chits/${chitId}`);
+		// Dispatch navigation event
+		const navEvent = new CustomEvent('navchange', {
+			detail: { path: `/chits/${chitId}` },
+		});
+		window.dispatchEvent(navEvent);
+	};
+
 	const chitSchemes = [
 		{
 			id: 1,
@@ -157,20 +166,20 @@ const Chits = () => {
 									<p>Total Value: {chit.totalValue}</p>
 								</div>
 
-								<div className="chit-details">
-									<div className="detail-item">
+								<div className="chit-card-details">
+									<div className="card-detail-item">
 										<i className="fas fa-money-bill-wave"></i>
 										<span>{chit.contribution}</span>
 									</div>
-									<div className="detail-item">
+									<div className="card-detail-item">
 										<i className="fas fa-users"></i>
 										<span>{chit.members} members</span>
 									</div>
-									<div className="detail-item">
+									<div className="card-detail-item">
 										<i className="fas fa-calendar-alt"></i>
 										<span>{chit.duration}</span>
 									</div>
-									<div className="detail-item">
+									<div className="card-detail-item">
 										<i className="fas fa-calendar-check"></i>
 										<span>Started: {chit.startDate}</span>
 									</div>
@@ -184,14 +193,15 @@ const Chits = () => {
 									<ActionButton
 										label="View Members"
 										icon="users"
-										variant="secondary"
+										variant="outline"
 										className="action-button view"
 									/>
 									<ActionButton
 										label="Manage"
 										icon="cog"
-										variant="secondary"
+										variant="outline"
 										className="action-button manage"
+										onClick={() => handleManageClick(chit.id)}
 									/>
 								</div>
 							</div>
