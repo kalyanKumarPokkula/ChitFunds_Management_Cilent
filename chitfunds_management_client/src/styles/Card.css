@@ -1,0 +1,46 @@
+.card {
+	background-color: #fff;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	margin-bottom: 1.5rem;
+	overflow: hidden;
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+	background-color: #f8f9fa;
+	padding: 1rem 1.5rem;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.card-header h3 {
+	margin: 0;
+	font-size: 1.25rem;
+	color: #333;
+}
+
+.card-body {
+	padding: 1.5rem;
+}
+
+/* Card variations */
+.card-primary {
+	border-top: 4px solid #4361ee;
+}
+
+.card-success {
+	border-top: 4px solid #4cc9f0;
+}
+
+.card-warning {
+	border-top: 4px solid #f72585;
+}
+
+.card-info {
+	border-top: 4px solid #7209b7;
+}
