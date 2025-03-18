@@ -1,4 +1,5 @@
 import Navbar from '../components/Navbar';
+import ActionButton from '../components/ActionButton';
 import '../styles/Members.css';
 import { useState } from 'react';
 
@@ -51,6 +52,78 @@ const Members = () => {
 			totalValue: '₹10,00,000',
 			status: 'Inactive',
 		},
+		{
+			id: 6,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+		{
+			id: 7,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+		{
+			id: 8,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+		{
+			id: 9,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+		{
+			id: 10,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+		{
+			id: 5,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+		{
+			id: 11,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
+		{
+			id: 12,
+			name: 'Lakshmi Devi',
+			phone: '+91 54321 09876',
+			email: 'lakshmi@example.com',
+			activeChits: 2,
+			totalValue: '₹10,00,000',
+			status: 'Inactive',
+		},
 	];
 
 	const handleSearchChange = (e) => {
@@ -74,9 +147,11 @@ const Members = () => {
 						<p>Manage and view all members in your chit funds</p>
 					</div>
 					<div className="header-right">
-						<button className="add-member-button">
-							<i className="fas fa-plus"></i> Add New Member
-						</button>
+						<ActionButton
+							label="Add New Member"
+							icon="user-plus"
+							variant="primary"
+						/>
 					</div>
 				</div>
 
@@ -122,7 +197,7 @@ const Members = () => {
 										</span>
 									</td>
 									<td>
-										<button className="action-button">View</button>
+										<ActionButton label="View" icon="eye" variant="outline" />
 									</td>
 								</tr>
 							))}

@@ -1,4 +1,5 @@
 import Navbar from '../components/Navbar';
+import ActionButton from '../components/ActionButton';
 import '../styles/Chits.css';
 import { useState } from 'react';
 
@@ -114,9 +115,11 @@ const Chits = () => {
 						<p>Manage and view all your chit fund schemes</p>
 					</div>
 					<div className="header-right">
-						<button className="create-button">
-							<i className="fas fa-plus"></i> Create New Scheme
-						</button>
+						<ActionButton
+							label="Create New Scheme"
+							icon="plus"
+							variant="primary"
+						/>
 					</div>
 				</div>
 
@@ -178,8 +181,18 @@ const Chits = () => {
 								</div>
 
 								<div className="card-actions">
-									<button className="action-button view">View Members</button>
-									<button className="action-button manage">Manage</button>
+									<ActionButton
+										label="View Members"
+										icon="users"
+										variant="secondary"
+										className="action-button view"
+									/>
+									<ActionButton
+										label="Manage"
+										icon="cog"
+										variant="secondary"
+										className="action-button manage"
+									/>
 								</div>
 							</div>
 						</div>

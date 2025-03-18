@@ -1,0 +1,91 @@
+.action-button {
+	padding: 0.75rem 1.25rem;
+	border-radius: 0.375rem;
+	font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	border: none;
+}
+
+.action-button i {
+	font-size: 0.9rem;
+}
+
+/* Button variants */
+.action-button-primary {
+	background-color: #2563eb;
+	color: white;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.action-button-primary:hover {
+	background-color: #1d4ed8;
+}
+
+.action-button-secondary {
+	background-color: #6b7280;
+	color: white;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.action-button-secondary:hover {
+	background-color: #4b5563;
+}
+
+.action-button-success {
+	background-color: #10b981;
+	color: white;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.action-button-success:hover {
+	background-color: #059669;
+}
+
+.action-button-danger {
+	background-color: #ef4444;
+	color: white;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.action-button-danger:hover {
+	background-color: #dc2626;
+}
+
+.action-button-outline {
+	background-color: #fff;
+	border: 1px solid #e5e7eb;
+	color: #4b5563;
+}
+
+.action-button-outline:hover {
+	background-color: #f3f4f6;
+	border-color: #d1d5db;
+}
+
+/* Button sizes */
+.action-button-small {
+	padding: 0.375rem 0.75rem;
+	font-size: 0.75rem;
+}
+
+.action-button-medium {
+	padding: 0.625rem 1rem;
+	font-size: 0.875rem;
+}
+
+.action-button-large {
+	padding: 0.75rem 1.25rem;
+	font-size: 1rem;
+}
+
+/* Special styling for the buttons shown in the screenshot */
+.action-button.small {
+	padding: 0.375rem 0.75rem;
+	font-size: 0.75rem;
+	min-width: 60px;
+	justify-content: center;
+}
