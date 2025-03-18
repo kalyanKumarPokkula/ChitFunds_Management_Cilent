@@ -10,7 +10,7 @@ const ActionButton = ({
 }) => {
 	return (
 		<button
-			className={`action-button action-button-${variant} action-button-${size} ${className}`}
+			className={`btn-component action-button-${variant} action-button-${size} ${className}`}
 			onClick={onClick}
 		>
 			{icon && <i className={`fas fa-${icon}`}></i>}

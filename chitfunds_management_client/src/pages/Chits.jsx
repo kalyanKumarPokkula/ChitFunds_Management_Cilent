@@ -194,13 +194,13 @@ const Chits = () => {
 										label="View Members"
 										icon="users"
 										variant="outline"
-										className="action-button view"
+										className="view"
 									/>
 									<ActionButton
 										label="Manage"
 										icon="cog"
 										variant="outline"
-										className="action-button manage"
+										className="manage"
 										onClick={() => handleManageClick(chit.id)}
 									/>
 								</div>
