@@ -26,13 +26,14 @@
 }
 
 .action-button-secondary {
-	background-color: #6b7280;
-	color: white;
+	background-color: #83899542;
+	color: black;
+	font-weight: bold;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .action-button-secondary:hover {
-	background-color: #4b5563;
+	background-color: #4b556370;
 }
 
 .action-button-success {

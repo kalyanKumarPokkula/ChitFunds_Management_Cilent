@@ -142,7 +142,7 @@ const Chits = () => {
 
 				<div className="chits-grid">
 					{filteredChits.map((chit) => (
-						<div key={chit.chit_groups_id} className="chit-card">
+						<div key={chit.chit_group_id} className="chit-card">
 							<div className="card-header">
 								<h2>{chit.chit_name}</h2>
 								<span className={`status-badge ${chit.status.toLowerCase()}`}>
@@ -194,18 +194,18 @@ const Chits = () => {
 								</div>
 
 								<div className="card-actions">
-									<ActionButton
+									{/* <ActionButton
 										label="View Members"
 										icon="users"
 										variant="outline"
 										className="view"
-									/>
+									/> */}
 									<ActionButton
 										label="Manage"
 										icon="cog"
-										variant="outline"
+										variant="secondary"
 										className="manage"
-										onClick={() => handleManageClick(chit.chit_groups_id)}
+										onClick={() => handleManageClick(chit.chit_group_id)}
 									/>
 								</div>
 							</div>
