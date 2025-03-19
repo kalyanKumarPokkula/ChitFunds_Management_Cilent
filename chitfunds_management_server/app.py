@@ -1,4 +1,4 @@
-from chit_groups import chit_groups
+from chit_groups import chit_groups , add_chit , get_chit_by_id , get_users_by_chit_group
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
 
@@ -15,6 +15,47 @@ def get_chit_groups():
     data = chit_groups()
     return jsonify({"message" : "Recevied data" , "data" : data})
 
+@app.route('/chit-groups', methods=['POST'])
+def add_new_chit():
+    try:
+        data = request.json
+        print(data)
+        response = add_chit(data)
+        print(response)
+        return jsonify({"message": "Chit group added successfully!" , "data" : response['updates']['updatedRange']}) ,201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_chit', methods=['GET'])
+def get_chit():
+    try:
+        chit_group_id = request.args.get('chit_group_id')
+
+        if not chit_group_id:
+            return jsonify({"error" : "Missing chit_group_id"}) , 400
+        
+        response = get_chit_by_id(chit_group_id)
+
+
+        return jsonify({"data" : response}) , 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_chit_members' , methods=['GET'])
+def get_chit_members():
+    try:
+        chit_group_id = request.args.get('chit_group_id')
+
+        if not chit_group_id:
+            return jsonify({"error" : "Missing chit_group_id"}) , 400
+        
+        response = get_users_by_chit_group(chit_group_id)
+
+        return jsonify({"data" : response}) , 200
+    
+    except Exception as e:
+         return jsonify({"error" : str(e)}), 500
 
 # Run the Flask app
 if __name__ == '__main__':
