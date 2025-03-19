@@ -18,7 +18,7 @@ def chit_groups():
     # Create DataFrame
     chit_groups_df = pd.DataFrame(chit_groups_rows, columns=chit_groups_columns)
 
-    df = chit_groups_df[['chit_groups_id', 'chit_name' , 'chit_amount', 'duration_months' ,'total_members','monthly_installment', 'start_date' ,'end_date' , 'status']]
+    df = chit_groups_df[['chit_group_id', 'chit_name' , 'chit_amount', 'duration_months' ,'total_members','monthly_installment', 'start_date' ,'end_date' , 'status']]
     
     # Sort data based on custom order for 'status'
     status_order = ['active', 'upcoming', 'completed']

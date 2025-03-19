@@ -54,21 +54,15 @@ const ChitDetails = ({ chitId }) => {
 	const projections = [
 		{
 			month: 1,
-			discountPercent: '24.0%',
-			discountAmount: '₹12,00,000',
-			commission: '₹2,50,000',
-			netAmount: '₹35,50,000',
-			dividend: '₹47,500',
-			subscriberShare: '₹2,02,500',
+			total_payout: '₹35,50,000',
+			monthly_subscription: '₹2,02,500',
+			payout_user: 'Ramesh Kumar',
 		},
 		{
 			month: 2,
-			discountPercent: '23.0%',
-			discountAmount: '₹11,50,000',
-			commission: '₹2,50,000',
-			netAmount: '₹36,00,000',
-			dividend: '₹45,000',
-			subscriberShare: '₹2,05,000',
+			total_payout: '₹36,00,000',
+			monthly_subscription: '₹2,05,000',
+			payout_user: 'Suresh Reddy',
 		},
 		// Add more projections as needed
 	];
@@ -190,21 +184,21 @@ const ChitDetails = ({ chitId }) => {
 										</div>
 									</div>
 
-									<div className="detail-item with-icon">
+									{/* <div className="detail-item with-icon">
 										<i className="fas fa-user-tie"></i>
 										<div>
 											<label>Foreman</label>
 											<span>{chitDetails.foreman}</span>
 										</div>
-									</div>
+									</div> */}
 
-									<div className="detail-item with-icon">
+									{/* <div className="detail-item with-icon">
 										<i className="fas fa-percentage"></i>
 										<div>
 											<label>Foreman's Commission</label>
 											<span>{chitDetails.foremanCommission}</span>
 										</div>
-									</div>
+									</div> */}
 								</div>
 							</div>
 						</div>
@@ -234,17 +228,21 @@ const ChitDetails = ({ chitId }) => {
 									<span className="stat-label">Completed Auctions</span>
 									<span className="stat-value">4/20</span>
 								</div>
-								<div className="stat-item">
+								{/* <div className="stat-item">
 									<span className="stat-label">Your Turn</span>
 									<span className="stat-value">Not Yet</span>
+								</div> */}
+								<div className="stat-item">
+									<span className="stat-label">
+										Current Month Paid Members count
+									</span>
+									<span className="stat-value">16</span>
 								</div>
 								<div className="stat-item">
-									<span className="stat-label">Lowest Bid</span>
-									<span className="stat-value">₹40,000</span>
-								</div>
-								<div className="stat-item">
-									<span className="stat-label">Highest Bid</span>
-									<span className="stat-value">₹52,000</span>
+									<span className="stat-label">
+										Current Month Unpaid Memebers count
+									</span>
+									<span className="stat-value">4</span>
 								</div>
 							</div>
 						</div>
@@ -362,24 +360,18 @@ const ChitDetails = ({ chitId }) => {
 										<thead>
 											<tr>
 												<th>Month</th>
-												<th>Discount %</th>
-												<th>Discount Amount</th>
-												<th>Commission</th>
-												<th>Net Amount</th>
-												<th>Dividend</th>
-												<th>Subscriber Share</th>
+												<th>monthly_subscription</th>
+												<th>total_payout</th>
+												<th>payout_user</th>
 											</tr>
 										</thead>
 										<tbody>
 											{projections.map((projection) => (
 												<tr key={projection.month}>
 													<td>{projection.month}</td>
-													<td>{projection.discountPercent}</td>
-													<td>{projection.discountAmount}</td>
-													<td>{projection.commission}</td>
-													<td>{projection.netAmount}</td>
-													<td>{projection.dividend}</td>
-													<td>{projection.subscriberShare}</td>
+													<td>{projection.monthly_subscription}</td>
+													<td>{projection.total_payout}</td>
+													<td>{projection.payout_user}</td>
 												</tr>
 											))}
 										</tbody>
