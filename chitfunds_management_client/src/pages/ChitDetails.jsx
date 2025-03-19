@@ -253,19 +253,19 @@ const ChitDetails = ({ chitId }) => {
 					<div className="tabs-header">
 						<button
 							className={`tab-button ${
-								activeTab === 'members' ? 'active' : ''
-							}`}
-							onClick={() => setActiveTab('members')}
-						>
-							Members
-						</button>
-						<button
-							className={`tab-button ${
 								activeTab === 'projections' ? 'active' : ''
 							}`}
 							onClick={() => setActiveTab('projections')}
 						>
 							Projections
+						</button>
+						<button
+							className={`tab-button ${
+								activeTab === 'members' ? 'active' : ''
+							}`}
+							onClick={() => setActiveTab('members')}
+						>
+							Members
 						</button>
 						<button
 							className={`tab-button ${
