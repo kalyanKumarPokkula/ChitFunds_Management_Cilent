@@ -1,95 +1,135 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import '../styles/ChitDetails.css';
+import { differenceInMonths, isFuture } from 'date-fns';
 
 const ChitDetails = ({ chitId }) => {
-	const [activeTab, setActiveTab] = useState('members');
+	const [activeTab, setActiveTab] = useState('projections');
 	const [searchQuery, setSearchQuery] = useState('');
+	const [chitDetails, setChitDetails] = useState(null);
+	const [members, setMembers] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState(null);
 
-	// Sample data - replace with actual data from your backend
-	const chitDetails = {
-		id: chitId,
-		name: 'Dhanalakshmi 50L',
-		status: 'Active',
-		description: 'Premium chit scheme with high returns and reliable members.',
-		totalValue: '₹50,00,000',
-		monthlySubscription: '₹2,50,000',
-		foreman: 'Ramesh Kumar',
-		foremanCommission: '5%',
-		startDate: '01 Jan 2023',
-		nextAuction: '15 Apr 2023',
-		totalMembers: 20,
-		duration: '20 months',
-		completedAuctions: 4,
-		yourTurn: 'Not Yet',
-		lowestBid: '₹40,000',
-		highestBid: '₹52,000',
+	useEffect(() => {
+		fetchChitDetails();
+	}, [chitId]);
+
+	const fetchChitDetails = async () => {
+		try {
+			setIsLoading(true);
+			setError(null);
+			const response = await fetch(
+				`http://127.0.0.1:5000/get_chit?chit_group_id=${chitId}`
+			);
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
+
+			const result = await response.json();
+			setChitDetails(result.data);
+			setIsLoading(false);
+		} catch (error) {
+			console.error('Error fetching chit details:', error);
+			setError('Failed to load chit details. Please try again later.');
+			setIsLoading(false);
+		}
 	};
 
-	const members = [
-		{
-			id: 1,
-			name: 'Ramesh Kumar',
-			phone: '9876543210',
-			email: 'ramesh@example.com',
-			joinDate: '01 Jan 2023',
-			bidMonth: 3,
-			bidAmount: '₹42,500',
-			status: 'Active',
-		},
-		{
-			id: 2,
-			name: 'Suresh Reddy',
-			phone: '9876543211',
-			email: 'suresh@example.com',
-			joinDate: '01 Jan 2023',
-			bidMonth: 5,
-			bidAmount: '₹40,000',
-			status: 'Active',
-		},
-		// Add more members as needed
-	];
+	const fetchChitMembers = async () => {
+		try {
+			const response = await fetch(
+				`http://127.0.0.1:5000/get_chit_members?chit_group_id=${chitId}`
+			);
 
-	const projections = [
-		{
-			month: 1,
-			total_payout: '₹35,50,000',
-			monthly_subscription: '₹2,02,500',
-			payout_user: 'Ramesh Kumar',
-		},
-		{
-			month: 2,
-			total_payout: '₹36,00,000',
-			monthly_subscription: '₹2,05,000',
-			payout_user: 'Suresh Reddy',
-		},
-		// Add more projections as needed
-	];
+			if (!response.ok) {
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
 
-	const payments = [
-		{
-			month: 'January 2023',
-			amount: '₹2,50,000',
-			date: '15 Jan 2023',
-			paymentMethod: 'Net Banking',
-			reference: 'NB78954212',
-			status: 'Paid',
-		},
-		{
-			month: 'February 2023',
-			amount: '₹2,50,000',
-			date: '12 Feb 2023',
-			paymentMethod: 'UPI',
-			reference: 'UPI456321789',
-			status: 'Paid',
-		},
-		// Add more payments as needed
-	];
-
-	const handleSearchChange = (e) => {
-		setSearchQuery(e.target.value);
+			const result = await response.json();
+			setMembers(result.data);
+		} catch (error) {
+			console.error('Error fetching chit members:', error);
+			setError('Failed to load members. Please try again later.');
+		}
 	};
+
+	const handleTabChange = (tab) => {
+		setActiveTab(tab);
+		if (tab === 'members') {
+			fetchChitMembers();
+		}
+	};
+
+	const formatCurrency = (amount) => {
+		const numAmount = parseFloat(amount);
+		return `₹${numAmount.toLocaleString('en-IN')}`;
+	};
+
+	const formatDate = (dateString) => {
+		return new Date(dateString).toLocaleDateString('en-IN', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+		});
+	};
+
+	const calculateCompletedMonths = () => {
+		if (!chitDetails || !chitDetails.start_date) return 0;
+
+		const startDate = new Date(chitDetails.start_date);
+		const currentDate = new Date();
+		const durationMonths = parseInt(chitDetails.duration_months, 10);
+
+		if (isFuture(startDate)) {
+			return 0; // Start date is in the future
+		}
+
+		const completedMonths = differenceInMonths(currentDate, startDate);
+
+		return Math.min(completedMonths, durationMonths); // Ensure it doesn't exceed duration
+	};
+
+	if (isLoading) {
+		return (
+			<div className="chit-details-page">
+				<Navbar />
+				<div className="page-container">
+					<div className="loading-message">
+						<i className="fas fa-spinner fa-spin"></i> Loading chit details...
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="chit-details-page">
+				<Navbar />
+				<div className="page-container">
+					<div className="error-message">
+						<i className="fas fa-exclamation-circle"></i> {error}
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	if (!chitDetails) {
+		return (
+			<div className="chit-details-page">
+				<Navbar />
+				<div className="page-container">
+					<div className="error-message">
+						<i className="fas fa-exclamation-circle"></i> Chit details not found
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="chit-details-page">
@@ -102,11 +142,12 @@ const ChitDetails = ({ chitId }) => {
 							<span>Back to Chits</span>
 						</div>
 						<div className="title-section">
-							<h1>{chitDetails.name}</h1>
+							<h1>{chitDetails.chit_name}</h1>
 							<span
 								className={`status-badge ${chitDetails.status.toLowerCase()}`}
 							>
-								{chitDetails.status}
+								{chitDetails.status.charAt(0).toUpperCase() +
+									chitDetails.status.slice(1)}
 							</span>
 						</div>
 					</div>
@@ -127,14 +168,12 @@ const ChitDetails = ({ chitId }) => {
 						<div className="details-sections">
 							<div className="details-section">
 								<h3>General Information</h3>
-								<p className="description">{chitDetails.description}</p>
-
 								<div className="details-grid">
 									<div className="detail-item with-icon">
 										<i className="fas fa-users"></i>
 										<div>
 											<label>Total Members</label>
-											<span>{chitDetails.totalMembers}</span>
+											<span>{chitDetails.total_members}</span>
 										</div>
 									</div>
 
@@ -142,7 +181,7 @@ const ChitDetails = ({ chitId }) => {
 										<i className="fas fa-calendar-alt"></i>
 										<div>
 											<label>Duration</label>
-											<span>{chitDetails.duration}</span>
+											<span>{chitDetails.duration_months} months</span>
 										</div>
 									</div>
 
@@ -150,15 +189,15 @@ const ChitDetails = ({ chitId }) => {
 										<i className="fas fa-calendar-check"></i>
 										<div>
 											<label>Start Date</label>
-											<span>{chitDetails.startDate}</span>
+											<span>{formatDate(chitDetails.start_date)}</span>
 										</div>
 									</div>
 
 									<div className="detail-item with-icon">
 										<i className="fas fa-calendar-day"></i>
 										<div>
-											<label>Next Auction</label>
-											<span>{chitDetails.nextAuction}</span>
+											<label>End Date</label>
+											<span>{formatDate(chitDetails.end_date)}</span>
 										</div>
 									</div>
 								</div>
@@ -166,13 +205,12 @@ const ChitDetails = ({ chitId }) => {
 
 							<div className="details-section">
 								<h3>Financial Details</h3>
-
 								<div className="details-grid">
 									<div className="detail-item with-icon">
 										<i className="fas fa-money-bill-wave"></i>
 										<div>
 											<label>Total Value</label>
-											<span>{chitDetails.totalValue}</span>
+											<span>{formatCurrency(chitDetails.chit_amount)}</span>
 										</div>
 									</div>
 
@@ -180,25 +218,11 @@ const ChitDetails = ({ chitId }) => {
 										<i className="fas fa-receipt"></i>
 										<div>
 											<label>Monthly Subscription</label>
-											<span>{chitDetails.monthlySubscription}</span>
+											<span>
+												{formatCurrency(chitDetails.monthly_installment)}
+											</span>
 										</div>
 									</div>
-
-									{/* <div className="detail-item with-icon">
-										<i className="fas fa-user-tie"></i>
-										<div>
-											<label>Foreman</label>
-											<span>{chitDetails.foreman}</span>
-										</div>
-									</div> */}
-
-									{/* <div className="detail-item with-icon">
-										<i className="fas fa-percentage"></i>
-										<div>
-											<label>Foreman's Commission</label>
-											<span>{chitDetails.foremanCommission}</span>
-										</div>
-									</div> */}
 								</div>
 							</div>
 						</div>
@@ -206,17 +230,20 @@ const ChitDetails = ({ chitId }) => {
 
 					<div className="chit-summary-card">
 						<h2>Chit Summary</h2>
-
 						<div className="investment-summary">
-							<h3>Your Investment</h3>
+							<h3>Investment Details</h3>
 							<div className="investment-details">
 								<div className="investment-item">
 									<label>Monthly Payment</label>
-									<span className="amount">₹2,50,000</span>
+									<span className="amount">
+										{formatCurrency(chitDetails.monthly_installment)}
+									</span>
 								</div>
 								<div className="investment-item">
 									<label>Total Investment</label>
-									<span className="amount">₹50,00,000</span>
+									<span className="amount">
+										{formatCurrency(chitDetails.chit_amount)}
+									</span>
 								</div>
 							</div>
 						</div>
@@ -225,24 +252,18 @@ const ChitDetails = ({ chitId }) => {
 							<h3>Quick Stats</h3>
 							<div className="stats-list">
 								<div className="stat-item">
-									<span className="stat-label">Completed Auctions</span>
-									<span className="stat-value">4/20</span>
-								</div>
-								{/* <div className="stat-item">
-									<span className="stat-label">Your Turn</span>
-									<span className="stat-value">Not Yet</span>
-								</div> */}
-								<div className="stat-item">
-									<span className="stat-label">
-										Current Month Paid Members count
+									<span className="stat-label">Completed Months</span>
+									<span className="stat-value">
+										{calculateCompletedMonths()}/{chitDetails.duration_months}
 									</span>
-									<span className="stat-value">16</span>
 								</div>
 								<div className="stat-item">
-									<span className="stat-label">
-										Current Month Unpaid Memebers count
-									</span>
-									<span className="stat-value">4</span>
+									<span className="stat-label">Current Month Paid Count</span>
+									<span className="stat-value">8</span>
+								</div>
+								<div className="stat-item">
+									<span className="stat-label">Current Month Unpaid Count</span>
+									<span className="stat-value">2</span>
 								</div>
 							</div>
 						</div>
@@ -255,7 +276,7 @@ const ChitDetails = ({ chitId }) => {
 							className={`tab-button ${
 								activeTab === 'projections' ? 'active' : ''
 							}`}
-							onClick={() => setActiveTab('projections')}
+							onClick={() => handleTabChange('projections')}
 						>
 							Projections
 						</button>
@@ -263,7 +284,7 @@ const ChitDetails = ({ chitId }) => {
 							className={`tab-button ${
 								activeTab === 'members' ? 'active' : ''
 							}`}
-							onClick={() => setActiveTab('members')}
+							onClick={() => handleTabChange('members')}
 						>
 							Members
 						</button>
@@ -271,73 +292,13 @@ const ChitDetails = ({ chitId }) => {
 							className={`tab-button ${
 								activeTab === 'payments' ? 'active' : ''
 							}`}
-							onClick={() => setActiveTab('payments')}
+							onClick={() => handleTabChange('payments')}
 						>
 							Payments
 						</button>
 					</div>
 
 					<div className="tab-content">
-						{activeTab === 'members' && (
-							<div className="members-tab">
-								<div className="tab-header">
-									<div className="search-box">
-										<i className="fas fa-search search-icon"></i>
-										<input
-											type="text"
-											placeholder="Search members..."
-											value={searchQuery}
-											onChange={handleSearchChange}
-										/>
-									</div>
-									<ActionButton
-										label="Add Members"
-										icon="user-plus"
-										variant="primary"
-									/>
-								</div>
-								<div className="table-container">
-									<table className="data-table">
-										<thead>
-											<tr>
-												<th>Name</th>
-												<th>Contact</th>
-												<th>Join Date</th>
-												<th>Bid Month</th>
-												<th>Bid Amount</th>
-												<th>Status</th>
-												<th>Actions</th>
-											</tr>
-										</thead>
-										<tbody>
-											{members.map((member) => (
-												<tr key={member.id}>
-													<td>{member.name}</td>
-													<td>
-														{member.phone}
-														<div className="email">{member.email}</div>
-													</td>
-													<td>{member.joinDate}</td>
-													<td>{member.bidMonth || '-'}</td>
-													<td>{member.bidAmount || '-'}</td>
-													<td>
-														<span
-															className={`status-badge ${member.status.toLowerCase()}`}
-														>
-															{member.status}
-														</span>
-													</td>
-													<td>
-														<button className="action-dots">...</button>
-													</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							</div>
-						)}
-
 						{activeTab === 'projections' && (
 							<div className="projections-tab">
 								<div className="tab-header">
@@ -360,18 +321,67 @@ const ChitDetails = ({ chitId }) => {
 										<thead>
 											<tr>
 												<th>Month</th>
-												<th>monthly_subscription</th>
-												<th>total_payout</th>
-												<th>payout_user</th>
+												<th>Monthly Subscription</th>
+												<th>Total Payout</th>
+												<th>Payout User</th>
 											</tr>
 										</thead>
 										<tbody>
-											{projections.map((projection) => (
-												<tr key={projection.month}>
-													<td>{projection.month}</td>
-													<td>{projection.monthly_subscription}</td>
-													<td>{projection.total_payout}</td>
-													<td>{projection.payout_user}</td>
+											{chitDetails.monthly_projections.map((projection) => (
+												<tr key={projection.monthly_projections_id}>
+													<td>{projection.month_number}</td>
+													<td>
+														{formatCurrency(projection.monthly_subcription)}
+													</td>
+													<td>{formatCurrency(projection.total_payout)}</td>
+													<td>{projection.full_name}</td>
+												</tr>
+											))}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						)}
+
+						{activeTab === 'members' && (
+							<div className="members-tab">
+								<div className="tab-header">
+									<div className="search-box">
+										<i className="fas fa-search search-icon"></i>
+										<input
+											type="text"
+											placeholder="Search members..."
+											value={searchQuery}
+											onChange={(e) => setSearchQuery(e.target.value)}
+										/>
+									</div>
+									<ActionButton
+										label="Add Members"
+										icon="user-plus"
+										variant="primary"
+									/>
+								</div>
+								<div className="table-container">
+									<table className="data-table">
+										<thead>
+											<tr>
+												<th>Name</th>
+												<th>Contact</th>
+												<th>Email</th>
+												<th>Lifted</th>
+												<th>Lifted Amount</th>
+												<th>Pending Installments</th>
+											</tr>
+										</thead>
+										<tbody>
+											{members.map((member) => (
+												<tr key={member.user_id}>
+													<td>{member.full_name}</td>
+													<td>{member.phone}</td>
+													<td>{member.email}</td>
+													<td>{member.is_lifted === 'TRUE' ? 'Yes' : 'No'}</td>
+													<td>{formatCurrency(member.lifted_amount)}</td>
+													<td>{member.pending_installments}</td>
 												</tr>
 											))}
 										</tbody>
@@ -389,7 +399,7 @@ const ChitDetails = ({ chitId }) => {
 											type="text"
 											placeholder="Search payments..."
 											value={searchQuery}
-											onChange={handleSearchChange}
+											onChange={(e) => setSearchQuery(e.target.value)}
 										/>
 									</div>
 									<div className="action-buttons">
@@ -423,27 +433,7 @@ const ChitDetails = ({ chitId }) => {
 												<th>Actions</th>
 											</tr>
 										</thead>
-										<tbody>
-											{payments.map((payment, index) => (
-												<tr key={index}>
-													<td>{payment.month}</td>
-													<td>{payment.amount}</td>
-													<td>{payment.date}</td>
-													<td>{payment.paymentMethod}</td>
-													<td>{payment.reference}</td>
-													<td>
-														<span
-															className={`status-badge ${payment.status.toLowerCase()}`}
-														>
-															{payment.status}
-														</span>
-													</td>
-													<td>
-														<button className="action-dots">...</button>
-													</td>
-												</tr>
-											))}
-										</tbody>
+										<tbody>{/* Keep existing payments data for now */}</tbody>
 									</table>
 								</div>
 							</div>
