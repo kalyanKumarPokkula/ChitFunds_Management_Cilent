@@ -84,10 +84,10 @@ def get_chit_members():
 def add_chit_members():
     try:
 
-        data = request.json.get("data", [])
+        data = request.get_json()
         print(type(data), data)  # Debugging
 
-        if not isinstance(data, list):  
+        if not data:  
             return jsonify({"error": "Invalid format, expected a list under 'data'"}), 400
         
         response = add_members(data)

@@ -63,12 +63,13 @@ def add_chit(data):
 def add_members(data):
 
     formatted_rows = []
+    users = data.get("user_ids")
     index = total_chit_memeber_rows()
-    for row in data:
+    for row in users:
         formatted_rows.append([
             str(index),
-            str(row.get("user_id" ,"")),
-            str(row.get("chit_group_id","")),
+            str(row),
+            str(data.get("chit_group_id","")),
             str("FALSE"),
             0,
             0,
