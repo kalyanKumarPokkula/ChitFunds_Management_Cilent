@@ -177,7 +177,7 @@ def get_users():
 
      df_users = pd.DataFrame(users_sheet[1:] , columns=users_sheet[0])
 
-     return df_users[["full_name" , "phone"]].to_dict(orient="records")
+     return df_users[["user_id","full_name" , "phone"]].to_dict(orient="records")
 
 
 
