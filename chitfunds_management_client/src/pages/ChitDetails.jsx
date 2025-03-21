@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import AddMembersModal from '../components/AddMembersModal';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import Notification from '../components/Notification';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
 
@@ -16,6 +18,10 @@ const ChitDetails = ({ chitId }) => {
 	const [membersError, setMembersError] = useState(null);
 	const [filteredMembers, setFilteredMembers] = useState([]);
 	const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [notificationMessage, setNotificationMessage] = useState('');
+	const [notificationType, setNotificationType] = useState('');
+	const [isNotificationVisible, setIsNotificationVisible] = useState(false);
 
 	useEffect(() => {
 		fetchChitDetails();
@@ -120,6 +126,39 @@ const ChitDetails = ({ chitId }) => {
 		return Math.min(completedMonths, durationMonths); // Ensure it doesn't exceed duration
 	};
 
+	const handleDeleteClick = () => {
+		setIsDeleteModalOpen(true);
+	};
+
+	const handleDeleteConfirm = async () => {
+		try {
+			const response = await fetch(
+				`http://127.0.0.1:5000/delete-chit?chit_group_id=${chitId}`,
+				{
+					method: 'DELETE',
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to delete chit');
+			}
+
+			setNotificationMessage('Chit deleted successfully!');
+			setNotificationType('success');
+			setIsNotificationVisible(true);
+			setIsDeleteModalOpen(false);
+
+			setTimeout(() => {
+				window.location.href = '/chits';
+			}, 2000);
+		} catch (error) {
+			console.error('Error deleting chit:', error);
+			setNotificationMessage('Failed to delete chit.');
+			setNotificationType('error');
+			setIsNotificationVisible(true);
+		}
+	};
+
 	if (isLoading) {
 		return (
 			<div className="chit-details-page">
@@ -180,7 +219,11 @@ const ChitDetails = ({ chitId }) => {
 						</div>
 					</div>
 					<div className="header-right">
-						<ActionButton label="Delete Chit" icon="trash" variant="danger" />
+						<ActionButton
+							label="Delete"
+							variant="danger"
+							onClick={handleDeleteClick}
+						/>
 					</div>
 				</div>
 
@@ -502,12 +545,28 @@ const ChitDetails = ({ chitId }) => {
 				</div>
 			</div>
 
+			{/* Notification Component */}
+			{isNotificationVisible && (
+				<Notification
+					message={notificationMessage}
+					type={notificationType}
+					onClose={() => setIsNotificationVisible(false)}
+				/>
+			)}
+
 			{/* Add Members Modal */}
 			<AddMembersModal
 				isOpen={isAddMembersModalOpen}
 				onClose={() => setIsAddMembersModalOpen(false)}
 				chitId={chitId}
 				onSuccess={handleAddMembersSuccess}
+			/>
+
+			{/* Confirmation Modal */}
+			<DeleteConfirmationModal
+				isOpen={isDeleteModalOpen}
+				onClose={() => setIsDeleteModalOpen(false)}
+				onConfirm={handleDeleteConfirm}
 			/>
 		</div>
 	);

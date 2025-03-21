@@ -85,6 +85,56 @@ def add_members(data):
 
     return {"message": "Rows added successfully"}
 
+def update_chit_group(data):
+    
+    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+    
+    chit_groups_sheet = chit_groups.get_all_records()
+    
+    print(chit_groups_sheet)
+    
+    row_to_update = None
+    row_index = None
+    for i, row in enumerate(chit_groups_sheet):
+        print(i)
+        print(row)
+        if str(row.get("chit_group_id")) == str(data.get("chit_group_id")):
+            row_to_update = row
+            row_index = i + 2  # Google Sheets are 1-indexed, so add 2 to the index (1 for header, 1 for index)
+            break
+    
+    print(row_to_update)
+    print(row_index)
+    
+    print(row_to_update)
+    print(row_index)
+    if row_to_update is None:
+        print("Chit group not found.")
+        return
+    print(row_to_update)
+    if row_index is not None:
+        print(row_index)
+    # Prepare the updated row data by comparing the fields
+    updated_values = []
+    for key, value in data.items():
+        # You need to match the column order and index, e.g., name, description, etc.
+        if row_to_update.get(key) != value:  # If there's a difference, update it
+            updated_values.append(value)
+        else:
+            updated_values.append(row_to_update.get(key))  # Keep the original value if not updated
+         # Keep the original value if not updated
+    print(updated_values)
+    range_to_update = f"A{row_index}:I{row_index}"
+    # If there are any updates, apply them
+    if updated_values:
+        chit_groups.update(range_to_update,[updated_values])
+        return {"message" : f"Chit group {data.get('chit_group_id')} updated successfully."}
+    else:
+        return {"message" : "No changes detected."}
+        
+    
+    
+
 def delete_chit_group_by_id(chit_group_id):
      
      chit_groups = spreadsheet_credentials().worksheet("chit_groups")
