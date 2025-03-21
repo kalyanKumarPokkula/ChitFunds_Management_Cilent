@@ -13,6 +13,7 @@ const ChitDetails = ({ chitId }) => {
 	const [isMembersLoading, setIsMembersLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [membersError, setMembersError] = useState(null);
+	const [filteredMembers, setFilteredMembers] = useState([]);
 
 	useEffect(() => {
 		fetchChitDetails();
@@ -54,12 +55,26 @@ const ChitDetails = ({ chitId }) => {
 
 			const result = await response.json();
 			setMembers(result.data);
+			setFilteredMembers(result.data);
 		} catch (error) {
 			console.error('Error fetching chit members:', error);
 			setMembersError('Failed to load members. Please try again later.');
 		} finally {
 			setIsMembersLoading(false);
 		}
+	};
+
+	const handleSearchChange = (e) => {
+		const query = e.target.value.toLowerCase();
+		setSearchQuery(query);
+
+		const filtered = members.filter(
+			(member) =>
+				member.full_name.toLowerCase().includes(query) ||
+				member.email.toLowerCase().includes(query) ||
+				member.phone.includes(query)
+		);
+		setFilteredMembers(filtered);
 	};
 
 	const handleTabChange = (tab) => {
@@ -358,7 +373,7 @@ const ChitDetails = ({ chitId }) => {
 											type="text"
 											placeholder="Search members..."
 											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
+											onChange={handleSearchChange}
 										/>
 									</div>
 									<ActionButton
@@ -398,7 +413,7 @@ const ChitDetails = ({ chitId }) => {
 														</div>
 													</td>
 												</tr>
-											) : members.length === 0 ? (
+											) : filteredMembers.length === 0 ? (
 												<tr>
 													<td colSpan="6" className="empty-cell">
 														<div className="empty-message">
@@ -408,7 +423,7 @@ const ChitDetails = ({ chitId }) => {
 													</td>
 												</tr>
 											) : (
-												members.map((member) => (
+												filteredMembers.map((member) => (
 													<tr key={member.user_id}>
 														<td>{member.full_name}</td>
 														<td>{member.phone}</td>
