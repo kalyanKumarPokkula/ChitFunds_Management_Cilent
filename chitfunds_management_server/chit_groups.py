@@ -3,10 +3,16 @@ import pandas as pd
 from flask import jsonify
 
 
-def total_rows():
+def total_chit_rows():
     chit_groups = spreadsheet_credentials().worksheet("chit_groups")
 
     return len(chit_groups.get_all_values())
+
+def total_chit_memeber_rows():
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+
+    return len(chit_members.get_all_values())
+
 
 def chit_groups():
 
@@ -39,7 +45,7 @@ def chit_groups():
 def add_chit(data):
     
     new_row = [
-        str(total_rows()),   # Convert to string
+        str(total_chit_rows()),   # Convert to string
         str(data.get("chit_name", "")),
         str(data.get("chit_amount", "")),
         str(data.get("duration_months", "")),
@@ -53,6 +59,56 @@ def add_chit(data):
     chit_groups = spreadsheet_credentials().worksheet("chit_groups")
 
     return chit_groups.append_row(new_row)
+
+def add_members(data):
+
+    formatted_rows = []
+    index = total_chit_memeber_rows()
+    for row in data:
+        formatted_rows.append([
+            str(index),
+            str(row.get("user_id" ,"")),
+            str(row.get("chit_group_id","")),
+            str("FALSE"),
+            0,
+            0,
+            str("NULL")
+        ])
+        index += 1;
+    
+    print(formatted_rows)
+    
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+
+    chit_members.append_rows(formatted_rows)
+
+    return {"message": "Rows added successfully"}
+
+def delete_chit_group_by_id(chit_group_id):
+     
+     chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+
+     chit_group_sheet = chit_groups.get_all_records()
+
+     print(chit_group_sheet)
+     # Define the column name and value to delete
+     column_name = "chit_group_id"
+
+     row_to_delete = None
+     for i, row in enumerate(chit_group_sheet):
+          print(i)
+          print(row)
+          if str(row.get("chit_group_id")) == str(chit_group_id):
+               row_to_delete = i + 2
+               break
+       
+     print(row_to_delete)
+     if row_to_delete:
+          chit_groups.delete_rows(row_to_delete)
+
+          return {"message" : f"Deleted row {row_to_delete} with chit_group_id = {chit_group_id}"}
+     else:
+          return {"error": f"No row found with chit_group_id = {chit_group_id}"}
 
 
 def get_chit_by_id(chit_group_id):
@@ -103,6 +159,28 @@ def get_users_by_chit_group(chit_group_id):
      user_data = result_df.to_dict(orient="records")
 
      return user_data
+
+def get_chit_group_payments(month_number):
+     
+     payments = spreadsheet_credentials().worksheet("payments")
+
+     payments_sheet = payments.get_all_values()
+
+
+
+
+def get_users():
+
+     users = spreadsheet_credentials().worksheet("users")
+
+     users_sheet = users.get_all_values()
+
+     df_users = pd.DataFrame(users_sheet[1:] , columns=users_sheet[0])
+
+     return df_users[["full_name" , "phone"]].to_dict(orient="records")
+
+
+
 
 
 def monthly_projections(chit_group_id):

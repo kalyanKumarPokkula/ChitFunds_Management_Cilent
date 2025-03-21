@@ -1,4 +1,4 @@
-from chit_groups import chit_groups , add_chit , get_chit_by_id , get_users_by_chit_group
+from chit_groups import chit_groups , add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
 
@@ -14,6 +14,29 @@ def chit_funds():
 def get_chit_groups():
     data = chit_groups()
     return jsonify({"message" : "Recevied data" , "data" : data})
+
+@app.route("/users" , methods=['GET'])
+def users():
+    try:
+        data = get_users()
+        return jsonify({"data" : data}) , 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route("/delete-chit", methods=["DELETE"])
+def delete_chit():
+
+    try: 
+        chit_group_id = request.args.get("chit_group_id")
+        print(chit_group_id)
+        if chit_group_id is None:
+            return jsonify({"error": "chit_group_id is required"}), 400
+        
+        response = delete_chit_group_by_id(chit_group_id)
+
+        return jsonify(response) , 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/chit-groups', methods=['POST'])
 def add_new_chit():
@@ -56,6 +79,22 @@ def get_chit_members():
     
     except Exception as e:
          return jsonify({"error" : str(e)}), 500
+
+@app.route("/add_chit_members" , methods=["POST"])
+def add_chit_members():
+    try:
+
+        data = request.json.get("data", [])
+        print(type(data), data)  # Debugging
+
+        if not isinstance(data, list):  
+            return jsonify({"error": "Invalid format, expected a list under 'data'"}), 400
+        
+        response = add_members(data)
+
+        return jsonify(response), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Run the Flask app
 if __name__ == '__main__':
