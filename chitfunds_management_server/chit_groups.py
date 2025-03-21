@@ -149,7 +149,7 @@ def get_users_by_chit_group(chit_group_id):
      matched_members = df_chit_members[df_chit_members["chit_group_id"] == str(chit_group_id)]
 
      if matched_members.empty:
-            return jsonify({"error": "No users found for the given chit_group_id"}), 404
+            return []
      
 
      result_df = matched_members.merge(df_users , on="user_id" , how="inner")[
