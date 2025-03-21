@@ -2,6 +2,7 @@ import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import '../styles/Chits.css';
 import { useState, useEffect } from 'react';
+import CreateChitModal from '../components/CreateChitModal';
 
 const Chits = () => {
 	const [searchQuery, setSearchQuery] = useState('');
@@ -9,6 +10,7 @@ const Chits = () => {
 	const [chitSchemes, setChitSchemes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	useEffect(() => {
 		fetchChitGroups();
@@ -41,12 +43,9 @@ const Chits = () => {
 	};
 
 	const handleManageClick = (chitId) => {
-		window.history.pushState({}, '', `/chits/${chitId}`);
-		// Dispatch navigation event
-		const navEvent = new CustomEvent('navchange', {
-			detail: { path: `/chits/${chitId}` },
-		});
-		window.dispatchEvent(navEvent);
+		// Create a chitDetails URL with the chit ID
+		const detailsPath = `/chit-details/${chitId}`;
+		window.location.href = detailsPath;
 	};
 
 	const handleSearchChange = (e) => {
@@ -55,6 +54,11 @@ const Chits = () => {
 
 	const handleStatusChange = (e) => {
 		setStatusFilter(e.target.value);
+	};
+
+	const handleCreateSuccess = () => {
+		// Refresh the chit schemes list after creating a new one
+		fetchChitGroups();
 	};
 
 	const filteredChits = chitSchemes.filter((chit) => {
@@ -79,6 +83,14 @@ const Chits = () => {
 		return `₹${numAmount.toLocaleString('en-IN')}`;
 	};
 
+	const formatDate = (dateString) => {
+		return new Date(dateString).toLocaleDateString('en-IN', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+		});
+	};
+
 	return (
 		<div className="chits-page">
 			<Navbar />
@@ -94,6 +106,7 @@ const Chits = () => {
 							label="Create New Scheme"
 							icon="plus"
 							variant="primary"
+							onClick={() => setIsModalOpen(true)}
 						/>
 					</div>
 				</div>
@@ -171,26 +184,12 @@ const Chits = () => {
 									</div>
 									<div className="card-detail-item">
 										<i className="fas fa-calendar-check"></i>
-										<span>
-											Started:{' '}
-											{new Date(chit.start_date).toLocaleDateString('en-IN', {
-												year: 'numeric',
-												month: 'short',
-												day: 'numeric',
-											})}
-										</span>
+										<span>Started: {formatDate(chit.start_date)}</span>
 									</div>
 								</div>
 
 								<div className="auction-info">
-									<p>
-										End Date:{' '}
-										{new Date(chit.end_date).toLocaleDateString('en-IN', {
-											year: 'numeric',
-											month: 'short',
-											day: 'numeric',
-										})}
-									</p>
+									<p>End Date: {formatDate(chit.end_date)}</p>
 								</div>
 
 								<div className="card-actions">
@@ -213,6 +212,12 @@ const Chits = () => {
 					))}
 				</div>
 			</div>
+
+			<CreateChitModal
+				isOpen={isModalOpen}
+				onClose={() => setIsModalOpen(false)}
+				onSuccess={handleCreateSuccess}
+			/>
 		</div>
 	);
 };

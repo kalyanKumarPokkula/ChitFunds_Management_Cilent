@@ -10,7 +10,9 @@ const ChitDetails = ({ chitId }) => {
 	const [chitDetails, setChitDetails] = useState(null);
 	const [members, setMembers] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [isMembersLoading, setIsMembersLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [membersError, setMembersError] = useState(null);
 
 	useEffect(() => {
 		fetchChitDetails();
@@ -40,6 +42,8 @@ const ChitDetails = ({ chitId }) => {
 
 	const fetchChitMembers = async () => {
 		try {
+			setIsMembersLoading(true);
+			setMembersError(null);
 			const response = await fetch(
 				`http://127.0.0.1:5000/get_chit_members?chit_group_id=${chitId}`
 			);
@@ -52,7 +56,9 @@ const ChitDetails = ({ chitId }) => {
 			setMembers(result.data);
 		} catch (error) {
 			console.error('Error fetching chit members:', error);
-			setError('Failed to load members. Please try again later.');
+			setMembersError('Failed to load members. Please try again later.');
+		} finally {
+			setIsMembersLoading(false);
 		}
 	};
 
@@ -374,16 +380,47 @@ const ChitDetails = ({ chitId }) => {
 											</tr>
 										</thead>
 										<tbody>
-											{members.map((member) => (
-												<tr key={member.user_id}>
-													<td>{member.full_name}</td>
-													<td>{member.phone}</td>
-													<td>{member.email}</td>
-													<td>{member.is_lifted === 'TRUE' ? 'Yes' : 'No'}</td>
-													<td>{formatCurrency(member.lifted_amount)}</td>
-													<td>{member.pending_installments}</td>
+											{isMembersLoading ? (
+												<tr>
+													<td colSpan="6" className="loading-cell">
+														<div className="loading-message">
+															<i className="fas fa-spinner fa-spin"></i> Loading
+															members...
+														</div>
+													</td>
 												</tr>
-											))}
+											) : membersError ? (
+												<tr>
+													<td colSpan="6" className="empty-cell">
+														<div className="empty-message">
+															<i className="fas fa-exclamation-circle"></i>{' '}
+															{membersError}
+														</div>
+													</td>
+												</tr>
+											) : members.length === 0 ? (
+												<tr>
+													<td colSpan="6" className="empty-cell">
+														<div className="empty-message">
+															<i className="fas fa-users-slash"></i> No members
+															found
+														</div>
+													</td>
+												</tr>
+											) : (
+												members.map((member) => (
+													<tr key={member.user_id}>
+														<td>{member.full_name}</td>
+														<td>{member.phone}</td>
+														<td>{member.email}</td>
+														<td>
+															{member.is_lifted === 'TRUE' ? 'Yes' : 'No'}
+														</td>
+														<td>{formatCurrency(member.lifted_amount)}</td>
+														<td>{member.pending_installments}</td>
+													</tr>
+												))
+											)}
 										</tbody>
 									</table>
 								</div>

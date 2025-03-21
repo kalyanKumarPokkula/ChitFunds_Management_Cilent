@@ -30,10 +30,18 @@ function App() {
 	}, []);
 
 	const renderPage = () => {
-		const chitDetailsMatch = currentPath.match(/^\/chits\/(\d+)$/);
+		// Match for chit details route in new format: /chit-details/1
+		const chitDetailsMatch = currentPath.match(/^\/chit-details\/(\d+)$/);
+
+		// Legacy format support: /chits/1
+		const legacyChitDetailsMatch = currentPath.match(/^\/chits\/(\d+)$/);
 
 		if (chitDetailsMatch) {
 			return <ChitDetails chitId={chitDetailsMatch[1]} />;
+		}
+
+		if (legacyChitDetailsMatch) {
+			return <ChitDetails chitId={legacyChitDetailsMatch[1]} />;
 		}
 
 		switch (currentPath) {
