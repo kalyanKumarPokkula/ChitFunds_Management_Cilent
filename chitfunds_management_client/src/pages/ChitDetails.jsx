@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
+import AddMembersModal from '../components/AddMembersModal';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
 
@@ -14,6 +15,7 @@ const ChitDetails = ({ chitId }) => {
 	const [error, setError] = useState(null);
 	const [membersError, setMembersError] = useState(null);
 	const [filteredMembers, setFilteredMembers] = useState([]);
+	const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
 
 	useEffect(() => {
 		fetchChitDetails();
@@ -82,6 +84,11 @@ const ChitDetails = ({ chitId }) => {
 		if (tab === 'members') {
 			fetchChitMembers();
 		}
+	};
+
+	const handleAddMembersSuccess = () => {
+		// Refresh the members list after adding new members
+		fetchChitMembers();
 	};
 
 	const formatCurrency = (amount) => {
@@ -380,6 +387,7 @@ const ChitDetails = ({ chitId }) => {
 										label="Add Members"
 										icon="user-plus"
 										variant="primary"
+										onClick={() => setIsAddMembersModalOpen(true)}
 									/>
 								</div>
 								<div className="table-container">
@@ -493,6 +501,14 @@ const ChitDetails = ({ chitId }) => {
 					</div>
 				</div>
 			</div>
+
+			{/* Add Members Modal */}
+			<AddMembersModal
+				isOpen={isAddMembersModalOpen}
+				onClose={() => setIsAddMembersModalOpen(false)}
+				chitId={chitId}
+				onSuccess={handleAddMembersSuccess}
+			/>
 		</div>
 	);
 };
