@@ -167,7 +167,7 @@ const EditChitModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 		};
 
 		try {
-			const response = await fetch('http://127.0.0.1:5000/update-chit-group', {
+			const response = await fetch('http://127.0.0.1:5001/update-chit-group', {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',

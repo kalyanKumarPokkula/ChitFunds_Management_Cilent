@@ -40,7 +40,7 @@ const ChitDetails = ({ chitId }) => {
 			setIsLoading(true);
 			setError(null);
 			const response = await fetch(
-				`http://127.0.0.1:5000/get_chit?chit_group_id=${chitId}`
+				`http://127.0.0.1:5001/get_chit?chit_group_id=${chitId}`
 			);
 
 			if (!response.ok) {
@@ -62,7 +62,7 @@ const ChitDetails = ({ chitId }) => {
 			setIsMembersLoading(true);
 			setMembersError(null);
 			const response = await fetch(
-				`http://127.0.0.1:5000/get_chit_members?chit_group_id=${chitId}`
+				`http://127.0.0.1:5001/get_chit_members?chit_group_id=${chitId}`
 			);
 
 			if (!response.ok) {
@@ -142,7 +142,7 @@ const ChitDetails = ({ chitId }) => {
 	const handleDeleteConfirm = async () => {
 		try {
 			const response = await fetch(
-				`http://127.0.0.1:5000/delete-chit?chit_group_id=${chitId}`,
+				`http://127.0.0.1:5001/delete-chit?chit_group_id=${chitId}`,
 				{
 					method: 'DELETE',
 				}
