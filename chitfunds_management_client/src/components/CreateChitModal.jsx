@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { z } from 'zod';
 import ActionButton from './ActionButton';
+import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
 
 const chitSchema = z.object({
@@ -42,7 +43,7 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 
 	const [errors, setErrors] = useState({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [feedback, setFeedback] = useState({ type: '', message: '' });
+	const { showSuccess, showError } = useNotification();
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -132,7 +133,6 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 		}
 
 		setIsSubmitting(true);
-		setFeedback({ type: '', message: '' });
 
 		// Ensure all numbers are properly formatted as numbers for the API
 		const submissionData = {
@@ -155,10 +155,7 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 			const result = await response.json();
 
 			if (response.ok) {
-				setFeedback({
-					type: 'success',
-					message: result.message || 'Chit scheme created successfully!',
-				});
+				showSuccess('Chit scheme created successfully!');
 
 				// Reset form data
 				setFormData({
@@ -176,19 +173,13 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 				setTimeout(() => {
 					onSuccess();
 					onClose();
-				}, 2000);
+				}, 1500);
 			} else {
-				setFeedback({
-					type: 'error',
-					message: result.message || 'Failed to create chit scheme',
-				});
+				showError(result.message || 'Failed to create chit scheme');
 			}
 		} catch (error) {
 			console.error('Error creating chit scheme:', error);
-			setFeedback({
-				type: 'error',
-				message: 'Network error. Please try again.',
-			});
+			showError('Network error. Please try again.');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -254,29 +245,13 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 								name="monthly_installment"
 								value={formData.monthly_installment}
 								onChange={handleChange}
-								placeholder="Enter monthly subscription"
+								placeholder="Enter monthly subscription amount"
 								required
 							/>
 							{errors.monthly_installment && (
 								<span className="error-message">
 									{errors.monthly_installment}
 								</span>
-							)}
-						</div>
-
-						<div className="form-group">
-							<label htmlFor="total_members">Total Members</label>
-							<input
-								type="number"
-								id="total_members"
-								name="total_members"
-								value={formData.total_members}
-								onChange={handleChange}
-								placeholder="Enter total members"
-								required
-							/>
-							{errors.total_members && (
-								<span className="error-message">{errors.total_members}</span>
 							)}
 						</div>
 
@@ -293,6 +268,22 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 							/>
 							{errors.duration_months && (
 								<span className="error-message">{errors.duration_months}</span>
+							)}
+						</div>
+
+						<div className="form-group">
+							<label htmlFor="total_members">Total Members</label>
+							<input
+								type="number"
+								id="total_members"
+								name="total_members"
+								value={formData.total_members}
+								onChange={handleChange}
+								placeholder="Enter number of members"
+								required
+							/>
+							{errors.total_members && (
+								<span className="error-message">{errors.total_members}</span>
 							)}
 						</div>
 
@@ -346,17 +337,6 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 						</div>
 					</div>
 
-					{feedback.message && (
-						<div className={`feedback-message ${feedback.type}`}>
-							{feedback.type === 'success' ? (
-								<i className="fas fa-check-circle"></i>
-							) : (
-								<i className="fas fa-exclamation-circle"></i>
-							)}
-							<span>{feedback.message}</span>
-						</div>
-					)}
-
 					<div className="form-actions">
 						<button
 							type="button"
@@ -368,8 +348,8 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 						</button>
 						<ActionButton
 							type="submit"
-							label={isSubmitting ? 'Creating...' : 'Create Chit Scheme'}
-							icon={isSubmitting ? 'spinner fa-spin' : ''}
+							label={isSubmitting ? 'Creating...' : 'Create Scheme'}
+							icon={isSubmitting ? 'spinner fa-spin' : 'plus'}
 							variant="primary"
 							disabled={isSubmitting}
 						/>

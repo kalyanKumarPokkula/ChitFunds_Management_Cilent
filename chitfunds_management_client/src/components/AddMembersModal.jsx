@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ActionButton from './ActionButton';
+import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
 
 const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
@@ -10,8 +11,7 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [submitSuccess, setSubmitSuccess] = useState(false);
-	const [submitError, setSubmitError] = useState(null);
+	const { showSuccess, showError } = useNotification();
 
 	useEffect(() => {
 		if (isOpen) {
@@ -19,8 +19,6 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 			// Reset states when modal opens
 			setSelectedUsers([]);
 			setSearchQuery('');
-			setSubmitSuccess(false);
-			setSubmitError(null);
 		}
 	}, [isOpen]);
 
@@ -81,19 +79,19 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 
 	const handleSubmit = async () => {
 		if (selectedUsers.length === 0) {
-			setSubmitError('Please select at least one user to add');
+			showError('Please select at least one user to add');
 			return;
 		}
 
 		try {
 			setIsSubmitting(true);
-			setSubmitError(null);
-			setSubmitSuccess(false);
 
 			const payload = {
 				chit_group_id: chitId,
 				user_ids: selectedUsers,
 			};
+
+			console.log(payload);
 
 			const response = await fetch('http://127.0.0.1:5000/add_chit_members', {
 				method: 'POST',
@@ -110,16 +108,14 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 				);
 			}
 
-			setSubmitSuccess(true);
+			showSuccess('Members added successfully!');
 			setTimeout(() => {
 				onSuccess && onSuccess();
 				onClose();
-			}, 1500);
+			}, 1000);
 		} catch (error) {
 			console.error('Error adding members:', error);
-			setSubmitError(
-				error.message || 'Failed to add members. Please try again.'
-			);
+			showError(error.message || 'Failed to add members. Please try again.');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -200,19 +196,6 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 								</div>
 							)}
 						</>
-					)}
-
-					{submitSuccess && (
-						<div className="success-message">
-							<i className="fas fa-check-circle"></i> Members added
-							successfully!
-						</div>
-					)}
-
-					{submitError && (
-						<div className="error-message">
-							<i className="fas fa-exclamation-circle"></i> {submitError}
-						</div>
 					)}
 				</div>
 
