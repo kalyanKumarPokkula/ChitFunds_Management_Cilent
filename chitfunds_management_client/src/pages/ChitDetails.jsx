@@ -4,6 +4,7 @@ import ActionButton from '../components/ActionButton';
 import AddMembersModal from '../components/AddMembersModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import EditChitModal from '../components/EditChitModal';
+import AddProjectionsModal from '../components/AddProjectionsModal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
@@ -21,6 +22,8 @@ const ChitDetails = ({ chitId }) => {
 	const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isAddProjectionsModalOpen, setIsAddProjectionsModalOpen] =
+		useState(false);
 	const { showSuccess, showError } = useNotification();
 
 	useEffect(() => {
@@ -164,6 +167,12 @@ const ChitDetails = ({ chitId }) => {
 		// Refresh the chit details after editing
 		fetchChitDetails();
 		showSuccess('Chit scheme updated successfully!');
+	};
+
+	const handleAddProjectionsSuccess = () => {
+		// Refresh the chit details after adding projections
+		fetchChitDetails();
+		showSuccess('Projections added successfully!');
 	};
 
 	if (isLoading) {
@@ -383,6 +392,12 @@ const ChitDetails = ({ chitId }) => {
 									<div className="spacer"></div>
 									<div className="action-buttons">
 										<ActionButton
+											label="Add Projection"
+											icon="plus"
+											variant="primary"
+											onClick={() => setIsAddProjectionsModalOpen(true)}
+										/>
+										<ActionButton
 											label="Print"
 											icon="print"
 											variant="outline"
@@ -572,6 +587,14 @@ const ChitDetails = ({ chitId }) => {
 				isOpen={isEditModalOpen}
 				onClose={() => setIsEditModalOpen(false)}
 				onSuccess={handleEditSuccess}
+				chitDetails={chitDetails}
+			/>
+
+			{/* Add Projections Modal */}
+			<AddProjectionsModal
+				isOpen={isAddProjectionsModalOpen}
+				onClose={() => setIsAddProjectionsModalOpen(false)}
+				onSuccess={handleAddProjectionsSuccess}
 				chitDetails={chitDetails}
 			/>
 		</div>
