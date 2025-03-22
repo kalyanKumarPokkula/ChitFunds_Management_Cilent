@@ -467,3 +467,55 @@
 	color: #666;
 	font-size: 1.2rem;
 }
+
+/* Add Lifter Button in Table */
+.add-lifter-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.375rem;
+	padding: 0.375rem 0.75rem;
+	font-size: 0.75rem;
+	font-weight: 500;
+	border-radius: 4px;
+	background-color: #dbeafe;
+	color: #2563eb;
+	border: none;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.add-lifter-btn:hover {
+	background-color: #bfdbfe;
+	color: #1d4ed8;
+}
+
+.add-lifter-btn i {
+	font-size: 0.75rem;
+}
+
+/* Make sure the data-table styles don't override the button */
+.data-table td button {
+	margin: 0;
+	display: inline-flex;
+}
+
+/* Style for empty table message */
+.empty-cell {
+	padding: 2rem !important;
+	text-align: center;
+}
+
+.empty-message {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	color: #6b7280;
+}
+
+.empty-message i {
+	font-size: 1.5rem;
+	color: #9ca3af;
+}

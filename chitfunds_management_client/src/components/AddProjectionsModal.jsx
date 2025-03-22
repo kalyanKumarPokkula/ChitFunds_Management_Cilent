@@ -15,26 +15,57 @@ const projectionValidator = z.object({
 		.positive({ message: 'Total payout must be positive' }),
 });
 
-const AddProjectionsModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
+const AddProjectionsModal = ({
+	isOpen,
+	onClose,
+	onSuccess,
+	chitDetails,
+	isEditMode = false,
+}) => {
 	const [projections, setProjections] = useState([]);
 	const [errors, setErrors] = useState({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { showSuccess, showError } = useNotification();
 
-	// Initialize projections based on chit duration when the modal opens
+	// Initialize projections based on chit duration or existing projections
 	useEffect(() => {
 		if (isOpen && chitDetails) {
-			const initialProjections = [];
-			for (let i = 1; i <= chitDetails.duration_months; i++) {
-				initialProjections.push({
-					month_number: i,
-					monthly_subcription: chitDetails.monthly_installment || 0,
-					total_payout: chitDetails.chit_amount || 0,
-				});
+			if (
+				isEditMode &&
+				chitDetails.monthly_projections &&
+				chitDetails.monthly_projections.length > 0
+			) {
+				// For edit mode, use existing projections
+				setProjections(
+					chitDetails.monthly_projections.map((proj) => ({
+						month_number: proj.month_number,
+						monthly_subcription: proj.monthly_subcription,
+						total_payout: proj.total_payout,
+					}))
+				);
+			} else {
+				// For add mode or if no projections exist, create default ones
+				const initialProjections = [];
+				// Calculate how many projections are needed
+				const existingCount = chitDetails.monthly_projections
+					? chitDetails.monthly_projections.length
+					: 0;
+				const neededCount = chitDetails.duration_months - existingCount;
+
+				// Start from the next month number after existing projections
+				const startMonth = existingCount + 1;
+
+				for (let i = 0; i < neededCount; i++) {
+					initialProjections.push({
+						month_number: startMonth + i,
+						monthly_subcription: chitDetails.monthly_installment || 0,
+						total_payout: chitDetails.chit_amount || 0,
+					});
+				}
+				setProjections(initialProjections);
 			}
-			setProjections(initialProjections);
 		}
-	}, [isOpen, chitDetails]);
+	}, [isOpen, chitDetails, isEditMode]);
 
 	const handleInputChange = (index, field, value) => {
 		const newProjections = [...projections];
@@ -89,6 +120,7 @@ const AddProjectionsModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 		};
 
 		try {
+			// Use the same endpoint for both add and edit
 			const response = await fetch(
 				'http://127.0.0.1:5000/add_monthly_chit_projections',
 				{
@@ -103,16 +135,25 @@ const AddProjectionsModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 			const result = await response.json();
 
 			if (response.ok) {
-				showSuccess('Projections added successfully!');
+				showSuccess(
+					isEditMode
+						? 'Projections updated successfully!'
+						: 'Projections added successfully!'
+				);
 				setTimeout(() => {
 					onSuccess && onSuccess();
 					onClose();
 				}, 1500);
 			} else {
-				showError(result.message || 'Failed to add projections');
+				showError(
+					result.message ||
+						(isEditMode
+							? 'Failed to update projections'
+							: 'Failed to add projections')
+				);
 			}
 		} catch (error) {
-			console.error('Error adding projections:', error);
+			console.error('Error with projections:', error);
 			showError('Network error. Please try again.');
 		} finally {
 			setIsSubmitting(false);
@@ -131,8 +172,14 @@ const AddProjectionsModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 			</button>
 			<ActionButton
 				type="submit"
-				label={isSubmitting ? 'Saving...' : 'Add Projections'}
-				icon={isSubmitting ? 'spinner fa-spin' : 'plus'}
+				label={
+					isSubmitting
+						? 'Saving...'
+						: isEditMode
+						? 'Update Projections'
+						: 'Add Projections'
+				}
+				icon={isSubmitting ? 'spinner fa-spin' : isEditMode ? 'save' : 'plus'}
 				variant="primary"
 				disabled={isSubmitting}
 				onClick={handleSubmit}
@@ -144,7 +191,9 @@ const AddProjectionsModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			title={`${chitDetails?.chit_name || 'Chit'} Projections`}
+			title={`${isEditMode ? 'Edit' : 'Add'} ${
+				chitDetails?.chit_name || 'Chit'
+			} Projections`}
 			footer={modalFooter}
 			size="large"
 		>
@@ -213,9 +262,11 @@ const AddProjectionsModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 
 				<div className="help-text">
 					<p>
-						<i className="fas fa-info-circle"></i> Enter the monthly
-						subscription amount and total payout for each month. The month
-						numbers are fixed based on the chit duration.
+						<i className="fas fa-info-circle"></i>{' '}
+						{isEditMode
+							? 'Update the monthly subscription amount and total payout for each month.'
+							: 'Enter the monthly subscription amount and total payout for each month.'}{' '}
+						The month numbers are fixed based on the chit duration.
 					</p>
 				</div>
 			</div>
