@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ActionButton from './ActionButton';
+import Modal from './Modal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
 
@@ -121,96 +122,91 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 		}
 	};
 
-	if (!isOpen) return null;
+	const modalFooter = (
+		<>
+			<ActionButton label="Cancel" variant="secondary" onClick={onClose} />
+			<ActionButton
+				label={isSubmitting ? 'Adding...' : 'Add Selected Members'}
+				variant="primary"
+				icon={isSubmitting ? 'spinner fa-spin' : 'user-plus'}
+				onClick={handleSubmit}
+				disabled={isSubmitting || selectedUsers.length === 0}
+			/>
+		</>
+	);
 
 	return (
-		<div className="modal-overlay" onClick={onClose}>
-			<div className="modal-container" onClick={(e) => e.stopPropagation()}>
-				<div className="modal-header">
-					<h2>Add Members</h2>
-					<button className="close-button" onClick={onClose}>
-						<i className="fas fa-times"></i>
-					</button>
+		<Modal
+			isOpen={isOpen}
+			onClose={onClose}
+			title="Add Members"
+			footer={modalFooter}
+			size="medium"
+		>
+			{isLoading ? (
+				<div className="loading-message">
+					<i className="fas fa-spinner fa-spin"></i> Loading users...
 				</div>
-
-				<div className="modal-content">
-					{isLoading ? (
-						<div className="loading-message">
-							<i className="fas fa-spinner fa-spin"></i> Loading users...
+			) : error ? (
+				<div className="error-message">
+					<i className="fas fa-exclamation-circle"></i> {error}
+				</div>
+			) : (
+				<>
+					<div className="search-and-select">
+						<div className="search-box">
+							<i className="fas fa-search search-icon"></i>
+							<input
+								type="text"
+								placeholder="Search users..."
+								value={searchQuery}
+								onChange={handleSearchChange}
+							/>
 						</div>
-					) : error ? (
-						<div className="error-message">
-							<i className="fas fa-exclamation-circle"></i> {error}
+						<button className="select-all-button" onClick={handleSelectAll}>
+							{selectedUsers.length === filteredUsers.length
+								? 'Deselect All'
+								: 'Select All'}
+						</button>
+					</div>
+
+					{filteredUsers.length === 0 ? (
+						<div className="empty-message">
+							<i className="fas fa-users-slash"></i> No users found
 						</div>
 					) : (
-						<>
-							<div className="search-and-select">
-								<div className="search-box">
-									<i className="fas fa-search search-icon"></i>
-									<input
-										type="text"
-										placeholder="Search users..."
-										value={searchQuery}
-										onChange={handleSearchChange}
-									/>
-								</div>
-								<button className="select-all-button" onClick={handleSelectAll}>
-									{selectedUsers.length === filteredUsers.length
-										? 'Deselect All'
-										: 'Select All'}
-								</button>
-							</div>
-
-							{filteredUsers.length === 0 ? (
-								<div className="empty-message">
-									<i className="fas fa-users-slash"></i> No users found
-								</div>
-							) : (
-								<div className="users-list">
-									{filteredUsers.map((user) => (
-										<div
-											key={user.user_id}
-											className={`user-item ${
-												selectedUsers.includes(user.user_id) ? 'selected' : ''
-											}`}
-											onClick={() => handleUserSelect(user.user_id)}
-										>
-											<div className="checkbox">
-												{selectedUsers.includes(user.user_id) && (
-													<i className="fas fa-check"></i>
-												)}
-											</div>
-											<div className="user-info">
-												<div className="user-name">{user.full_name}</div>
-												<div className="user-details">
-													<span>
-														<i className="fas fa-envelope"></i> {user.email}
-													</span>
-													<span>
-														<i className="fas fa-phone"></i> {user.phone}
-													</span>
-												</div>
-											</div>
+						<div className="users-list">
+							{filteredUsers.map((user) => (
+								<div
+									key={user.user_id}
+									className={`user-item ${
+										selectedUsers.includes(user.user_id) ? 'selected' : ''
+									}`}
+									onClick={() => handleUserSelect(user.user_id)}
+								>
+									<div className="checkbox">
+										{selectedUsers.includes(user.user_id) && (
+											<i className="fas fa-check"></i>
+										)}
+									</div>
+									<div className="user-info">
+										<div className="user-name">{user.full_name}</div>
+										<div className="user-details">
+											<span>
+												<i className="fas fa-envelope"></i> {user.email}
+											</span>
+											<span>
+												<i className="fas fa-phone"></i> {user.phone}
+											</span>
 										</div>
-									))}
+									</div>
 								</div>
-							)}
-						</>
+							))}
+						</div>
 					)}
-				</div>
-
-				<div className="modal-footer">
-					<ActionButton label="Cancel" variant="secondary" onClick={onClose} />
-					<ActionButton
-						label={isSubmitting ? 'Adding...' : 'Add Selected Members'}
-						variant="primary"
-						icon={isSubmitting ? 'spinner fa-spin' : 'user-plus'}
-						onClick={handleSubmit}
-						disabled={isSubmitting || selectedUsers.length === 0}
-					/>
-				</div>
-			</div>
-		</div>
+				</>
+			)}
+		</Modal>
 	);
 };
 

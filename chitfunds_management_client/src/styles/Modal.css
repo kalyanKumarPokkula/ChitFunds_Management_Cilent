@@ -18,12 +18,30 @@
 	border-radius: 8px;
 	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 	width: 90%;
-	max-width: 800px;
+	max-width: 640px; /* Default size */
 	max-height: 90vh;
 	display: flex;
 	flex-direction: column;
 	animation: slideUp 0.3s ease;
 	overflow: hidden;
+}
+
+/* Modal size variations */
+.modal-container-small {
+	max-width: 480px;
+}
+
+.modal-container-medium {
+	max-width: 640px;
+}
+
+.modal-container-large {
+	max-width: 800px;
+}
+
+.modal-container-fullscreen {
+	max-width: 90%;
+	max-height: 90vh;
 }
 
 .modal-header {
