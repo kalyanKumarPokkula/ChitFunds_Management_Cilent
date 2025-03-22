@@ -481,7 +481,7 @@ def monthly_projections(chit_group_id):
      result_df = filter_projections.merge(df_users , on="user_id" , how="left")[
           ["monthly_projections_id" , "month_number" , "monthly_subcription" ,"full_name" , "total_payout"]
      ]
-     result_df.fillna({"full_name" : "Not Lifted"}, inplace=True)
+     result_df.fillna({"full_name" : ""}, inplace=True)
 
      return result_df.to_dict(orient="records")
 

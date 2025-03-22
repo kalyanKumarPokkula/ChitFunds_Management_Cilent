@@ -5,6 +5,7 @@ import AddMembersModal from '../components/AddMembersModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import EditChitModal from '../components/EditChitModal';
 import AddProjectionsModal from '../components/AddProjectionsModal';
+import AddLifterModal from '../components/AddLifterModal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
@@ -24,6 +25,10 @@ const ChitDetails = ({ chitId }) => {
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isAddProjectionsModalOpen, setIsAddProjectionsModalOpen] =
 		useState(false);
+	const [isEditProjectionsModalOpen, setIsEditProjectionsModalOpen] =
+		useState(false);
+	const [isAddLifterModalOpen, setIsAddLifterModalOpen] = useState(false);
+	const [selectedMonth, setSelectedMonth] = useState(null);
 	const { showSuccess, showError } = useNotification();
 
 	useEffect(() => {
@@ -173,6 +178,42 @@ const ChitDetails = ({ chitId }) => {
 		// Refresh the chit details after adding projections
 		fetchChitDetails();
 		showSuccess('Projections added successfully!');
+	};
+
+	const handleEditProjectionsSuccess = () => {
+		// Refresh the chit details after editing projections
+		fetchChitDetails();
+		showSuccess('Projections updated successfully!');
+	};
+
+	// Helper function to check if projections are complete
+	const areProjectionsComplete = () => {
+		if (!chitDetails || !chitDetails.monthly_projections) return false;
+		return (
+			chitDetails.monthly_projections.length >= chitDetails.duration_months
+		);
+	};
+
+	const handleAddLifterClick = (monthNumber) => {
+		setSelectedMonth(monthNumber);
+		setIsAddLifterModalOpen(true);
+	};
+
+	const handleAddLifterSuccess = () => {
+		// Refresh the chit details to update lifter information
+		fetchChitDetails();
+		showSuccess('Lifter added successfully!');
+	};
+
+	// Add this debugging function
+	const logProjectionData = (projection) => {
+		console.log('Projection data:', {
+			id: projection.monthly_projections_id,
+			month: projection.month_number,
+			fullName: projection.full_name,
+			hasFullName: Boolean(projection.full_name),
+		});
+		return null;
 	};
 
 	if (isLoading) {
@@ -391,12 +432,22 @@ const ChitDetails = ({ chitId }) => {
 								<div className="tab-header">
 									<div className="spacer"></div>
 									<div className="action-buttons">
-										<ActionButton
-											label="Add Projection"
-											icon="plus"
-											variant="primary"
-											onClick={() => setIsAddProjectionsModalOpen(true)}
-										/>
+										{areProjectionsComplete() ? (
+											<ActionButton
+												label="Edit Projections"
+												icon="edit"
+												variant="primary"
+												onClick={() => setIsEditProjectionsModalOpen(true)}
+											/>
+										) : (
+											<ActionButton
+												label="Add Projections"
+												icon="plus"
+												variant="primary"
+												onClick={() => setIsAddProjectionsModalOpen(true)}
+												disabled={areProjectionsComplete()}
+											/>
+										)}
 										<ActionButton
 											label="Print"
 											icon="print"
@@ -420,16 +471,51 @@ const ChitDetails = ({ chitId }) => {
 											</tr>
 										</thead>
 										<tbody>
-											{chitDetails.monthly_projections.map((projection) => (
-												<tr key={projection.monthly_projections_id}>
-													<td>{projection.month_number}</td>
-													<td>
-														{formatCurrency(projection.monthly_subcription)}
+											{chitDetails.monthly_projections &&
+											chitDetails.monthly_projections.length > 0 ? (
+												chitDetails.monthly_projections.map((projection) => (
+													<tr
+														key={
+															projection.monthly_projections_id ||
+															`month-${projection.month_number}`
+														}
+													>
+														<td>{projection.month_number}</td>
+														<td>
+															{formatCurrency(projection.monthly_subcription)}
+														</td>
+														<td>{formatCurrency(projection.total_payout)}</td>
+														<td>
+															{projection.full_name &&
+															projection.full_name.trim() !== '' ? (
+																projection.full_name
+															) : (
+																<button
+																	className="add-lifter-btn"
+																	onClick={() =>
+																		handleAddLifterClick(
+																			projection.month_number
+																		)
+																	}
+																>
+																	<i className="fas fa-user-plus"></i> Add
+																	Lifter
+																</button>
+															)}
+														</td>
+													</tr>
+												))
+											) : (
+												<tr>
+													<td colSpan="4" className="empty-cell">
+														<div className="empty-message">
+															<i className="fas fa-calculator"></i> No
+															projections found. Add projections to see them
+															here.
+														</div>
 													</td>
-													<td>{formatCurrency(projection.total_payout)}</td>
-													<td>{projection.full_name}</td>
 												</tr>
-											))}
+											)}
 										</tbody>
 									</table>
 								</div>
@@ -596,6 +682,24 @@ const ChitDetails = ({ chitId }) => {
 				onClose={() => setIsAddProjectionsModalOpen(false)}
 				onSuccess={handleAddProjectionsSuccess}
 				chitDetails={chitDetails}
+			/>
+
+			{/* Edit Projections Modal - This would use the same component but in edit mode */}
+			<AddProjectionsModal
+				isOpen={isEditProjectionsModalOpen}
+				onClose={() => setIsEditProjectionsModalOpen(false)}
+				onSuccess={handleEditProjectionsSuccess}
+				chitDetails={chitDetails}
+				isEditMode={true}
+			/>
+
+			{/* Add Lifter Modal */}
+			<AddLifterModal
+				isOpen={isAddLifterModalOpen}
+				onClose={() => setIsAddLifterModalOpen(false)}
+				onSuccess={handleAddLifterSuccess}
+				chitId={chitId}
+				monthNumber={selectedMonth}
 			/>
 		</div>
 	);
