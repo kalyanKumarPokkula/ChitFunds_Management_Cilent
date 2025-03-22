@@ -1,6 +1,7 @@
 from google_authorize import spreadsheet_credentials
 import pandas as pd
 from flask import jsonify
+import uuid
 
 
 def total_chit_rows():
@@ -16,25 +17,30 @@ def total_chit_memeber_rows():
 
 def chit_groups():
 
+    """
+    Retrieves all chit groups from the 'chit_groups' worksheet, processes the data, 
+    and returns a JSON response sorted by status.
+
+    Returns:
+        str: JSON-formatted string containing chit group details.
+    """
+
     chit_groups = spreadsheet_credentials().worksheet("chit_groups")
 
-    # Fetch all data from each sheet
     chit_groups_sheet = chit_groups.get_all_values()
     
-    # chit_groups
     chit_groups_columns = chit_groups_sheet[0]
     
-    # Extract rows
     chit_groups_rows = chit_groups_sheet[1:]
 
-    # Create DataFrame
     chit_groups_df = pd.DataFrame(chit_groups_rows, columns=chit_groups_columns)
 
     df = chit_groups_df[['chit_group_id', 'chit_name' , 'chit_amount', 'duration_months' ,'total_members','monthly_installment', 'start_date' ,'end_date' , 'status']]
     
-    # Sort data based on custom order for 'status'
     status_order = ['active', 'upcoming', 'completed']
+
     df['status'] = pd.Categorical(df['status'], categories=status_order, ordered=True)
+
     df = df.sort_values('status')
 
     json_data = df.to_json(orient="records", indent=4)
@@ -43,6 +49,15 @@ def chit_groups():
 
 
 def add_chit(data):
+    """
+    Adds a new chit group to the 'chit_groups' worksheet.
+
+    Args:
+        data (dict): A dictionary containing details about the chit group.
+
+    Returns:
+        dict: A message indicating whether the row was successfully added.
+    """
     
     new_row = [
         str(total_chit_rows()),   # Convert to string
@@ -61,6 +76,15 @@ def add_chit(data):
     return chit_groups.append_row(new_row)
 
 def add_members(data):
+    """
+    Adds multiple members to a chit group in the 'chit_members' worksheet.
+
+    Args:
+        data (dict): A dictionary containing the chit group ID and a list of user IDs.
+
+    Returns:
+        dict: A message indicating whether the rows were successfully added.
+    """
 
     formatted_rows = []
     users = data.get("user_ids")
@@ -69,7 +93,7 @@ def add_members(data):
         formatted_rows.append([
             str(index),
             str(row),
-            str(data.get("chit_group_id","")),
+            data.get("chit_group_id"),
             str("FALSE"),
             0,
             0,
@@ -85,7 +109,51 @@ def add_members(data):
 
     return {"message": "Rows added successfully"}
 
+
+def add_chit_monthly_projections(data):
+     """
+    Adds multiple monthly projections for a chit group in the 'monthly_projections' worksheet.
+
+    Args:
+        data (dict): A dictionary containing the chit group ID and a list of monthly projections.
+
+    Returns:
+        dict: A message indicating whether the rows were successfully added.
+    """
+     
+     formatted_rows = []
+     print(data)
+     monthly_chit_projections = data.get("monthly_chit_projections")
+     print(monthly_chit_projections)
+     for row in monthly_chit_projections:
+          formatted_rows.append([
+               str(uuid.uuid4().hex[:8]),
+               data.get("chit_group_id"),
+               row.get("month_number"),
+               row.get("monthly_subcription"),
+               row.get(""),
+               row.get("total_payout")
+          ])
+     
+     print(formatted_rows)
+
+     monthly_projections = spreadsheet_credentials().worksheet("monthly_projections")
+
+     monthly_projections.append_rows(formatted_rows)
+
+     return {"message": "Rows added successfully"}
+
 def update_chit_group(data):
+    """
+    Updates a chit group in the 'chit_groups' worksheet based on the provided data.
+
+    Args:
+        data (dict): A dictionary containing the updated values for the chit group.
+                     The dictionary must include "chit_group_id" to identify the group.
+
+    Returns:
+        dict: A message indicating whether the update was successful or if no changes were detected.
+    """
     
     chit_groups = spreadsheet_credentials().worksheet("chit_groups")
     
@@ -136,6 +204,16 @@ def update_chit_group(data):
     
 
 def delete_chit_group_by_id(chit_group_id):
+     """
+    Deletes a chit group by its ID from the 'chit_groups' worksheet.
+
+    Args:
+        chit_group_id (str or int): The ID of the chit group to delete.
+
+    Returns:
+        dict: A message indicating whether the deletion was successful or if no matching row was found.
+    """
+
      
      chit_groups = spreadsheet_credentials().worksheet("chit_groups")
 
@@ -163,6 +241,16 @@ def delete_chit_group_by_id(chit_group_id):
 
 
 def get_chit_by_id(chit_group_id):
+    """
+    Retrieves details of a specific chit group by its ID from the 'chit_groups' worksheet.
+
+    Args:
+        chit_group_id (str or int): The ID of the chit group to retrieve.
+
+    Returns:
+        dict: A dictionary containing chit group details along with its monthly projections.
+              If the chit group is not found, returns a JSON error response with a 404 status.
+    """
 
     chit_groups = spreadsheet_credentials().worksheet("chit_groups")
 
@@ -186,42 +274,75 @@ def get_chit_by_id(chit_group_id):
 
 def get_users_by_chit_group(chit_group_id):
      
+     """
+    Retrieves user details for a specific chit group from the 'chit_members' and 'users' worksheets.
+
+    Args:
+        chit_group_id (str or int): The ID of the chit group.
+
+    Returns:
+        list[dict]: A list of dictionaries containing user details for the specified chit group.
+    """
+     
+    # Access the "chit_members" worksheet which contains user-chit group mappings
      chit_members = spreadsheet_credentials().worksheet("chit_members")
 
+    # Get all values from the "chit_members" sheet
      chit_members_sheet = chit_members.get_all_values()
 
+    # Access the "users" worksheet which contains user details
      users = spreadsheet_credentials().worksheet("users")
 
+    # Get all values from the "users" sheet
      users_sheet = users.get_all_values()
 
-     df_users = pd.DataFrame(users_sheet[1:] , columns=users_sheet[0])
-     df_chit_members = pd.DataFrame(chit_members_sheet[1:] , columns=chit_members_sheet[0])
+    # Convert the "users" sheet data into a pandas DataFrame
+     df_users = pd.DataFrame(users_sheet[1:], columns=users_sheet[0])
 
+    # Convert the "chit_members" sheet data into a pandas DataFrame
+     df_chit_members = pd.DataFrame(chit_members_sheet[1:], columns=chit_members_sheet[0])
+
+    # Filter users belonging to the specified chit group
      matched_members = df_chit_members[df_chit_members["chit_group_id"] == str(chit_group_id)]
 
+    # If no users are found in the chit group, return an empty list
      if matched_members.empty:
-            return []
-     
+        return []
 
-     result_df = matched_members.merge(df_users , on="user_id" , how="inner")[
-          ["user_id" , "full_name" , "phone", "email", "is_lifted" , "pending_installments" , "lifted_amount"]
-     ]
+    # Merge the matched chit group members with user details from the "users" DataFrame
+     result_df = matched_members.merge(df_users, on="user_id", how="inner")[
+        ["user_id", "full_name", "phone", "email", "is_lifted", "pending_installments", "lifted_amount"]
+    ]
 
+    # Convert the merged DataFrame to a list of dictionaries for structured output
      user_data = result_df.to_dict(orient="records")
 
      return user_data
 
-def get_chit_group_payments(month_number):
+def get_chit_group_payments():
+     """
+    Retrieves all payment details from the 'payments of a chit_group' worksheet.
+
+    Returns:
+        list[dict]: A list of dictionaries containing payment details.
+    """
      
      payments = spreadsheet_credentials().worksheet("payments")
 
      payments_sheet = payments.get_all_values()
 
+     return payments_sheet
+
 
 
 
 def get_users():
+     """
+    Retrieves user details from the 'users' worksheet in the spreadsheet.
 
+    Returns:
+        list[dict]: A list of dictionaries containing user_id, full_name, and phone number.
+    """
      users = spreadsheet_credentials().worksheet("users")
 
      users_sheet = users.get_all_values()
@@ -235,6 +356,16 @@ def get_users():
 
 
 def monthly_projections(chit_group_id):
+     """
+    Retrieves and processes monthly projection data for a given chit group.
+
+    Args:
+        chit_group_id (str): The ID of the chit group to filter projections.
+
+    Returns:
+        list[dict]: A list of dictionaries containing monthly projection details
+                    along with user information.
+    """
      
      monthly_projections = spreadsheet_credentials().worksheet("monthly_projections")
 

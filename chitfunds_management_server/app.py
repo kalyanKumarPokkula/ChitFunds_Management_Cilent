@@ -1,4 +1,4 @@
-from chit_groups import chit_groups ,update_chit_group, add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
+from chit_groups import chit_groups , add_chit_monthly_projections ,update_chit_group, add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
 
@@ -54,7 +54,22 @@ def update_chit():
         return jsonify(response) , 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+@app.route("/add_monthly_chit_projections" , methods=["POST"])
+def monthly_chit_projections():
+    try: 
+        
+        data = request.get_json()
+        print(data)  # Debugging
+
+        if not data:  
+            return jsonify({"error": "Invalid format, expected a list under 'data'"}), 400
+        
+        response = add_chit_monthly_projections(data)
+
+        return jsonify(response) , 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/chit-groups', methods=['POST'])
 def add_new_chit():
