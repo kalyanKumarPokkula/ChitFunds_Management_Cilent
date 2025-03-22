@@ -143,6 +143,70 @@ def add_chit_monthly_projections(data):
 
      return {"message": "Rows added successfully"}
 
+
+def chit_lifted_member(data):
+
+    monthly_projections = spreadsheet_credentials().worksheet("monthly_projections")
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+
+    monthly_projections_sheet = monthly_projections.get_all_records()
+    chit_members_sheet = chit_members.get_all_records()
+
+    monthly_projections_row_to_update = None
+    monthly_projections_row_index = None
+
+    for i , row in enumerate(monthly_projections_sheet):
+        print(i)
+        print(row)
+        if str(row.get("chit_group_id")) == str(data.get("chit_group_id")) and str(row.get("month_number")) == str(data.get("month_number")):
+            monthly_projections_row_to_update = row
+            monthly_projections_row_index = i + 2
+    
+    print(monthly_projections_row_to_update)
+    print(monthly_projections_row_index)
+
+    monthly_projections_updated_row = [str(data.get("user_id"))]
+    monthly_projections_range_to_update = f"E{monthly_projections_row_index}"
+
+    chit_member_row_to_update = None
+    chit_member_row_index = None
+
+    for i, row in enumerate(chit_members_sheet):
+        print(i)
+        print(row)
+        if str(row.get("user_id")) == str(data.get("user_id")) and str(row.get("chit_group_id")) == str(data.get("chit_group_id")):
+            chit_member_row_to_update = row
+            chit_member_row_index = i +2
+            break
+    
+    print(chit_member_row_index)
+    print(chit_member_row_to_update)
+
+    chit_member_updated_row = ["TRUE" , monthly_projections_row_to_update.get("total_payout")]
+    chit_member_range_to_update_0 = f"D{chit_member_row_index}"
+    chit_member_range_to_update_1 = f"f{chit_member_row_index}"
+
+    data = {
+        "monthly_projections_index" : monthly_projections_row_index,
+        "chit_member_range_to_update_0" :chit_member_range_to_update_0,
+        "chit_member_range_to_update_1" : chit_member_range_to_update_1,
+        "monthly_projections_update" : monthly_projections_range_to_update,
+        "monthly_projections_updated_row" : monthly_projections_updated_row,
+        "chit_member_index" : chit_member_row_index,
+        "chit_member_update" : chit_member_row_to_update,
+        "chit_member_updated_row" : chit_member_updated_row
+    }
+
+    
+    monthly_projections.update(monthly_projections_range_to_update, [monthly_projections_updated_row])
+    chit_members.update(chit_member_range_to_update_0 , [[chit_member_updated_row[0]]])
+    chit_members.update(chit_member_range_to_update_1, [[chit_member_updated_row[1]]])
+    return {"message" : f"Chit group {data.get('chit_group_id')} updated successfully."}
+
+
+    
+
+
 def update_chit_group(data):
     """
     Updates a chit group in the 'chit_groups' worksheet based on the provided data.
@@ -216,12 +280,17 @@ def delete_chit_group_by_id(chit_group_id):
 
      
      chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+     monthly_projections = spreadsheet_credentials().worksheet("monthly_projections")
+     chit_memebers = spreadsheet_credentials().worksheet("chit_members")
+
+
 
      chit_group_sheet = chit_groups.get_all_records()
+     chit_projections_sheet = monthly_projections.get_all_records()
+     chit_members_sheet = chit_memebers.get_all_records()
 
      print(chit_group_sheet)
      # Define the column name and value to delete
-     column_name = "chit_group_id"
 
      row_to_delete = None
      for i, row in enumerate(chit_group_sheet):
@@ -230,10 +299,37 @@ def delete_chit_group_by_id(chit_group_id):
           if str(row.get("chit_group_id")) == str(chit_group_id):
                row_to_delete = i + 2
                break
-       
-     print(row_to_delete)
+     monthly_projectoins_row_to_delete = []   
+     for i, row in enumerate(chit_projections_sheet):
+         print(i)
+         print(row)
+         if str(row.get("chit_group_id")) == str(chit_group_id):
+             monthly_projectoins_row_to_delete.append(i+2)
+
+
+     chit_members_row_to_delete = []
+     for i, row in enumerate(chit_members_sheet):
+         print(i)
+         print(row)
+         if str(row.get("chit_group_id")) == str(chit_group_id):
+             chit_members_row_to_delete.append(i+2)
+
+     monthly_projectoins_row_to_delete.sort(reverse=True)
+     chit_members_row_to_delete.sort(reverse=True)
+
+     data = {
+         "row_to_delete" : row_to_delete,
+         "monthly_projections" : monthly_projectoins_row_to_delete,
+         "chit_members" : chit_members_row_to_delete
+     }
      if row_to_delete:
           chit_groups.delete_rows(row_to_delete)
+        #   chit_memebers.delete_rows(chit_members_row_to_delete)
+          for row in monthly_projectoins_row_to_delete:
+            monthly_projections.delete_rows(row)
+          for row in chit_members_row_to_delete:
+            chit_memebers.delete_rows(row)
+        #   monthly_projections.delete_rows(monthly_projectoins_row_to_delete)
 
           return {"message" : f"Deleted row {row_to_delete} with chit_group_id = {chit_group_id}"}
      else:
@@ -270,6 +366,7 @@ def get_chit_by_id(chit_group_id):
     result["monthly_projections"] = monthly_projections(chit_group_id)
 
     return result
+
 
 
 def get_users_by_chit_group(chit_group_id):
