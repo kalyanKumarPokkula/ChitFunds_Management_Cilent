@@ -4,7 +4,8 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+# Update CORS to allow requests from the Docker container
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:3000", "http://chit-client:3000"]}})
 
 @app.route('/chit', methods=['GET'])
 def chit_funds():
@@ -151,8 +152,9 @@ def add_chit_members():
         return jsonify({"error": str(e)}), 500
 
 # Run the Flask app
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    # Run the app on 0.0.0.0 to make it accessible from outside the container
+    app.run(host='0.0.0.0', port=5001, debug=True)
 
 
 

@@ -1,12 +1,56 @@
-# React + Vite
+# Chit Funds Management Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend application for the Chit Funds Management System, built with React, Vite, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Local Development
 
-## Expanding the ESLint configuration
+```bash
+# Install dependencies
+npm install
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Run development server
+npm run dev
+```
+
+### Docker Development
+
+The client application can be run in Docker using the provided Dockerfile.dev:
+
+```bash
+# Build and run the client in development mode
+docker build -f Dockerfile.dev -t chit-client-dev .
+docker run -p 5173:5173 -v $(pwd):/app -v /app/node_modules chit-client-dev
+```
+
+Or use the docker-compose.dev.yml at the root of the project.
+
+## Production
+
+To build the application for production:
+
+```bash
+npm run build
+```
+
+This will create a `dist` directory with the production-ready files.
+
+### Docker Production
+
+The client application can be deployed using the production Dockerfile:
+
+```bash
+docker build -t chit-client .
+docker run -p 3000:3000 chit-client
+```
+
+Or use the docker-compose.yml at the root of the project.
+
+## Features
+
+- Modern UI with React and Tailwind CSS
+- Modal components for creating chit funds, adding members, and more
+- Notification system for user feedback
+- Responsive design for all device sizes
+- Integration with the Chit Funds Management Server API

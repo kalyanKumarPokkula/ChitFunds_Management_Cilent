@@ -27,7 +27,7 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 		try {
 			setIsLoading(true);
 			setError(null);
-			const response = await fetch('http://127.0.0.1:5000/users');
+			const response = await fetch('http://127.0.0.1:5001/users');
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -94,7 +94,7 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 
 			console.log(payload);
 
-			const response = await fetch('http://127.0.0.1:5000/add_chit_members', {
+			const response = await fetch('http://127.0.0.1:5001/add_chit_members', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

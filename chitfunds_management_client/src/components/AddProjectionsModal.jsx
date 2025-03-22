@@ -122,7 +122,7 @@ const AddProjectionsModal = ({
 		try {
 			// Use the same endpoint for both add and edit
 			const response = await fetch(
-				'http://127.0.0.1:5000/add_monthly_chit_projections',
+				'http://127.0.0.1:5001/add_monthly_chit_projections',
 				{
 					method: 'POST',
 					headers: {

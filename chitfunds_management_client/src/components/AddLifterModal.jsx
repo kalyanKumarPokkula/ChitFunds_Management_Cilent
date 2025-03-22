@@ -37,7 +37,7 @@ const AddLifterModal = ({
 
 			console.log(`Fetching members for chit ${chitId}`);
 			const response = await fetch(
-				`http://127.0.0.1:5000/get_chit_members?chit_group_id=${chitId}`
+				`http://127.0.0.1:5001/get_chit_members?chit_group_id=${chitId}`
 			);
 
 			if (!response.ok) {
@@ -81,7 +81,7 @@ const AddLifterModal = ({
 		};
 
 		try {
-			const response = await fetch('http://127.0.0.1:5000/chit-lifted-member', {
+			const response = await fetch('http://127.0.0.1:5001/chit-lifted-member', {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',

@@ -21,7 +21,7 @@ const Chits = () => {
 			setIsLoading(true);
 			setError(null);
 
-			const response = await fetch('http://127.0.0.1:5000/chit-groups');
+			const response = await fetch('http://127.0.0.1:5001/chit-groups');
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
