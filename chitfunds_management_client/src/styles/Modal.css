@@ -1,3 +1,4 @@
+/* Modal Styles */
 .modal-overlay {
 	position: fixed;
 	top: 0;
@@ -65,10 +66,24 @@
 	flex: 1;
 }
 
+.modal-content p {
+	color: black;
+}
+
+/* CreateChitModal Form Styles */
 .modal-form {
 	display: flex;
 	flex-direction: column;
 	gap: 1.25rem;
+	padding: 2rem;
+}
+
+/* Restore form-grid for CreateChitModal */
+.form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 1.5rem;
+	margin-bottom: 2rem;
 }
 
 .form-row {
@@ -95,6 +110,31 @@
 	color: #374151;
 }
 
+/* Ensure form inputs have specific styles for CreateChitModal */
+.form-group input,
+.form-group select {
+	padding: 0.625rem 0.75rem;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	font-size: 0.875rem;
+	color: #1f2937;
+	width: 100%;
+	background-color: #f3f4f6;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+	outline: none;
+	border-color: #2563eb;
+	box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input:disabled {
+	background-color: #f3f4f6;
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
 .form-control {
 	padding: 0.625rem 0.75rem;
 	border: 1px solid #d1d5db;
@@ -116,6 +156,12 @@
 	background-color: #fef2f2;
 }
 
+.error-message {
+	font-size: 0.75rem;
+	color: #dc2626;
+	margin-top: 0.25rem;
+}
+
 .validation-error {
 	font-size: 0.75rem;
 	color: #ef4444;
@@ -131,9 +177,56 @@
 	background-color: #f9fafb;
 }
 
+/* Form Actions for CreateChitModal */
+.form-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+}
+
+.cancel-button {
+	padding: 0.625rem 1.25rem;
+	border: 1px solid #d1d5db;
+	border-radius: 0.375rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: #4b5563;
+	background-color: white;
+	cursor: pointer;
+}
+
+.cancel-button:hover {
+	background-color: #f3f4f6;
+}
+
+.cancel-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Feedback Message for CreateChitModal */
+.feedback-message {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.75rem 1rem;
+	border-radius: 0.375rem;
+	margin-bottom: 1.5rem;
+	animation: fadeIn 0.3s ease;
+}
+
+.feedback-message.success {
+	background-color: #dcfce7;
+	color: #166534;
+}
+
+.feedback-message.error {
+	background-color: #fee2e2;
+	color: #b91c1c;
+}
+
 /* Loading and Error Messages */
 .loading-message,
-.error-message,
 .empty-message,
 .success-message {
 	display: flex;
@@ -150,10 +243,17 @@
 	color: #4b5563;
 }
 
-.error-message {
+/* Override error-message to not affect the CreateChitModal */
+.modal-content .error-message:not(.feedback-message) {
 	background-color: #fee2e2;
 	color: #b91c1c;
 	border: 1px solid #fecaca;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 1rem;
+	border-radius: 6px;
+	font-size: 0.875rem;
 }
 
 .empty-message {
@@ -311,6 +411,10 @@
 	.modal-container {
 		width: 95%;
 		max-height: 95vh;
+	}
+
+	.form-grid {
+		grid-template-columns: 1fr;
 	}
 
 	.form-row {

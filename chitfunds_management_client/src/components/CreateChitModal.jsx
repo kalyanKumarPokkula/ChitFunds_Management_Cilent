@@ -369,7 +369,7 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 						<ActionButton
 							type="submit"
 							label={isSubmitting ? 'Creating...' : 'Create Chit Scheme'}
-							icon={isSubmitting ? 'spinner fa-spin' : 'plus'}
+							icon={isSubmitting ? 'spinner fa-spin' : ''}
 							variant="primary"
 							disabled={isSubmitting}
 						/>
