@@ -3,7 +3,8 @@ import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import AddMembersModal from '../components/AddMembersModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
-import Notification from '../components/Notification';
+import EditChitModal from '../components/EditChitModal';
+import { useNotification } from '../context/NotificationContext';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
 
@@ -19,9 +20,8 @@ const ChitDetails = ({ chitId }) => {
 	const [filteredMembers, setFilteredMembers] = useState([]);
 	const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [notificationMessage, setNotificationMessage] = useState('');
-	const [notificationType, setNotificationType] = useState('');
-	const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const { showSuccess, showError } = useNotification();
 
 	useEffect(() => {
 		fetchChitDetails();
@@ -95,6 +95,7 @@ const ChitDetails = ({ chitId }) => {
 	const handleAddMembersSuccess = () => {
 		// Refresh the members list after adding new members
 		fetchChitMembers();
+		showSuccess('Members added successfully!');
 	};
 
 	const formatCurrency = (amount) => {
@@ -143,9 +144,7 @@ const ChitDetails = ({ chitId }) => {
 				throw new Error('Failed to delete chit');
 			}
 
-			setNotificationMessage('Chit deleted successfully!');
-			setNotificationType('success');
-			setIsNotificationVisible(true);
+			showSuccess('Chit deleted successfully!');
 			setIsDeleteModalOpen(false);
 
 			setTimeout(() => {
@@ -153,10 +152,18 @@ const ChitDetails = ({ chitId }) => {
 			}, 2000);
 		} catch (error) {
 			console.error('Error deleting chit:', error);
-			setNotificationMessage('Failed to delete chit.');
-			setNotificationType('error');
-			setIsNotificationVisible(true);
+			showError('Failed to delete chit. Please try again.');
 		}
+	};
+
+	const handleEditClick = () => {
+		setIsEditModalOpen(true);
+	};
+
+	const handleEditSuccess = () => {
+		// Refresh the chit details after editing
+		fetchChitDetails();
+		showSuccess('Chit scheme updated successfully!');
 	};
 
 	if (isLoading) {
@@ -231,7 +238,7 @@ const ChitDetails = ({ chitId }) => {
 					<div className="chit-details-card">
 						<div className="card-header-with-action">
 							<h2>Chit Details</h2>
-							<button className="edit-button">
+							<button className="edit-button" onClick={handleEditClick}>
 								<i className="fas fa-edit"></i> Edit
 							</button>
 						</div>
@@ -545,15 +552,6 @@ const ChitDetails = ({ chitId }) => {
 				</div>
 			</div>
 
-			{/* Notification Component */}
-			{isNotificationVisible && (
-				<Notification
-					message={notificationMessage}
-					type={notificationType}
-					onClose={() => setIsNotificationVisible(false)}
-				/>
-			)}
-
 			{/* Add Members Modal */}
 			<AddMembersModal
 				isOpen={isAddMembersModalOpen}
@@ -567,6 +565,14 @@ const ChitDetails = ({ chitId }) => {
 				isOpen={isDeleteModalOpen}
 				onClose={() => setIsDeleteModalOpen(false)}
 				onConfirm={handleDeleteConfirm}
+			/>
+
+			{/* Edit Chit Modal */}
+			<EditChitModal
+				isOpen={isEditModalOpen}
+				onClose={() => setIsEditModalOpen(false)}
+				onSuccess={handleEditSuccess}
+				chitDetails={chitDetails}
 			/>
 		</div>
 	);

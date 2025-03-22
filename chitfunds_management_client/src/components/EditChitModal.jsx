@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import ActionButton from './ActionButton';
 import Modal from './Modal';
@@ -30,14 +30,15 @@ const chitSchema = z.object({
 	}),
 });
 
-const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
+const EditChitModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 	const [formData, setFormData] = useState({
+		chit_group_id: '',
 		chit_name: '',
 		chit_amount: '',
 		duration_months: '',
 		total_members: '',
 		monthly_installment: '',
-		status: 'upcoming',
+		status: '',
 		start_date: '',
 		end_date: '',
 	});
@@ -45,6 +46,23 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 	const [errors, setErrors] = useState({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { showSuccess, showError } = useNotification();
+
+	useEffect(() => {
+		if (chitDetails && isOpen) {
+			// Populate form data with chit details
+			setFormData({
+				chit_group_id: chitDetails.chit_group_id,
+				chit_name: chitDetails.chit_name,
+				chit_amount: chitDetails.chit_amount,
+				duration_months: chitDetails.duration_months,
+				total_members: chitDetails.total_members,
+				monthly_installment: chitDetails.monthly_installment,
+				status: chitDetails.status,
+				start_date: chitDetails.start_date,
+				end_date: chitDetails.end_date,
+			});
+		}
+	}, [chitDetails, isOpen]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -137,16 +155,20 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 
 		// Ensure all numbers are properly formatted as numbers for the API
 		const submissionData = {
-			...formData,
+			chit_group_id: Number(formData.chit_group_id),
+			chit_name: formData.chit_name,
 			chit_amount: Number(formData.chit_amount),
 			duration_months: Number(formData.duration_months),
 			total_members: Number(formData.total_members),
 			monthly_installment: Number(formData.monthly_installment),
+			status: formData.status,
+			start_date: formData.start_date,
+			end_date: formData.end_date,
 		};
 
 		try {
-			const response = await fetch('http://127.0.0.1:5000/chit-groups', {
-				method: 'POST',
+			const response = await fetch('http://127.0.0.1:5000/update-chit-group', {
+				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',
 				},
@@ -156,30 +178,18 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 			const result = await response.json();
 
 			if (response.ok) {
-				showSuccess('Chit scheme created successfully!');
-
-				// Reset form data
-				setFormData({
-					chit_name: '',
-					chit_amount: '',
-					duration_months: '',
-					total_members: '',
-					monthly_installment: '',
-					status: 'upcoming',
-					start_date: '',
-					end_date: '',
-				});
+				showSuccess('Chit scheme updated successfully!');
 
 				// Close modal after delay to show success message
 				setTimeout(() => {
-					onSuccess();
+					onSuccess && onSuccess();
 					onClose();
 				}, 1500);
 			} else {
-				showError(result.message || 'Failed to create chit scheme');
+				showError(result.message || 'Failed to update chit scheme');
 			}
 		} catch (error) {
-			console.error('Error creating chit scheme:', error);
+			console.error('Error updating chit scheme:', error);
 			showError('Network error. Please try again.');
 		} finally {
 			setIsSubmitting(false);
@@ -198,8 +208,8 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 			</button>
 			<ActionButton
 				type="submit"
-				label={isSubmitting ? 'Creating...' : 'Create Scheme'}
-				icon={isSubmitting ? 'spinner fa-spin' : 'plus'}
+				label={isSubmitting ? 'Saving...' : 'Save Changes'}
+				icon={isSubmitting ? 'spinner fa-spin' : 'save'}
 				variant="primary"
 				disabled={isSubmitting}
 				onClick={handleSubmit}
@@ -211,7 +221,7 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			title="Create New Chit Scheme"
+			title="Edit Chit Scheme"
 			footer={modalFooter}
 			size="large"
 		>
@@ -353,4 +363,4 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 	);
 };
 
-export default CreateChitModal;
+export default EditChitModal;

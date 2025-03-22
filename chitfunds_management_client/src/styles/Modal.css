@@ -18,12 +18,30 @@
 	border-radius: 8px;
 	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 	width: 90%;
-	max-width: 800px;
+	max-width: 640px; /* Default size */
 	max-height: 90vh;
 	display: flex;
 	flex-direction: column;
 	animation: slideUp 0.3s ease;
 	overflow: hidden;
+}
+
+/* Modal size variations */
+.modal-container-small {
+	max-width: 480px;
+}
+
+.modal-container-medium {
+	max-width: 640px;
+}
+
+.modal-container-large {
+	max-width: 800px;
+}
+
+.modal-container-fullscreen {
+	max-width: 90%;
+	max-height: 90vh;
 }
 
 .modal-header {
@@ -446,4 +464,33 @@
 	.select-all-button {
 		align-self: flex-end;
 	}
+}
+
+/* Delete confirmation styles */
+.confirmation-message {
+	display: flex;
+	gap: 1rem;
+	padding: 1.5rem;
+	background-color: #fff7ed;
+	border-radius: 6px;
+	border: 1px solid #ffedd5;
+	margin-bottom: 1rem;
+}
+
+.confirmation-message .warning-icon {
+	font-size: 2.5rem;
+	color: #f97316;
+}
+
+.confirmation-message h3 {
+	margin-top: 0;
+	margin-bottom: 0.5rem;
+	color: #9a3412;
+	font-size: 1.125rem;
+}
+
+.confirmation-message p {
+	margin: 0;
+	color: #7c2d12;
+	line-height: 1.5;
 }

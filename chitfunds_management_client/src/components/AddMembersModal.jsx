@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import ActionButton from './ActionButton';
+import Modal from './Modal';
+import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
 
 const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
@@ -10,8 +12,7 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [submitSuccess, setSubmitSuccess] = useState(false);
-	const [submitError, setSubmitError] = useState(null);
+	const { showSuccess, showError } = useNotification();
 
 	useEffect(() => {
 		if (isOpen) {
@@ -19,8 +20,6 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 			// Reset states when modal opens
 			setSelectedUsers([]);
 			setSearchQuery('');
-			setSubmitSuccess(false);
-			setSubmitError(null);
 		}
 	}, [isOpen]);
 
@@ -81,19 +80,19 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 
 	const handleSubmit = async () => {
 		if (selectedUsers.length === 0) {
-			setSubmitError('Please select at least one user to add');
+			showError('Please select at least one user to add');
 			return;
 		}
 
 		try {
 			setIsSubmitting(true);
-			setSubmitError(null);
-			setSubmitSuccess(false);
 
 			const payload = {
 				chit_group_id: chitId,
 				user_ids: selectedUsers,
 			};
+
+			console.log(payload);
 
 			const response = await fetch('http://127.0.0.1:5000/add_chit_members', {
 				method: 'POST',
@@ -110,124 +109,104 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 				);
 			}
 
-			setSubmitSuccess(true);
+			showSuccess('Members added successfully!');
 			setTimeout(() => {
 				onSuccess && onSuccess();
 				onClose();
-			}, 1500);
+			}, 1000);
 		} catch (error) {
 			console.error('Error adding members:', error);
-			setSubmitError(
-				error.message || 'Failed to add members. Please try again.'
-			);
+			showError(error.message || 'Failed to add members. Please try again.');
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	if (!isOpen) return null;
+	const modalFooter = (
+		<>
+			<ActionButton label="Cancel" variant="secondary" onClick={onClose} />
+			<ActionButton
+				label={isSubmitting ? 'Adding...' : 'Add Selected Members'}
+				variant="primary"
+				icon={isSubmitting ? 'spinner fa-spin' : 'user-plus'}
+				onClick={handleSubmit}
+				disabled={isSubmitting || selectedUsers.length === 0}
+			/>
+		</>
+	);
 
 	return (
-		<div className="modal-overlay" onClick={onClose}>
-			<div className="modal-container" onClick={(e) => e.stopPropagation()}>
-				<div className="modal-header">
-					<h2>Add Members</h2>
-					<button className="close-button" onClick={onClose}>
-						<i className="fas fa-times"></i>
-					</button>
+		<Modal
+			isOpen={isOpen}
+			onClose={onClose}
+			title="Add Members"
+			footer={modalFooter}
+			size="medium"
+		>
+			{isLoading ? (
+				<div className="loading-message">
+					<i className="fas fa-spinner fa-spin"></i> Loading users...
 				</div>
-
-				<div className="modal-content">
-					{isLoading ? (
-						<div className="loading-message">
-							<i className="fas fa-spinner fa-spin"></i> Loading users...
+			) : error ? (
+				<div className="error-message">
+					<i className="fas fa-exclamation-circle"></i> {error}
+				</div>
+			) : (
+				<>
+					<div className="search-and-select">
+						<div className="search-box">
+							<i className="fas fa-search search-icon"></i>
+							<input
+								type="text"
+								placeholder="Search users..."
+								value={searchQuery}
+								onChange={handleSearchChange}
+							/>
 						</div>
-					) : error ? (
-						<div className="error-message">
-							<i className="fas fa-exclamation-circle"></i> {error}
+						<button className="select-all-button" onClick={handleSelectAll}>
+							{selectedUsers.length === filteredUsers.length
+								? 'Deselect All'
+								: 'Select All'}
+						</button>
+					</div>
+
+					{filteredUsers.length === 0 ? (
+						<div className="empty-message">
+							<i className="fas fa-users-slash"></i> No users found
 						</div>
 					) : (
-						<>
-							<div className="search-and-select">
-								<div className="search-box">
-									<i className="fas fa-search search-icon"></i>
-									<input
-										type="text"
-										placeholder="Search users..."
-										value={searchQuery}
-										onChange={handleSearchChange}
-									/>
-								</div>
-								<button className="select-all-button" onClick={handleSelectAll}>
-									{selectedUsers.length === filteredUsers.length
-										? 'Deselect All'
-										: 'Select All'}
-								</button>
-							</div>
-
-							{filteredUsers.length === 0 ? (
-								<div className="empty-message">
-									<i className="fas fa-users-slash"></i> No users found
-								</div>
-							) : (
-								<div className="users-list">
-									{filteredUsers.map((user) => (
-										<div
-											key={user.user_id}
-											className={`user-item ${
-												selectedUsers.includes(user.user_id) ? 'selected' : ''
-											}`}
-											onClick={() => handleUserSelect(user.user_id)}
-										>
-											<div className="checkbox">
-												{selectedUsers.includes(user.user_id) && (
-													<i className="fas fa-check"></i>
-												)}
-											</div>
-											<div className="user-info">
-												<div className="user-name">{user.full_name}</div>
-												<div className="user-details">
-													<span>
-														<i className="fas fa-envelope"></i> {user.email}
-													</span>
-													<span>
-														<i className="fas fa-phone"></i> {user.phone}
-													</span>
-												</div>
-											</div>
+						<div className="users-list">
+							{filteredUsers.map((user) => (
+								<div
+									key={user.user_id}
+									className={`user-item ${
+										selectedUsers.includes(user.user_id) ? 'selected' : ''
+									}`}
+									onClick={() => handleUserSelect(user.user_id)}
+								>
+									<div className="checkbox">
+										{selectedUsers.includes(user.user_id) && (
+											<i className="fas fa-check"></i>
+										)}
+									</div>
+									<div className="user-info">
+										<div className="user-name">{user.full_name}</div>
+										<div className="user-details">
+											<span>
+												<i className="fas fa-envelope"></i> {user.email}
+											</span>
+											<span>
+												<i className="fas fa-phone"></i> {user.phone}
+											</span>
 										</div>
-									))}
+									</div>
 								</div>
-							)}
-						</>
-					)}
-
-					{submitSuccess && (
-						<div className="success-message">
-							<i className="fas fa-check-circle"></i> Members added
-							successfully!
+							))}
 						</div>
 					)}
-
-					{submitError && (
-						<div className="error-message">
-							<i className="fas fa-exclamation-circle"></i> {submitError}
-						</div>
-					)}
-				</div>
-
-				<div className="modal-footer">
-					<ActionButton label="Cancel" variant="secondary" onClick={onClose} />
-					<ActionButton
-						label={isSubmitting ? 'Adding...' : 'Add Selected Members'}
-						variant="primary"
-						icon={isSubmitting ? 'spinner fa-spin' : 'user-plus'}
-						onClick={handleSubmit}
-						disabled={isSubmitting || selectedUsers.length === 0}
-					/>
-				</div>
-			</div>
-		</div>
+				</>
+			)}
+		</Modal>
 	);
 };
 
