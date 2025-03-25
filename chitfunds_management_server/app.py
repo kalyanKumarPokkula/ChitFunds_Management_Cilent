@@ -1,6 +1,7 @@
 from chit_groups import chit_groups , chit_lifted_member,add_chit_monthly_projections ,update_chit_group, add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
+from users import get_members , get_users_chit_details
 
 app = Flask(__name__)
 
@@ -146,6 +147,17 @@ def add_chit_members():
             return jsonify({"error": "Invalid format, expected a list under 'data'"}), 400
         
         response = add_members(data)
+
+        return jsonify(response), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/get_members" , methods=['GET'])
+def get_users():
+    try:
+        
+        response = get_users_chit_details("U001")
 
         return jsonify(response), 201
     except Exception as e:
