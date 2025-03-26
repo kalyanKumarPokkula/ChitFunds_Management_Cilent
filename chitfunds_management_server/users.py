@@ -6,9 +6,10 @@ import pandas as pd
 def create_new_user(data):
 
     user = [
-        str(uuid.uuid4().hex[:8]),
+        str(uuid.uuid4().hex[:12]),
         str(data.get("full_name")),
         str(data.get("email")),
+        str("123456"),
         str(data.get("phone")),
         str(data.get("aadhaar_number")),
         str(data.get("pan_number")),
@@ -16,20 +17,36 @@ def create_new_user(data):
         str(data.get("city")),
         str(data.get("state")),
         str(data.get("pincode")),
-        datetime.datetime.now().now.strftime("%Y-%m-%d %H:%M:%S"),
-        str(data.get("is_verified")),
-        datetime.datetime.now().now.strftime("%Y-%m-%d %H:%M:%S")     
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        str("TRUE"),
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")     
     ]
+
+    print(user)
     
     users = spreadsheet_credentials().worksheet("users")
     users_sheet = users.get_all_records()
+
+    print(users_sheet)
+
+    if not users_sheet:
+        users.append_row(user)
+        return {"message": "Successfully created the first user"}
     df = pd.DataFrame(users_sheet)
 
-    if data["phone"] in df["phone"].values:
-        print(f"User with phone number {data['phone']} already exists. Sending a message...")
-    # Implement your messaging logic here (e.g., SMS, email)
-    else:
-        print("Phone number not found. You can proceed with registration.")
+    df["phone"] = df["phone"].astype(str)
+    df["aadhaar_number"] = df["aadhaar_number"].astype(str)
+    df["pan_number"] = df["pan_number"].astype(str)   
+
+    if data.get("phone") in df["phone"].values:
+        return {"message": f"User with phone number {data['phone']} already exists."}
+    elif data.get("aadhaar_number") in df["aadhaar_number"].values:
+        return {"message": f"User with Aadhaar number {data['aadhaar_number']} already exists."}
+    elif data.get("pan_number") in df["pan_number"].values:
+        return {"message": f"User with PAN number {data['pan_number']} already exists."}
+    
+    users.append_row(user)
+    return { "message" :f"Successfully created a new user"}
 
     
 def get_members():
@@ -62,28 +79,7 @@ def get_members():
     # Display results
     print(df_merged[["full_name", "email", "chit_count"]])
 
-    result_dict = df_merged[["full_name", "email", "chit_count", "phone"]].to_dict(orient="records")
-
-    # # Filter active chits first
-    # active_chit_ids = set(df_chit_groups.loc[df_chit_groups["status"] == "active", "chit_group_id"])
-    # print(active_chit_ids)
-
-    # # Count chit participation only for active chits
-    # chit_count_series = df_chit_members.loc[df_chit_members["chit_group_id"].isin(active_chit_ids), "user_id"].value_counts()
-    # print(chit_count_series)
-
-    # # Map chit count directly to users (avoiding unnecessary joins)
-    # df_users["chit_count"] = df_users["user_id"].map(chit_count_series).fillna(0).astype(int)
-
-
-
-    # # Select required columns and convert to dict
-    # result_dict = df_users[["full_name", "email", "chit_count", "phone"]].to_dict(orient="records")
-
-    # print(result_dict)
-
-
-    
+    result_dict = df_merged[["user_id","full_name", "email", "phone","chit_count"]].to_dict(orient="records")
 
     return result_dict
 
@@ -105,13 +101,15 @@ def get_users_chit_details(user_id):
     chit_groups_data = chit_groups_ws.get_all_records()
     chit_groups_df = pd.DataFrame(chit_groups_data)
 
-    # Read Monthly Projections Table
-    monthly_projections_ws = spreadsheet_credentials().worksheet("monthly_projections")
-    monthly_projections_data = monthly_projections_ws.get_all_records()
-    monthly_projections_df = pd.DataFrame(monthly_projections_data)
+    # # Read Monthly Projections Table
+    # monthly_projections_ws = spreadsheet_credentials().worksheet("monthly_projections")
+    # monthly_projections_data = monthly_projections_ws.get_all_records()
+    # monthly_projections_df = pd.DataFrame(monthly_projections_data)
 
-    # Read Payments table
-    
+    # Read installments
+    installments = spreadsheet_credentials().worksheet("installments")
+    installments_sheet = installments.get_all_records()
+    instllments_df = pd.DataFrame(installments_sheet)
 
     user = users_df[users_df["user_id"] == user_id]
     print(user)
@@ -137,6 +135,18 @@ def get_users_chit_details(user_id):
                                    (chit_members_df["user_id"] == user_id)]
     
     print(chit_members_of_active_chit_group)
+    chit_groups_members = chit_members_of_active_chit_group[["chit_member_id", "chit_group_id"]].to_dict(orient="records")
+    print(chit_groups_members)
+    chit_member_ids = chit_members_of_active_chit_group["chit_member_id"]
+    print(chit_member_ids)
+    
+
+    unpaid_df = instllments_df[(instllments_df["chit_member_id"].isin(chit_member_ids))]
+
+    print(unpaid_df)
+    overdue_member_chit_groups = member_overdue_amounts(unpaid_df,chit_groups_members)
+
+    print(overdue_member_chit_groups)
     
     active_chits_df = pd.DataFrame(active_chits)
 
@@ -147,12 +157,32 @@ def get_users_chit_details(user_id):
     today = datetime.today()
 
     # Calculate current month of the chit
-    active_chits_df["current_month"] = ((today.year - active_chits_df["start_date"].dt.year) * 12 +
+
+    current_month = ((today.year - active_chits_df["start_date"].dt.year) * 12 +
                                     (today.month - active_chits_df["start_date"].dt.month) + 1).clip(upper=active_chits_df["duration_months"])
+    active_chits_df["current_month"] = current_month
     
     print(active_chits_df[["chit_group_id", "chit_name", "current_month"]])
 
-    return get_current_month_projections_data(monthly_projections_df , active_chits_df)
+    result = pd.merge(overdue_member_chit_groups, active_chits_df, on="chit_group_id", how="inner")
+
+    # current_month_chit_group = unpaid_df[(unpaid_df.groupby("chit_member_id")["month_number"].idxmax()) ]
+
+    # print(current_month_chit_group)
+
+    merged_df = pd.merge(
+    unpaid_df, 
+    result, 
+    left_on=["chit_member_id", "month_number"], 
+    right_on=["chit_member_id", "current_month"],
+    how="inner"
+    )
+
+    print(merged_df)
+
+    return result.to_dict(orient="records")
+
+    
     
     
 def get_current_month_projections_data(monthly_projections_df , chit_group_df):
@@ -174,5 +204,41 @@ def get_current_month_projections_data(monthly_projections_df , chit_group_df):
     return result
 
 
+def member_overdue_amounts(df,chit_group_ids):
+    df["due_date"] = pd.to_datetime(df["due_date"], errors="coerce")
+
+    # Get today's date
+    today = datetime.today()
+
+    df["total_amount"] = pd.to_numeric(df["total_amount"], errors="coerce").fillna(0)
+    df["paid_amount"] = pd.to_numeric(df["paid_amount"], errors="coerce").fillna(0)
+
+    # Calculate remaining unpaid amount
+    df["overdue_amount"] = df["total_amount"] - df["paid_amount"]
+
+    # Filter overdue installments (status unpaid + past due date + unpaid balance)
+    overdue_df = df[
+        (df["status"].str.lower() == "unpaid") &  # Unpaid status
+        (df["due_date"] < today) &  # Past due date
+        (df["overdue_amount"] > 0)  # Only consider unpaid amounts
+    ]
+
+
+    # Group by chit_member_id to calculate total overdue amount and overdue months
+    overdue_summary = overdue_df.groupby("chit_member_id").agg(
+        total_overdue_amount=("overdue_amount", "sum"),
+        overdue_months=("installment_id", "count")  # Count months with overdue
+    ).reset_index()
+
+    group_df = pd.DataFrame(chit_group_ids)
+
+    merged_df = pd.merge(overdue_summary, group_df, on="chit_member_id", how="left")
+
+
+    return merged_df 
+    # Convert to JSON format
+    overdue_json = merged_df.to_dict(orient="records")
+
+    print(overdue_json)
 
 

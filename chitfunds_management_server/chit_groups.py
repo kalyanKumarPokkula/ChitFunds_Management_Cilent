@@ -4,17 +4,6 @@ from flask import jsonify
 import uuid
 
 
-def total_chit_rows():
-    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
-
-    return len(chit_groups.get_all_values())
-
-def total_chit_memeber_rows():
-    chit_members = spreadsheet_credentials().worksheet("chit_members")
-
-    return len(chit_members.get_all_values())
-
-
 def chit_groups():
 
     """
@@ -60,7 +49,7 @@ def add_chit(data):
     """
     
     new_row = [
-        str(total_chit_rows()),   # Convert to string
+        str(str(uuid.uuid4().hex[:12])),   # Convert to string
         str(data.get("chit_name", "")),
         str(data.get("chit_amount", "")),
         str(data.get("duration_months", "")),
@@ -88,10 +77,9 @@ def add_members(data):
 
     formatted_rows = []
     users = data.get("user_ids")
-    index = total_chit_memeber_rows()
     for row in users:
         formatted_rows.append([
-            str(index),
+            str(uuid.uuid4().hex[:12]),
             str(row),
             data.get("chit_group_id"),
             str("FALSE"),
@@ -99,7 +87,7 @@ def add_members(data):
             0,
             str("NULL")
         ])
-        index += 1;
+        
     
     print(formatted_rows)
     
@@ -127,7 +115,7 @@ def add_chit_monthly_projections(data):
      print(monthly_chit_projections)
      for row in monthly_chit_projections:
           formatted_rows.append([
-               str(uuid.uuid4().hex[:8]),
+               str(uuid.uuid4().hex[:16]),
                data.get("chit_group_id"),
                row.get("month_number"),
                row.get("monthly_subcription"),
@@ -392,6 +380,10 @@ def get_users_by_chit_group(chit_group_id):
 
     # Get all values from the "users" sheet
      users_sheet = users.get_all_values()
+
+    #  installments = spreadsheet_credentials().worksheet("installments")
+
+    #  installments_sheet = installments.get_all_records()
 
     # Convert the "users" sheet data into a pandas DataFrame
      df_users = pd.DataFrame(users_sheet[1:], columns=users_sheet[0])

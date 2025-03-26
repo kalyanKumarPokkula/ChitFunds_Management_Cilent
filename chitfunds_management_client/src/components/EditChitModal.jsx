@@ -48,6 +48,9 @@ const EditChitModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 	const { showSuccess, showError } = useNotification();
 
 	useEffect(() => {
+
+		console.log(chitDetails,"inside the edit");
+		
 		if (chitDetails && isOpen) {
 			// Populate form data with chit details
 			setFormData({
@@ -155,7 +158,7 @@ const EditChitModal = ({ isOpen, onClose, onSuccess, chitDetails }) => {
 
 		// Ensure all numbers are properly formatted as numbers for the API
 		const submissionData = {
-			chit_group_id: Number(formData.chit_group_id),
+			chit_group_id: String(formData.chit_group_id),
 			chit_name: formData.chit_name,
 			chit_amount: Number(formData.chit_amount),
 			duration_months: Number(formData.duration_months),

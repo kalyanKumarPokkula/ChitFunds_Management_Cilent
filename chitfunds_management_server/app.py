@@ -1,7 +1,7 @@
 from chit_groups import chit_groups , chit_lifted_member,add_chit_monthly_projections ,update_chit_group, add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
-from users import get_members , get_users_chit_details
+from users import create_new_user,get_users_chit_details,get_members
 
 app = Flask(__name__)
 
@@ -151,17 +151,57 @@ def add_chit_members():
         return jsonify(response), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-@app.route("/get_members" , methods=['GET'])
-def get_users():
+    
+@app.route("/add_new_user" , methods=["POST"])
+def add_user():
     try:
+
+        data = request.get_json()
+        print(type(data), data)  # Debugging
+
+        if not data:  
+            return jsonify({"error": "Invalid format, expected a list under 'data'"}), 400
         
-        response = get_users_chit_details("U001")
+        response = add_members(data)
 
         return jsonify(response), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/create_new_user" , methods=['POST'])
+def add_new_users():
+    try:
+
+
+        data = request.get_json()
+        print(data)
+        response = create_new_user(data)
+
+        return jsonify(response), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/user_details" , methods=['GET'])
+def user_details():
+    try:
+        data = request.args.get("user_id")
+        print(data)
+        response = get_users_chit_details(data)
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_users' , methods=['GET'])
+def get_all_users():
+    try:   
+        response = get_members()
+
+        return jsonify({"data" : response}) , 200
+    
+    except Exception as e:
+         return jsonify({"error" : str(e)}), 500
 
 # Run the Flask app
 if __name__ == "__main__":

@@ -9,8 +9,10 @@ import AddLifterModal from '../components/AddLifterModal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
+import { useParams } from 'react-router-dom';
 
-const ChitDetails = ({ chitId }) => {
+const ChitDetails = () => {
+	const { chitId } = useParams(); 
 	const [activeTab, setActiveTab] = useState('projections');
 	const [searchQuery, setSearchQuery] = useState('');
 	const [chitDetails, setChitDetails] = useState(null);
@@ -39,6 +41,8 @@ const ChitDetails = ({ chitId }) => {
 		try {
 			setIsLoading(true);
 			setError(null);
+			console.log(chitId , "inside the chit details");
+			
 			const response = await fetch(
 				`http://127.0.0.1:5001/get_chit?chit_group_id=${chitId}`
 			);
@@ -157,7 +161,7 @@ const ChitDetails = ({ chitId }) => {
 
 			setTimeout(() => {
 				window.location.href = '/chits';
-			}, 2000);
+			}, 1000);
 		} catch (error) {
 			console.error('Error deleting chit:', error);
 			showError('Failed to delete chit. Please try again.');
