@@ -101,10 +101,6 @@ def get_users_chit_details(user_id):
     chit_groups_data = chit_groups_ws.get_all_records()
     chit_groups_df = pd.DataFrame(chit_groups_data)
 
-    # # Read Monthly Projections Table
-    # monthly_projections_ws = spreadsheet_credentials().worksheet("monthly_projections")
-    # monthly_projections_data = monthly_projections_ws.get_all_records()
-    # monthly_projections_df = pd.DataFrame(monthly_projections_data)
 
     # Read installments
     installments = spreadsheet_credentials().worksheet("installments")
@@ -122,7 +118,7 @@ def get_users_chit_details(user_id):
     active_chits = chit_groups_df[(chit_groups_df["chit_group_id"].isin(user_chits)) & 
                                   (chit_groups_df["status"] == "active")]
     
-    print(active_chits)
+  
 
     if active_chits.empty:
         return "No active chits found for this user"
@@ -166,9 +162,9 @@ def get_users_chit_details(user_id):
 
     result = pd.merge(overdue_member_chit_groups, active_chits_df, on="chit_group_id", how="inner")
 
-    # current_month_chit_group = unpaid_df[(unpaid_df.groupby("chit_member_id")["month_number"].idxmax()) ]
+    payment_overdues = result[["chit_group_id","chit_member_id","chit_name" , "overdue_months" , "total_overdue_amount"]].to_dict(orient="records")
 
-    # print(current_month_chit_group)
+    
 
     merged_df = pd.merge(
     unpaid_df, 
@@ -178,9 +174,28 @@ def get_users_chit_details(user_id):
     how="inner"
     )
 
+    total_sum = merged_df["total_amount"].sum()
+    print(total_sum)
+
+    current_month_payment = merged_df[["chit_member_id" , "chit_group_id" , "chit_name" , "month_number" , "total_amount" , "status_x"]].to_dict(orient="records")
+
+    user_information = user[["full_name" , "email" , "phone" , "address" , "state" , "city" ,"user_id" , "city" , "pincode"]].to_dict(orient="records")
+    
+    chit_count = len(current_month_payment)
+    print(chit_count)
+
+    user_details = {
+        "user" : user_information[0],
+        "current_month_payment" : current_month_payment,
+        "payment_overdues" : payment_overdues,
+        "chit_count" : int(chit_count),
+        "current_total_amount" : int(total_sum)
+
+    }
+
     print(merged_df)
 
-    return result.to_dict(orient="records")
+    return user_details
 
     
     
