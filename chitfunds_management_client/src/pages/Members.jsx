@@ -1,130 +1,43 @@
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import '../styles/Members.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Members = () => {
+	const [members, setMembers] = useState([]);
 	const [searchQuery, setSearchQuery] = useState('');
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState(null);
 
-	const members = [
-		{
-			id: 1,
-			name: 'Ramesh Kumar',
-			phone: '+91 98765 43210',
-			email: 'ramesh@example.com',
-			activeChits: 3,
-			totalValue: '₹15,00,000',
-			status: 'Active',
-		},
-		{
-			id: 2,
-			name: 'Suresh Reddy',
-			phone: '+91 87654 32109',
-			email: 'suresh@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Active',
-		},
-		{
-			id: 3,
-			name: 'Priya Sharma',
-			phone: '+91 76543 20987',
-			email: 'priya@example.com',
-			activeChits: 1,
-			totalValue: '₹5,00,000',
-			status: 'Active',
-		},
-		{
-			id: 4,
-			name: 'Kiran Patel',
-			phone: '+91 65432 10987',
-			email: 'kiran@example.com',
-			activeChits: 4,
-			totalValue: '₹20,00,000',
-			status: 'Active',
-		},
-		{
-			id: 5,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 6,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 7,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 8,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 9,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 10,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 5,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 11,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-		{
-			id: 12,
-			name: 'Lakshmi Devi',
-			phone: '+91 54321 09876',
-			email: 'lakshmi@example.com',
-			activeChits: 2,
-			totalValue: '₹10,00,000',
-			status: 'Inactive',
-		},
-	];
+	useEffect(() => {
+		fetchMembers();
+	}, []);
+
+	const fetchMembers = async () => {
+		try {
+			setIsLoading(true);
+			setError(null);
+
+			const response = await fetch('http://127.0.0.1:5001/get_users');
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
+
+			const result = await response.json();
+
+			if (result.data) {
+				setMembers(result.data);
+			} else {
+				setMembers([]);
+			}
+		} catch (err) {
+			console.error('Error fetching members:', err);
+			setError('Failed to load members. Please try again later.');
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
 	const handleSearchChange = (e) => {
 		setSearchQuery(e.target.value);
@@ -132,7 +45,7 @@ const Members = () => {
 
 	const filteredMembers = members.filter((member) =>
 		Object.values(member).some((value) =>
-			value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+			value?.toString().toLowerCase().includes(searchQuery.toLowerCase())
 		)
 	);
 
@@ -168,42 +81,42 @@ const Members = () => {
 					<div className="members-count">{filteredMembers.length} members</div>
 				</div>
 
-				<div className="table-container">
-					<table className="members-table">
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Phone</th>
-								<th>Email</th>
-								<th>Active Chits</th>
-								<th>Total Value</th>
-								<th>Status</th>
-								<th>Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							{filteredMembers.map((member) => (
-								<tr key={member.id}>
-									<td>{member.name}</td>
-									<td>{member.phone}</td>
-									<td>{member.email}</td>
-									<td>{member.activeChits}</td>
-									<td>{member.totalValue}</td>
-									<td>
-										<span
-											className={`status-badge ${member.status.toLowerCase()}`}
-										>
-											{member.status}
-										</span>
-									</td>
-									<td>
-										<ActionButton label="View" icon="eye" variant="outline" />
-									</td>
+				{isLoading ? (
+					<div className="loading-indicator">
+						<i className="fas fa-spinner fa-spin"></i> Loading members...
+					</div>
+				) : error ? (
+					<div className="error-message">
+						<i className="fas fa-exclamation-triangle"></i> {error}
+					</div>
+				) : (
+					<div className="table-container">
+						<table className="members-table">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Phone</th>
+									<th>Email</th>
+									<th>Active Chits</th>
+									<th>Actions</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+							</thead>
+							<tbody>
+								{filteredMembers.map((member) => (
+									<tr key={member.user_id}>
+										<td>{member.full_name}</td>
+										<td>{`+91 ${member.phone}`}</td>
+										<td>{member.email}</td>
+										<td>{member.chit_count}</td>
+										<td>
+											<ActionButton label="View" icon="eye" variant="outline" />
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				)}
 			</div>
 		</div>
 	);

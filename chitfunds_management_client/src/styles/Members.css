@@ -181,3 +181,39 @@
 		max-width: 100%;
 	}
 }
+
+/* Loading and Error styles */
+.loading-indicator,
+.error-message {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 200px;
+	width: 100%;
+	font-size: 1rem;
+	color: #6b7280;
+	border-radius: 8px;
+	background-color: #f9fafb;
+	border: 1px solid #e5e7eb;
+	margin-top: 20px;
+}
+
+.loading-indicator i,
+.error-message i {
+	margin-right: 10px;
+	font-size: 1.2rem;
+}
+
+.loading-indicator i {
+	color: #3b82f6;
+}
+
+.error-message {
+	color: #dc2626;
+	background-color: #fee2e2;
+	border-color: #fecaca;
+}
+
+.error-message i {
+	color: #dc2626;
+}
