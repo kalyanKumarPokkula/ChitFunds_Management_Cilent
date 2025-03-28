@@ -1,7 +1,7 @@
 from chit_groups import chit_groups , chit_lifted_member,add_chit_monthly_projections ,update_chit_group, add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
-from users import create_new_user,get_users_chit_details,get_members
+from users import create_new_user,get_users_chit_details,get_members , get_current_month_payment_stats,get_all_member_installments
 
 app = Flask(__name__)
 
@@ -202,6 +202,27 @@ def get_all_users():
     
     except Exception as e:
          return jsonify({"error" : str(e)}), 500
+    
+@app.route('/get_all_chit_groups_current_month_payment_stats' , methods=['GET'])
+def get_all_chit_groups_current_month_stats():
+    try:   
+        response = get_current_month_payment_stats()
+
+        return jsonify({"data" : response}) , 200
+    
+    except Exception as e:
+         return jsonify({"error" : str(e)}), 500
+
+@app.route("/get_chit_group_member_installments" , methods=['GET'])
+def get_chit_group_member_installment():
+    try:
+        data = request.args.get("chit_member_id")
+        print(data)
+        response = get_all_member_installments(data)
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Run the Flask app
 if __name__ == "__main__":

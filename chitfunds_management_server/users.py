@@ -165,21 +165,24 @@ def get_users_chit_details(user_id):
     payment_overdues = result[["chit_group_id","chit_member_id","chit_name" , "overdue_months" , "total_overdue_amount"]].to_dict(orient="records")
 
     
+     # Step 4: Get current month's installments
+    merged_installments = unpaid_df.merge(chit_members_of_active_chit_group, on="chit_member_id")
 
-    merged_df = pd.merge(
-    unpaid_df, 
-    result, 
-    left_on=["chit_member_id", "month_number"], 
-    right_on=["chit_member_id", "current_month"],
-    how="inner"
-    )
+    upgrade_merged_installments = merged_installments.merge(active_chits_df, on="chit_group_id")
 
-    total_sum = merged_df["total_amount"].sum()
+    current_month_installments = upgrade_merged_installments[
+    upgrade_merged_installments["month_number"] == upgrade_merged_installments["current_month"]
+    ]
+
+    # merged_installments["current_month"] = 
+
+    
+    total_sum = current_month_installments["total_amount"].sum()
     print(total_sum)
 
-    current_month_payment = merged_df[["chit_member_id" , "chit_group_id" , "chit_name" , "month_number" , "total_amount" , "status_x"]].to_dict(orient="records")
+    current_month_payment = current_month_installments[["chit_member_id" , "chit_group_id" , "chit_name" , "month_number" , "total_amount" , "status_x"]].to_dict(orient="records")
 
-    user_information = user[["full_name" , "email" , "phone" , "address" , "state" , "city" ,"user_id" , "city" , "pincode"]].to_dict(orient="records")
+    user_information = user[["full_name" , "email" , "phone" , "address" , "state" , "city" ,"user_id" , "city" , "pincode", "is_verified"]].to_dict(orient="records")
     
     chit_count = len(current_month_payment)
     print(chit_count)
@@ -193,7 +196,7 @@ def get_users_chit_details(user_id):
 
     }
 
-    print(merged_df)
+    
 
     return user_details
 
@@ -257,3 +260,92 @@ def member_overdue_amounts(df,chit_group_ids):
     print(overdue_json)
 
 
+def get_all_member_installments(member_id):
+
+
+    # Read installments
+    installments = spreadsheet_credentials().worksheet("installments")
+    installments_sheet = installments.get_all_records()
+    instllments_df = pd.DataFrame(installments_sheet)
+
+    results = instllments_df[instllments_df["chit_member_id"] == member_id ]
+
+    print(results)
+
+    return results.to_dict(orient="records")
+
+
+def get_current_month_payment_stats():
+
+
+    # Read Chit Members Table
+    chit_members_ws = spreadsheet_credentials().worksheet("chit_members")
+    chit_members_data = chit_members_ws.get_all_records()
+    chit_members_df = pd.DataFrame(chit_members_data)
+
+    # Read installments
+    installments = spreadsheet_credentials().worksheet("installments")
+    installments_sheet = installments.get_all_records()
+    installments_df = pd.DataFrame(installments_sheet)
+    # Read Chit Groups Table
+    chit_groups_ws = spreadsheet_credentials().worksheet("chit_groups")
+    chit_groups_data = chit_groups_ws.get_all_records()
+    chit_groups_df = pd.DataFrame(chit_groups_data)
+    chit_groups_df["start_date"] = pd.to_datetime(chit_groups_df["start_date"])
+
+    active_chits_df = chit_groups_df[(chit_groups_df["status"] == "active")]
+
+    # Step 2: Calculate the current month for each active chit
+    today = datetime.today()
+    active_chits_df["current_month"] = (
+        ((today.year - active_chits_df["start_date"].dt.year) * 12) +
+        (today.month - active_chits_df["start_date"].dt.month) + 1
+    ).clip(upper=active_chits_df["duration_months"])
+    
+    print(active_chits_df)
+
+    active_members_df = chit_members_df[chit_members_df["chit_group_id"].isin(active_chits_df["chit_group_id"])]
+
+    print(active_members_df)
+
+    # Step 4: Get current month's installments
+    merged_installments = installments_df.merge(active_members_df, on="chit_member_id")
+
+    # Merge to get the correct month for each chit group
+    merged_installments = merged_installments.merge(
+        active_chits_df[["chit_group_id", "current_month"]],
+        on="chit_group_id"
+    )
+
+    print(merged_installments)
+
+    # Filter installments for the current month of the respective chit groups
+    current_month_installments = merged_installments[
+    merged_installments["month_number"] == merged_installments["current_month"]
+    ]
+
+    print(current_month_installments)
+    print(current_month_installments[["total_amount", "paid_amount"]].dtypes)
+    current_month_installments["total_amount"] = pd.to_numeric(current_month_installments["total_amount"], errors="coerce")
+    current_month_installments["paid_amount"] = pd.to_numeric(current_month_installments["paid_amount"], errors="coerce")
+
+
+    # Step 5: Calculate due, paid, and unpaid amounts per chit group
+    final_result = current_month_installments.groupby("chit_group_id").agg(
+        total_due_this_month=("total_amount", "sum"),
+        total_paid_this_month=("paid_amount", "sum")
+    ).reset_index()
+
+    print(final_result)
+    print(final_result["total_paid_this_month"])
+    # Calculate total unpaid
+    final_result["total_unpaid_this_month"] = final_result["total_due_this_month"] - final_result["total_paid_this_month"]
+
+    print(final_result)
+
+    data = final_result[["total_unpaid_this_month","total_due_this_month","total_paid_this_month"]].to_dict(orient="records")
+
+    data_df = pd.DataFrame(data)
+    totals = data_df.sum()
+
+    return totals.to_dict()
