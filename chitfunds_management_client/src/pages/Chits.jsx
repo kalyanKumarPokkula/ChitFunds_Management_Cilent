@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import ChitCard from '../components/ChitCard';
+import CreateChitModal from '../components/CreateChitModal';
 import '../styles/Chits.css';
 
 const Chits = () => {
@@ -12,6 +13,7 @@ const Chits = () => {
 	const [statusFilter, setStatusFilter] = useState('All Status');
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	useEffect(() => {
 		fetchChits();
@@ -55,6 +57,11 @@ const Chits = () => {
 		navigate(`/chit-details/${chitId}`);
 	};
 
+	const handleCreateSuccess = () => {
+		// Refresh the chit schemes list after creating a new one
+		fetchChits();
+	};
+
 	const filteredChits = chits.filter((chit) => {
 		const matchesSearch = chit.chit_name
 			.toLowerCase()
@@ -82,7 +89,7 @@ const Chits = () => {
 							label="Create New Scheme"
 							icon="plus"
 							variant="primary"
-							onClick={() => console.log('Create new chit')}
+							onClick={() => setIsModalOpen(true)}
 						/>
 					</div>
 				</div>
@@ -132,6 +139,12 @@ const Chits = () => {
 					</div>
 				)}
 			</div>
+
+			<CreateChitModal
+				isOpen={isModalOpen}
+				onClose={() => setIsModalOpen(false)}
+				onSuccess={handleCreateSuccess}
+			/>
 		</div>
 	);
 };

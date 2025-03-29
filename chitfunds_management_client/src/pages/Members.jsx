@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
+import AddMemberModal from '../components/AddMemberModal';
 import '../styles/Members.css';
 
 const Members = () => {
@@ -10,6 +11,7 @@ const Members = () => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	useEffect(() => {
 		fetchMembers();
@@ -49,6 +51,11 @@ const Members = () => {
 		navigate(`/members/${userId}`);
 	};
 
+	const handleAddMemberSuccess = () => {
+		// Refresh the members list after adding a new member
+		fetchMembers();
+	};
+
 	const filteredMembers = members.filter((member) =>
 		Object.values(member).some((value) =>
 			value?.toString().toLowerCase().includes(searchQuery.toLowerCase())
@@ -70,6 +77,7 @@ const Members = () => {
 							label="Add New Member"
 							icon="user-plus"
 							variant="primary"
+							onClick={() => setIsModalOpen(true)}
 						/>
 					</div>
 				</div>
@@ -133,6 +141,12 @@ const Members = () => {
 					</div>
 				)}
 			</div>
+
+			<AddMemberModal
+				isOpen={isModalOpen}
+				onClose={() => setIsModalOpen(false)}
+				onSuccess={handleAddMemberSuccess}
+			/>
 		</div>
 	);
 };
