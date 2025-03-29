@@ -32,9 +32,9 @@ def chit_groups():
 
     df = df.sort_values('status')
 
-    json_data = df.to_json(orient="records", indent=4)
+    
 
-    return json_data
+    return df.to_dict(orient="records")
 
 
 def add_chit(data):

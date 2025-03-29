@@ -217,3 +217,13 @@
 .error-message i {
 	color: #dc2626;
 }
+
+/* Make the members table rows clickable */
+.member-row {
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.member-row:hover {
+	background-color: #f3f4f6;
+}

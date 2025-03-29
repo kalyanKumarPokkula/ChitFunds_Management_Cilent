@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import '../styles/Members.css';
-import { useState, useEffect } from 'react';
 
 const Members = () => {
+	const navigate = useNavigate();
 	const [members, setMembers] = useState([]);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +43,10 @@ const Members = () => {
 
 	const handleSearchChange = (e) => {
 		setSearchQuery(e.target.value);
+	};
+
+	const handleViewMember = (userId) => {
+		navigate(`/members/${userId}`);
 	};
 
 	const filteredMembers = members.filter((member) =>
@@ -103,13 +109,22 @@ const Members = () => {
 							</thead>
 							<tbody>
 								{filteredMembers.map((member) => (
-									<tr key={member.user_id}>
+									<tr
+										key={member.user_id}
+										className="member-row"
+										onClick={() => handleViewMember(member.user_id)}
+									>
 										<td>{member.full_name}</td>
 										<td>{`+91 ${member.phone}`}</td>
 										<td>{member.email}</td>
 										<td>{member.chit_count}</td>
-										<td>
-											<ActionButton label="View" icon="eye" variant="outline" />
+										<td onClick={(e) => e.stopPropagation()}>
+											<ActionButton
+												label="View"
+												icon="eye"
+												variant="outline"
+												onClick={() => handleViewMember(member.user_id)}
+											/>
 										</td>
 									</tr>
 								))}

@@ -1,0 +1,123 @@
+.chit-card {
+	background-color: #ffffff;
+	border-radius: 8px;
+	padding: 1.5rem;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chit-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chit-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 1rem;
+}
+
+.chit-name {
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: #111827;
+	margin: 0;
+}
+
+.status-badge {
+	padding: 0.25rem 0.75rem;
+	border-radius: 9999px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	text-transform: capitalize;
+}
+
+.status-badge.active {
+	background-color: #dcfce7;
+	color: #166534;
+}
+
+.status-badge.upcoming {
+	background-color: #fef3c7;
+	color: #92400e;
+}
+
+.status-badge.completed {
+	background-color: #dbeafe;
+	color: #1e40af;
+}
+
+.chit-details-layout {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.chit-value {
+	margin-bottom: 0.5rem;
+}
+
+.chit-value p {
+	margin: 0;
+	font-size: 0.875rem;
+	color: #6b7280;
+}
+
+.chit-details-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 0.5rem;
+}
+
+.detail-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.detail-icon {
+	color: #6b7280;
+	width: 18px;
+	text-align: center;
+}
+
+.detail-icon i {
+	font-size: 0.875rem;
+}
+
+.detail-value {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: #374151;
+}
+
+.detail-label {
+	font-size: 0.875rem;
+	color: #6b7280;
+}
+
+.chit-end-date {
+	margin-top: 0.5rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid #f3f4f6;
+}
+
+.chit-end-date p {
+	margin: 0;
+	font-size: 0.875rem;
+	color: #4b5563;
+	font-weight: 500;
+}
+
+.chit-card-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+	.chit-details {
+		grid-template-columns: 1fr;
+	}
+}

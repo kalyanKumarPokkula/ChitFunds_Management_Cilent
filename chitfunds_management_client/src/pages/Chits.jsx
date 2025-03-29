@@ -1,22 +1,23 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
+import ChitCard from '../components/ChitCard';
 import '../styles/Chits.css';
-import { useState, useEffect } from 'react';
-import CreateChitModal from '../components/CreateChitModal';
 
 const Chits = () => {
+	const navigate = useNavigate();
+	const [chits, setChits] = useState([]);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [statusFilter, setStatusFilter] = useState('All Status');
-	const [chitSchemes, setChitSchemes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	useEffect(() => {
-		fetchChitGroups();
+		fetchChits();
 	}, []);
 
-	const fetchChitGroups = async () => {
+	const fetchChits = async () => {
 		try {
 			setIsLoading(true);
 			setError(null);
@@ -29,23 +30,17 @@ const Chits = () => {
 
 			const result = await response.json();
 
-			// The API returns data as a JSON string inside the data field
-			// We need to parse it to get the actual array
-			const parsedData = JSON.parse(result.data);
-
-			setChitSchemes(parsedData);
-			setIsLoading(false);
-		} catch (error) {
-			console.error('Error fetching chit groups:', error);
-			setError('Failed to load chit schemes. Please try again later.');
+			if (result.data) {
+				setChits(result.data);
+			} else {
+				setChits([]);
+			}
+		} catch (err) {
+			console.error('Error fetching chits:', err);
+			setError('Failed to load chits. Please try again later.');
+		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const handleManageClick = (chitId) => {
-		// Create a chitDetails URL with the chit ID
-		const detailsPath = `/chit-details/${chitId}`;
-		window.location.href = detailsPath;
 	};
 
 	const handleSearchChange = (e) => {
@@ -56,40 +51,21 @@ const Chits = () => {
 		setStatusFilter(e.target.value);
 	};
 
-	const handleCreateSuccess = () => {
-		// Refresh the chit schemes list after creating a new one
-		fetchChitGroups();
+	const handleManageChit = (chitId) => {
+		navigate(`/chit-details/${chitId}`);
 	};
 
-	const filteredChits = chitSchemes.filter((chit) => {
+	const filteredChits = chits.filter((chit) => {
 		const matchesSearch = chit.chit_name
 			.toLowerCase()
 			.includes(searchQuery.toLowerCase());
 
-		// Status filter - making it case insensitive
 		const matchesStatus =
 			statusFilter === 'All Status' ||
 			chit.status.toLowerCase() === statusFilter.toLowerCase();
 
 		return matchesSearch && matchesStatus;
 	});
-
-	// Format currency with proper symbol and separators
-	const formatCurrency = (amount) => {
-		// Convert to number if it's a string
-		const numAmount = parseFloat(amount);
-
-		// Format with Indian Rupee symbol and thousand separators
-		return `₹${numAmount.toLocaleString('en-IN')}`;
-	};
-
-	const formatDate = (dateString) => {
-		return new Date(dateString).toLocaleDateString('en-IN', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
-	};
 
 	return (
 		<div className="chits-page">
@@ -106,7 +82,7 @@ const Chits = () => {
 							label="Create New Scheme"
 							icon="plus"
 							variant="primary"
-							onClick={() => setIsModalOpen(true)}
+							onClick={() => console.log('Create new chit')}
 						/>
 					</div>
 				</div>
@@ -131,93 +107,31 @@ const Chits = () => {
 					</div>
 				</div>
 
-				{/* Loading indicator */}
-				{isLoading && (
-					<div className="loading-message">
+				{isLoading ? (
+					<div className="loading-indicator">
 						<i className="fas fa-spinner fa-spin"></i> Loading chit schemes...
 					</div>
-				)}
-
-				{/* Error message */}
-				{error && (
+				) : error ? (
 					<div className="error-message">
-						<i className="fas fa-exclamation-circle"></i> {error}
+						<i className="fas fa-exclamation-triangle"></i> {error}
 					</div>
-				)}
-
-				{/* No results message */}
-				{!isLoading && !error && filteredChits.length === 0 && (
+				) : filteredChits.length === 0 ? (
 					<div className="no-results-message">
 						<i className="fas fa-search"></i> No chit schemes found matching
 						your criteria.
 					</div>
+				) : (
+					<div className="chits-grid">
+						{filteredChits.map((chit) => (
+							<ChitCard
+								key={chit.chit_group_id}
+								chit={chit}
+								onView={handleManageChit}
+							/>
+						))}
+					</div>
 				)}
-
-				<div className="chits-grid">
-					{filteredChits.map((chit) => (
-						<div key={chit.chit_group_id} className="chit-card">
-							<div className="card-header">
-								<h2>{chit.chit_name}</h2>
-								<span className={`status-badge ${chit.status.toLowerCase()}`}>
-									{chit.status.charAt(0).toUpperCase() + chit.status.slice(1)}
-								</span>
-							</div>
-							<div className="card-body">
-								<div className="value-info">
-									<p>Total Value: {formatCurrency(chit.chit_amount)}</p>
-								</div>
-
-								<div className="chit-card-details">
-									<div className="card-detail-item">
-										<i className="fas fa-money-bill-wave"></i>
-										<span>
-											{formatCurrency(chit.monthly_installment)} monthly
-										</span>
-									</div>
-									<div className="card-detail-item">
-										<i className="fas fa-users"></i>
-										<span>{chit.total_members} members</span>
-									</div>
-									<div className="card-detail-item">
-										<i className="fas fa-calendar-alt"></i>
-										<span>{chit.duration_months} months</span>
-									</div>
-									<div className="card-detail-item">
-										<i className="fas fa-calendar-check"></i>
-										<span>Started: {formatDate(chit.start_date)}</span>
-									</div>
-								</div>
-
-								<div className="auction-info">
-									<p>End Date: {formatDate(chit.end_date)}</p>
-								</div>
-
-								<div className="card-actions">
-									{/* <ActionButton
-										label="View Members"
-										icon="users"
-										variant="outline"
-										className="view"
-									/> */}
-									<ActionButton
-										label="Manage"
-										icon="cog"
-										variant="secondary"
-										className="manage"
-										onClick={() => handleManageClick(chit.chit_group_id)}
-									/>
-								</div>
-							</div>
-						</div>
-					))}
-				</div>
 			</div>
-
-			<CreateChitModal
-				isOpen={isModalOpen}
-				onClose={() => setIsModalOpen(false)}
-				onSuccess={handleCreateSuccess}
-			/>
 		</div>
 	);
 };

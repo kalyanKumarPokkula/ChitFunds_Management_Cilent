@@ -1,0 +1,93 @@
+.chit-fund-summary-container {
+	background-color: #fff;
+	border-radius: 8px;
+	padding: 24px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	margin-bottom: 24px;
+}
+
+.chit-fund-summary-container h3 {
+	font-size: 1.125rem;
+	color: #111827;
+	margin-top: 0;
+	margin-bottom: 1rem;
+	font-weight: 600;
+}
+
+.summary-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.stat-card {
+	background-color: #f9fafb;
+	border-radius: 8px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+}
+
+.stat-label {
+	font-size: 0.75rem;
+	color: #6b7280;
+	margin-bottom: 8px;
+}
+
+.stat-value {
+	font-size: 1.25rem;
+	color: #111827;
+	font-weight: 700;
+}
+
+.dues-section h4 {
+	font-size: 1rem;
+	color: #111827;
+	margin-top: 0;
+	margin-bottom: 12px;
+	font-weight: 600;
+}
+
+.dues-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+}
+
+.dues-table th {
+	background-color: #f9fafb;
+	padding: 12px 16px;
+	text-align: left;
+	font-weight: 500;
+	color: #4b5563;
+	border-bottom: 1px solid #e5e7eb;
+}
+
+.dues-table td {
+	padding: 12px 16px;
+	color: #1f2937;
+	border-bottom: 1px solid #e5e7eb;
+}
+
+.dues-table td.amount {
+	font-weight: 500;
+	color: #dc2626;
+}
+
+.dues-table .no-dues {
+	text-align: center;
+	padding: 24px;
+	color: #6b7280;
+}
+
+@media (max-width: 768px) {
+	.summary-stats {
+		grid-template-columns: 1fr;
+	}
+
+	.dues-table {
+		display: block;
+		overflow-x: auto;
+	}
+}
