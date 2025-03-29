@@ -1,5 +1,6 @@
 import Navbar from '../components/Navbar';
 import '../styles/Home.css';
+import PaymentStats from '../components/PaymentStats';
 import { useState } from 'react';
 
 const Home = () => {
@@ -51,6 +52,9 @@ const Home = () => {
 						<p>Welcome back, your chit fund overview for today</p>
 					</div>
 				</div>
+
+				{/* Payment Statistics Component */}
+				<PaymentStats />
 
 				{/* <div className="stats-grid">
 					<div className="stat-card trust">
