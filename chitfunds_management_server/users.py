@@ -110,6 +110,10 @@ def get_users_chit_details(user_id):
     user = users_df[users_df["user_id"] == user_id]
     print(user)
 
+    user_information = user[["full_name" , "email" , "phone" , "address" , "state" , "city" ,"user_id" , "city" , "pincode", "is_verified"]].to_dict(orient="records")
+
+
+
     # Get list of chit_group_id for the user
     user_chits = chit_members_df[chit_members_df["user_id"] == user_id]["chit_group_id"].unique()
     
@@ -119,9 +123,19 @@ def get_users_chit_details(user_id):
                                   (chit_groups_df["status"] == "active")]
     
   
-
+    print(active_chits)
+    chit_count= active_chits.shape[0]
+    print(chit_count)
     if active_chits.empty:
-        return "No active chits found for this user"
+        user_details = {
+            "user" : user_information[0],
+            "current_month_payment" : [],
+            "payment_overdues" : [],
+            "chit_count" : int(chit_count),
+            "current_total_amount" : int(0)
+
+         }
+        return user_details
 
     # Get members of active chit groups
     active_chit_groups = active_chits["chit_group_id"].tolist()
@@ -182,10 +196,7 @@ def get_users_chit_details(user_id):
 
     current_month_payment = current_month_installments[["chit_member_id" , "chit_group_id" , "chit_name" , "month_number" , "total_amount" , "status_x"]].to_dict(orient="records")
 
-    user_information = user[["full_name" , "email" , "phone" , "address" , "state" , "city" ,"user_id" , "city" , "pincode", "is_verified"]].to_dict(orient="records")
     
-    chit_count = len(current_month_payment)
-    print(chit_count)
 
     user_details = {
         "user" : user_information[0],
