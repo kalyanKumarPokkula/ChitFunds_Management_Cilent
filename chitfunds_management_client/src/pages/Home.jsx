@@ -1,9 +1,14 @@
 import Navbar from '../components/Navbar';
 import '../styles/Home.css';
+import PaymentStats from '../components/PaymentStats';
+import AddMemberModal from '../components/AddMemberModal';
+import CreateChitModal from '../components/CreateChitModal';
 import { useState } from 'react';
 
 const Home = () => {
 	const [currentDate] = useState(new Date());
+	const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+	const [isChitModalOpen, setIsChitModalOpen] = useState(false);
 
 	const quickCreateItems = [
 		{ id: 'member', icon: '👤', label: 'New Member' },
@@ -40,6 +45,30 @@ const Home = () => {
 		},
 	];
 
+	const handleQuickCreate = (itemId) => {
+		switch (itemId) {
+			case 'member':
+				setIsMemberModalOpen(true);
+				break;
+			case 'chit':
+				setIsChitModalOpen(true);
+				break;
+			// Add more cases for other quick create items as needed
+			default:
+				console.log(`Quick create action for ${itemId} not implemented yet`);
+		}
+	};
+
+	const handleMemberSuccess = () => {
+		// Handle member creation success - could refresh data if needed
+		console.log('Member added successfully');
+	};
+
+	const handleChitSuccess = () => {
+		// Handle chit creation success - could refresh data if needed
+		console.log('Chit created successfully');
+	};
+
 	return (
 		<div className="dashboard">
 			<Navbar />
@@ -51,6 +80,9 @@ const Home = () => {
 						<p>Welcome back, your chit fund overview for today</p>
 					</div>
 				</div>
+
+				{/* Payment Statistics Component */}
+				<PaymentStats />
 
 				{/* <div className="stats-grid">
 					<div className="stat-card trust">
@@ -80,7 +112,11 @@ const Home = () => {
 						<h2>Quick Create</h2>
 						<div className="quick-create-grid">
 							{quickCreateItems.map((item) => (
-								<button key={item.id} className="quick-create-item">
+								<button
+									key={item.id}
+									className="quick-create-item"
+									onClick={() => handleQuickCreate(item.id)}
+								>
 									<span className="icon">{item.icon}</span>
 									<span className="label">{item.label}</span>
 								</button>
@@ -107,6 +143,19 @@ const Home = () => {
 					</div>
 				</div>
 			</div>
+
+			{/* Modals */}
+			<AddMemberModal
+				isOpen={isMemberModalOpen}
+				onClose={() => setIsMemberModalOpen(false)}
+				onSuccess={handleMemberSuccess}
+			/>
+
+			<CreateChitModal
+				isOpen={isChitModalOpen}
+				onClose={() => setIsChitModalOpen(false)}
+				onSuccess={handleChitSuccess}
+			/>
 		</div>
 	);
 };
