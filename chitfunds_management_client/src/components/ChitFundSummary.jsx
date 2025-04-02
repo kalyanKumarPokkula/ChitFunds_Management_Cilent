@@ -4,7 +4,8 @@ import '../styles/ChitFundSummary.css';
 const ChitFundSummary = ({ chitCount, paymentOverdues }) => {
 	// Calculate total active chits count
 	const totalChits = chitCount || 0;
-
+	
+	
 	// Calculate the monthly contribution (sum of all overdues divided by total overdue months)
 	const calculateMonthlyContribution = () => {
 		if (!paymentOverdues || paymentOverdues.length === 0) return 0;

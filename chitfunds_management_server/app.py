@@ -1,7 +1,7 @@
 from chit_groups import chit_groups , chit_lifted_member,add_chit_monthly_projections ,update_chit_group, add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
-from users import create_new_user,get_users_chit_details,get_members , get_current_month_payment_stats,get_all_member_installments
+from users import create_new_user,get_users_chit_details,get_members , get_unpaid_installments,get_chit_groups_by_user_id,get_current_month_payment_stats,get_all_member_installments
 
 app = Flask(__name__)
 
@@ -219,6 +219,28 @@ def get_chit_group_member_installment():
         data = request.args.get("chit_member_id")
         print(data)
         response = get_all_member_installments(data)
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/get_chit_groups_by_user_id" , methods=['GET'])
+def get_chit_groups_user_id():
+    try:
+        data = request.args.get("user_id")
+        print(data)
+        response = get_chit_groups_by_user_id(data)
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/get_members_unpaid_installments" , methods=['GET'])
+def get_members_unpaid_installments():
+    try:
+        data = request.args.get("chit_member_id")
+        print(data)
+        response = get_unpaid_installments(data)
 
         return jsonify(response), 200
     except Exception as e:

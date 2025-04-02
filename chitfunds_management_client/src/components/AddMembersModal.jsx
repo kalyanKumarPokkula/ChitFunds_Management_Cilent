@@ -87,6 +87,8 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 		try {
 			setIsSubmitting(true);
 
+			print(selectedUsers, "inside the add chit members")
+
 			const payload = {
 				chit_group_id: chitId,
 				user_ids: selectedUsers,

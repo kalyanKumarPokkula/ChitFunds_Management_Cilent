@@ -48,7 +48,51 @@ def create_new_user(data):
     users.append_row(user)
     return { "message" :f"Successfully created a new user"}
 
+def get_chit_groups_by_user_id(user_id):
+
+
+    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+    chit_groups_sheet = chit_groups.get_all_records()
+    df_chit_groups = pd.DataFrame(chit_groups_sheet)
+
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+    chit_members_sheet  = chit_members.get_all_records()
+    df_chit_members= pd.DataFrame(chit_members_sheet)
+
+    chit_groups = df_chit_members[df_chit_members["user_id"] == user_id]
     
+
+    chit_group_ids = chit_groups["chit_group_id"].unique()
+
+   
+    # Filter active chits only
+    active_chits = df_chit_groups[(df_chit_groups["chit_group_id"].isin(chit_group_ids)) & 
+                                  (df_chit_groups["status"] == "active")]
+
+
+    merge = pd.merge(chit_groups , active_chits, on="chit_group_id", how="inner")
+    merge["user_id"] = user_id
+
+    result = merge[["chit_group_id", "chit_member_id", "chit_name" , "chit_amount", "user_id"]].to_dict(orient="records")
+
+    return result
+
+def get_unpaid_installments(member_id):
+
+    # Read installments
+    installments = spreadsheet_credentials().worksheet("installments")
+    installments_sheet = installments.get_all_records()
+    instllments_df = pd.DataFrame(installments_sheet)
+
+    results = instllments_df[(instllments_df["chit_member_id"] == member_id) & (instllments_df["status"] == "unpaid")]
+
+    print(results)
+
+    return results[["installment_id" , "month_number" , "status", "paid_amount", "total_amount"]].to_dict(orient="records")
+
+
+
+
 def get_members():
 
     users = spreadsheet_credentials().worksheet("users")
@@ -206,6 +250,8 @@ def get_users_chit_details(user_id):
         "current_total_amount" : int(total_sum)
 
     }
+
+    print(user_details)
 
     
 

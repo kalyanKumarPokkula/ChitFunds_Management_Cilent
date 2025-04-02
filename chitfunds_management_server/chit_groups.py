@@ -381,9 +381,15 @@ def get_users_by_chit_group(chit_group_id):
     # Get all values from the "users" sheet
      users_sheet = users.get_all_values()
 
-    #  installments = spreadsheet_credentials().worksheet("installments")
+     installments = spreadsheet_credentials().worksheet("installments")
 
-    #  installments_sheet = installments.get_all_records()
+     installments_sheet = installments.get_all_records()
+
+     df_installments = pd.DataFrame(installments_sheet)
+
+     monthly_projections = spreadsheet_credentials().worksheet("monthly_projections")
+     monthly_projections_sheets = monthly_projections.get_all_records()
+     df_monthly_projections = pd.DataFrame(monthly_projections_sheets)
 
     # Convert the "users" sheet data into a pandas DataFrame
      df_users = pd.DataFrame(users_sheet[1:], columns=users_sheet[0])
@@ -394,19 +400,60 @@ def get_users_by_chit_group(chit_group_id):
     # Filter users belonging to the specified chit group
      matched_members = df_chit_members[df_chit_members["chit_group_id"] == str(chit_group_id)]
 
+     print(matched_members["chit_member_id"])
+
+
     # If no users are found in the chit group, return an empty list
      if matched_members.empty:
         return []
+     
+     pending_installments = df_installments[
+        (df_installments["chit_member_id"].isin(matched_members["chit_member_id"])) & 
+        (df_installments["status"] == "unpaid")
+    ]
+     pending_installments["total_amount"] = pd.to_numeric(pending_installments["total_amount"], errors='coerce')
+     pending_installments["paid_amount"] = pd.to_numeric(pending_installments["paid_amount"], errors='coerce')
+    
+     pending_installments["adjusted_pending_amount"] = pending_installments.apply(
+    lambda row: row["total_amount"] - (row["paid_amount"] if pd.notnull(row["paid_amount"]) else 0), axis=1
+)
+     
+     print(pending_installments)
 
-    # Merge the matched chit group members with user details from the "users" DataFrame
-     result_df = matched_members.merge(df_users, on="user_id", how="inner")[
-        ["user_id", "full_name", "phone", "email", "is_lifted", "pending_installments", "lifted_amount"]
+    # Aggregate to find total_pending_amount and pending_months
+     pending_summary = pending_installments.groupby("chit_member_id").agg(
+        total_pending_amount=("adjusted_pending_amount", "sum"),
+        pending_months=("month_number", "count")
+    ).reset_index()
+     
+     print(pending_summary)
+
+     # Merge with chit_members data to get final output, including full_name and phone
+     final_result = matched_members.merge(pending_summary, on="chit_member_id", how="left").merge(
+        df_users[["user_id", "full_name", "phone"]], left_on="user_id", right_on="user_id", how="left"
+    ).fillna(0)
+     print(final_result)
+
+     # Filter lifted members from the specific chit group
+     lifted_members = df_monthly_projections[
+        (df_monthly_projections["chit_group_id"] == chit_group_id) & 
+        (df_monthly_projections["user_id"].notna())  # Only those who lifted
     ]
 
-    # Convert the merged DataFrame to a list of dictionaries for structured output
-     user_data = result_df.to_dict(orient="records")
+     lifted_members = final_result.merge(lifted_members, on="user_id", how="left")
 
-     return user_data
+     print(lifted_members)
+
+    # # Merge the matched chit group members with user details from the "users" DataFrame
+    #  result_df = matched_members.merge(df_users, on="user_id", how="inner")[
+    #     ["user_id", "full_name", "phone", "email", "is_lifted", "pending_installments", "lifted_amount"]
+    # ]
+
+     lifted_members = lifted_members[["user_id","chit_group_id_x","full_name","month_number","pending_months","total_payout","total_pending_amount","phone"]].to_dict(orient="records")
+
+    
+     return lifted_members
+
 
 def get_chit_group_payments():
      """
