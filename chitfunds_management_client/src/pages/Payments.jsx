@@ -1,11 +1,13 @@
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
+import RecordPaymentModal from '../components/RecordPaymentModal';
 import '../styles/Payments.css';
 import { useState } from 'react';
 
 const Payments = () => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [statusFilter, setStatusFilter] = useState('All Status');
+	const [showRecordPaymentModal, setShowRecordPaymentModal] = useState(false);
 
 	const payments = [
 		{
@@ -68,6 +70,14 @@ const Payments = () => {
 		setStatusFilter(e.target.value);
 	};
 
+	const handleRecordPaymentClick = () => {
+		setShowRecordPaymentModal(true);
+	};
+
+	const handleCloseRecordPaymentModal = () => {
+		setShowRecordPaymentModal(false);
+	};
+
 	const filteredPayments = payments.filter((payment) => {
 		// Search across all fields
 		const matchesSearch = Object.values(payment).some((value) =>
@@ -107,6 +117,7 @@ const Payments = () => {
 								label="Record Payment"
 								icon="plus"
 								variant="primary"
+								onClick={handleRecordPaymentClick}
 							/>
 						</div>
 					</div>
@@ -176,6 +187,11 @@ const Payments = () => {
 					</table>
 				</div>
 			</div>
+
+			<RecordPaymentModal
+				isOpen={showRecordPaymentModal}
+				onClose={handleCloseRecordPaymentModal}
+			/>
 		</div>
 	);
 };
