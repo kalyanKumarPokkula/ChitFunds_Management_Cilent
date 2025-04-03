@@ -406,3 +406,69 @@ def get_current_month_payment_stats():
     totals = data_df.sum()
 
     return totals.to_dict()
+
+
+def process_payment(data):
+
+    print(data)
+    print(data.get("installment_ids")
+          )
+
+    # Read installments
+    installments = spreadsheet_credentials().worksheet("installments")
+    installments_sheet = installments.get_all_records()
+    installments_df = pd.DataFrame(installments_sheet)
+
+    payments = spreadsheet_credentials().worksheet("payments")
+    payments_sheet = payments.get_all_records()
+    payments_df = pd.DataFrame(payments_sheet)
+
+    # Convert installment_id to string for easy lookup
+    installments_df["installment_id"] = installments_df["installment_id"].astype(str)
+
+    installment_ids = set(data["installment_ids"])
+    # print(installment_ids)
+    payment_amount = data["payment_amount"]
+    # print(payment_amount)
+
+    for idx, row in installments_df.iterrows():
+        if row["installment_id"] in installment_ids:
+            # print(idx)
+            # print(row)
+            due_amount = row["total_amount"] - (row["paid_amount"] or 0)
+            print(due_amount)
+
+            if payment_amount >= due_amount:
+                print("inside the more amount")
+                installments_df.at[idx, "paid_amount"] = row["total_amount"]
+                installments_df.at[idx, "status"] = "paid"
+                payment_amount -= due_amount
+            else:
+                installments_df.at[idx, "paid_amount"] = (row["paid_amount"] or 0) + payment_amount
+                installments_df.at[idx, "status"] = "unpaid"
+                payment_amount = 0  # Stop processing if payment is exhausted
+
+            if payment_amount == 0:
+                break  # No more funds left to distribute
+    
+    # for idx, row in installments_df.iterrows():
+    #     if row["installment_id"] in installment_ids:
+    #         print(row)
+
+    payment = [
+        str(uuid.uuid4().hex[:18]),
+        str(data["chit_member_id"]),
+        data["payment_amount"],
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        str(data["payment_method"]),
+        str(data["reference_number"]),
+        str("success")
+    ]
+
+    result = payments.append_row(payment)
+    if result: 
+        installments.update([installments_df.columns.values.tolist()] + installments_df.values.tolist())
+
+    return {"message": "Payment processed successfully"}
+
+
