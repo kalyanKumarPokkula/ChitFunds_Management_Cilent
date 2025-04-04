@@ -86,6 +86,11 @@ def get_unpaid_installments(member_id):
 
     results = instllments_df[(instllments_df["chit_member_id"] == member_id) & (instllments_df["status"] == "unpaid")]
 
+    results["total_amount"] = pd.to_numeric(results["total_amount"], errors="coerce")
+    results["paid_amount"] = pd.to_numeric(results["paid_amount"], errors="coerce").fillna(0)
+
+    results["total_amount"] = results["total_amount"] - results["paid_amount"].fillna(0)
+
     print(results)
 
     return results[["installment_id" , "month_number" , "status", "paid_amount", "total_amount"]].to_dict(orient="records")
@@ -294,7 +299,6 @@ def member_overdue_amounts(df,chit_group_ids):
     # Filter overdue installments (status unpaid + past due date + unpaid balance)
     overdue_df = df[
         (df["status"].str.lower() == "unpaid") &  # Unpaid status
-        (df["due_date"] < today) &  # Past due date
         (df["overdue_amount"] > 0)  # Only consider unpaid amounts
     ]
 
@@ -420,8 +424,7 @@ def process_payment(data):
     installments_df = pd.DataFrame(installments_sheet)
 
     payments = spreadsheet_credentials().worksheet("payments")
-    payments_sheet = payments.get_all_records()
-    payments_df = pd.DataFrame(payments_sheet)
+
 
     # Convert installment_id to string for easy lookup
     installments_df["installment_id"] = installments_df["installment_id"].astype(str)
@@ -470,5 +473,44 @@ def process_payment(data):
         installments.update([installments_df.columns.values.tolist()] + installments_df.values.tolist())
 
     return {"message": "Payment processed successfully"}
+
+
+def get_payments():
+
+    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+    chit_groups_sheet = chit_groups.get_all_records()
+    chit_groups_df = pd.DataFrame(chit_groups_sheet)
+
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+    chit_members_sheet = chit_members.get_all_records()
+    chit_members_df = pd.DataFrame(chit_members_sheet)
+
+    # Read Users Table
+    users_ws = spreadsheet_credentials().worksheet("users")
+    users_data = users_ws.get_all_records()
+    users_df = pd.DataFrame(users_data)
+
+    payments = spreadsheet_credentials().worksheet("payments")
+    payments_sheet = payments.get_all_records()
+    payments_df = pd.DataFrame(payments_sheet)
+
+    df_merged = payments_df.merge(chit_members_df, on="chit_member_id" , how="left")
+
+    print(df_merged)
+
+    df_merged = df_merged.merge(chit_groups_df[["chit_group_id" , "chit_name"]], on="chit_group_id", how="left")
+
+    print(df_merged)
+
+    df_merged = df_merged.merge(users_df[["user_id" , "full_name"]] , on="user_id" , how="left")
+
+    print(df_merged)
+
+    df_final = df_merged[['payment_id', "user_id" , "chit_group_id",'full_name', 'chit_name', 'payment_amount', 'payment_date', "reference_number", 'payment_method', 'payment_status']]
+
+    print(df_final)
+
+    return df_final.to_dict(orient="records")
+
 
 

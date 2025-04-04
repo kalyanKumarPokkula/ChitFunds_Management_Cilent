@@ -1,4 +1,4 @@
-from users import get_members, get_users_chit_details, get_current_month_payment_stats, process_payment
+from users import get_members, get_payments, get_users_chit_details, get_current_month_payment_stats, process_payment,get_unpaid_installments
 import uuid
 data = {
     "chit_member_id" : "3c27dd148d9f",
@@ -10,5 +10,5 @@ data = {
     "payment_method": "cash",
     "reference_number" : "cash"
 }
-print(process_payment(data))
+get_payments()
 
