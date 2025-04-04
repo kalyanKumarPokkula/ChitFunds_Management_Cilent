@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import LoadingStatus from './ui/LoadingStatus';
+import { useNotification } from '../context/NotificationContext';
 import '../styles/RecordPaymentModal.css';
 
-const RecordPaymentModal = ({ isOpen, onClose }) => {
+const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 	const [step, setStep] = useState(1);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [users, setUsers] = useState([]);
@@ -19,6 +20,7 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { showSuccess, showError } = useNotification();
 
 	// Fetch users on component mount
 	useEffect(() => {
@@ -135,11 +137,23 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 				throw new Error('Failed to process payment');
 			}
 
+			// Show success notification
+			showSuccess(
+				`Payment of ₹${paymentAmount.toLocaleString()} recorded successfully for ${
+					selectedUser.full_name
+				}`
+			);
+
+			// Refresh payments data if callback is provided
+			if (typeof onPaymentAdded === 'function') {
+				onPaymentAdded();
+			}
+
 			// Close modal after successful payment
 			handleClose();
-			// You may want to add a success notification or refresh the payments list here
 		} catch (err) {
 			setError('Error processing payment: ' + err.message);
+			showError(`Failed to record payment: ${err.message}`);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -282,7 +296,6 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 									<h3>{selectedUser?.full_name}</h3>
 									<span>{selectedUser?.phone}</span>
 								</div>
-								{/* <div className="user-phone">+91 {selectedUser?.phone}</div> */}
 							</div>
 							<button className="change-button" onClick={handleUserChange}>
 								<i className="fas fa-times"></i> Change
