@@ -31,6 +31,18 @@ const MemberDetails = () => {
 			}
 
 			const data = await response.json();
+			console.log('Member data fetched:', data);
+
+			// Make sure each chit has the necessary properties for the payment history modal
+			if (data.current_month_payment) {
+				data.current_month_payment = data.current_month_payment.map((chit) => ({
+					...chit,
+					// Ensure chit_member_id is available for API calls
+					chit_member_id:
+						chit.chit_member_id || `${chit.chit_group_id}_${userId}`,
+				}));
+			}
+
 			setMemberData(data);
 		} catch (err) {
 			console.error('Error fetching member details:', err);
@@ -54,7 +66,7 @@ const MemberDetails = () => {
 				<h1>Member Details</h1>
 
 				{isLoading ? (
-					<LoadingStatus message="Loading Memeber Details...." />
+					<LoadingStatus message="Loading Member Details..." />
 				) : error ? (
 					<div className="error-message">
 						<i className="fas fa-exclamation-triangle"></i> {error}
