@@ -301,7 +301,9 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 								<i className="fas fa-times"></i> Change
 							</button>
 						</div>
-						<div className="section-title">Select Chit Scheme</div>
+						<div className="recordPayment-section-title">
+							Select Chit Scheme
+						</div>
 						{loading ? (
 							<LoadingStatus message="Loading Chits..." />
 						) : (
@@ -336,17 +338,18 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 					<div className="select-installments-container">
 						<div className="selected-user">
 							<div className="user-info">
-								<div className="user-name">{selectedUser?.full_name}</div>
-								<div className="user-details">
-									{selectedChit?.chit_name} {selectedChit?.chit_amount / 100000}
-									L
+								<div className="user-name">
+									<h3>{selectedUser?.full_name}</h3>
+									<span>{selectedUser?.phone}</span>
 								</div>
 							</div>
 							<button className="change-button" onClick={handleUserChange}>
 								<i className="fas fa-times"></i> Change
 							</button>
 						</div>
-						<div className="section-title">Select Installments to Pay</div>
+						<div className="recordPayment-section-title">
+							Select Installments to Pay
+						</div>
 						{loading ? (
 							<LoadingStatus message="Loading Installments..." />
 						) : (

@@ -6,6 +6,7 @@ import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import EditChitModal from '../components/EditChitModal';
 import AddProjectionsModal from '../components/AddProjectionsModal';
 import AddLifterModal from '../components/AddLifterModal';
+import MemberPaymentHistoryModal from '../components/MemberPaymentHistoryModal';
 import { useNotification } from '../context/NotificationContext';
 import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/ChitDetails.css';
@@ -18,11 +19,15 @@ const ChitDetails = () => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [chitDetails, setChitDetails] = useState(null);
 	const [members, setMembers] = useState([]);
+	const [payments, setPayments] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isMembersLoading, setIsMembersLoading] = useState(false);
+	const [isPaymentsLoading, setIsPaymentsLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [membersError, setMembersError] = useState(null);
+	const [paymentsError, setPaymentsError] = useState(null);
 	const [filteredMembers, setFilteredMembers] = useState([]);
+	const [filteredPayments, setFilteredPayments] = useState([]);
 	const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,6 +37,9 @@ const ChitDetails = () => {
 		useState(false);
 	const [isAddLifterModalOpen, setIsAddLifterModalOpen] = useState(false);
 	const [selectedMonth, setSelectedMonth] = useState(null);
+	const [selectedMember, setSelectedMember] = useState(null);
+	const [isPaymentHistoryModalOpen, setIsPaymentHistoryModalOpen] =
+		useState(false);
 	const { showSuccess, showError } = useNotification();
 
 	useEffect(() => {
@@ -87,24 +95,73 @@ const ChitDetails = () => {
 		}
 	};
 
+	const fetchChitPayments = async () => {
+		try {
+			setIsPaymentsLoading(true);
+			setPaymentsError(null);
+			const response = await fetch(
+				`http://127.0.0.1:5001/get_chit_group_payments?chit_group_id=${chitId}`
+			);
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
+
+			const result = await response.json();
+			setPayments(result);
+			setFilteredPayments(result);
+		} catch (error) {
+			console.error('Error fetching chit payments:', error);
+			setPaymentsError('Failed to load payments. Please try again later.');
+		} finally {
+			setIsPaymentsLoading(false);
+		}
+	};
+
 	const handleSearchChange = (e) => {
 		const query = e.target.value.toLowerCase();
 		setSearchQuery(query);
 
-		const filtered = members.filter(
-			(member) =>
-				member.full_name.toLowerCase().includes(query) ||
-				member.email.toLowerCase().includes(query) ||
-				member.phone.includes(query)
-		);
-		setFilteredMembers(filtered);
+		if (activeTab === 'members') {
+			const filtered = members.filter(
+				(member) =>
+					member.full_name.toLowerCase().includes(query) ||
+					member.email.toLowerCase().includes(query) ||
+					member.phone.includes(query)
+			);
+			setFilteredMembers(filtered);
+		} else if (activeTab === 'payments') {
+			const filtered = payments.filter(
+				(payment) =>
+					payment.full_name.toLowerCase().includes(query) ||
+					payment.payment_method.toLowerCase().includes(query) ||
+					payment.reference_number.toLowerCase().includes(query)
+			);
+			setFilteredPayments(filtered);
+		}
 	};
 
 	const handleTabChange = (tab) => {
 		setActiveTab(tab);
+		setSearchQuery('');
+
 		if (tab === 'members') {
 			fetchChitMembers();
+		} else if (tab === 'payments') {
+			fetchChitPayments();
 		}
+	};
+
+	const handleMemberClick = (member) => {
+		console.log('Member data being passed to modal:', member);
+
+		// No need to modify the member object as the API response should already contain chit_member_id
+		if (!member.chit_member_id) {
+			console.warn('Warning: Member data is missing chit_member_id', member);
+		}
+
+		setSelectedMember(member);
+		setIsPaymentHistoryModalOpen(true);
 	};
 
 	const handleAddMembersSuccess = () => {
@@ -221,6 +278,25 @@ const ChitDetails = () => {
 			hasFullName: Boolean(projection.full_name),
 		});
 		return null;
+	};
+
+	// Extract month from payment date
+	const extractMonth = (dateString) => {
+		try {
+			const date = new Date(dateString);
+			return date.getMonth() + 1; // JavaScript months are 0-indexed
+		} catch (error) {
+			return 'N/A';
+		}
+	};
+
+	// Capitalize first letter of each word
+	const capitalizeFirst = (text) => {
+		if (!text) return '';
+		return text
+			.split(' ')
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+			.join(' ');
 	};
 
 	if (isLoading) {
@@ -557,18 +633,19 @@ const ChitDetails = () => {
 												<th>Lifted Month</th>
 												<th>Lifted Amount</th>
 												<th>Pending Installments</th>
+												<th>Pending Amount</th>
 											</tr>
 										</thead>
 										<tbody>
 											{isMembersLoading ? (
 												<tr>
-													<td colSpan="6" className="loading-cell">
+													<td colSpan="7" className="loading-cell">
 														<LoadingStatus message="Loading Members..." />
 													</td>
 												</tr>
 											) : membersError ? (
 												<tr>
-													<td colSpan="6" className="empty-cell">
+													<td colSpan="7" className="empty-cell">
 														<div className="empty-message">
 															<i className="fas fa-exclamation-circle"></i>{' '}
 															{membersError}
@@ -577,7 +654,7 @@ const ChitDetails = () => {
 												</tr>
 											) : filteredMembers.length === 0 ? (
 												<tr>
-													<td colSpan="6" className="empty-cell">
+													<td colSpan="7" className="empty-cell">
 														<div className="empty-message">
 															<i className="fas fa-users-slash"></i> No members
 															found
@@ -586,16 +663,27 @@ const ChitDetails = () => {
 												</tr>
 											) : (
 												filteredMembers.map((member) => (
-													<tr key={member.user_id}>
+													<tr
+														key={member.user_id}
+														onClick={() => handleMemberClick(member)}
+														className="clickable-row"
+														title="Click to view payment history"
+													>
 														<td>{member.full_name}</td>
 														<td>{member.phone}</td>
 														{/* <td>{member.email}</td> */}
 														<td>
-															{member.month_number === 'NaN' ? 'No' : 'Yes'}
+															{member.month_number === 'not_lifted'
+																? 'No'
+																: 'Yes'}
 														</td>
-														<td>{member.month_number}</td>
+														<td>
+															{member.month_number} /
+															{chitDetails.duration_months}
+														</td>
 														<td>{formatCurrency(member.total_payout)}</td>
 														<td>{member.pending_months}</td>
+														<td>{member.total_pending_amount}</td>
 													</tr>
 												))
 											)}
@@ -614,7 +702,7 @@ const ChitDetails = () => {
 											type="text"
 											placeholder="Search payments..."
 											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
+											onChange={handleSearchChange}
 										/>
 									</div>
 									<div className="action-buttons">
@@ -629,7 +717,7 @@ const ChitDetails = () => {
 											variant="outline"
 										/>
 										<ActionButton
-											label="Make Payment"
+											label="Record Payment"
 											icon="plus"
 											variant="primary"
 										/>
@@ -639,6 +727,7 @@ const ChitDetails = () => {
 									<table className="data-table">
 										<thead>
 											<tr>
+												<th>Member</th>
 												<th>Month</th>
 												<th>Amount</th>
 												<th>Date</th>
@@ -648,7 +737,56 @@ const ChitDetails = () => {
 												<th>Actions</th>
 											</tr>
 										</thead>
-										<tbody>{/* Keep existing payments data for now */}</tbody>
+										<tbody>
+											{isPaymentsLoading ? (
+												<tr>
+													<td colSpan="8" className="loading-cell">
+														<LoadingStatus message="Loading Payments..." />
+													</td>
+												</tr>
+											) : paymentsError ? (
+												<tr>
+													<td colSpan="8" className="empty-cell">
+														<div className="empty-message">
+															<i className="fas fa-exclamation-circle"></i>{' '}
+															{paymentsError}
+														</div>
+													</td>
+												</tr>
+											) : filteredPayments.length === 0 ? (
+												<tr>
+													<td colSpan="8" className="empty-cell">
+														<div className="empty-message">
+															<i className="fas fa-money-bill-wave"></i> No
+															payments found
+														</div>
+													</td>
+												</tr>
+											) : (
+												filteredPayments.map((payment, index) => (
+													<tr key={index}>
+														<td>{payment.full_name}</td>
+														<td>{extractMonth(payment.payment_date)}</td>
+														<td>{formatCurrency(payment.payment_amount)}</td>
+														<td>{formatDate(payment.payment_date)}</td>
+														<td>{capitalizeFirst(payment.payment_method)}</td>
+														<td>{payment.reference_number}</td>
+														<td>
+															<span
+																className={`status-badge ${payment.payment_status.toLowerCase()}`}
+															>
+																{capitalizeFirst(payment.payment_status)}
+															</span>
+														</td>
+														<td>
+															<button className="action-icon-button">
+																<i className="fas fa-eye"></i>
+															</button>
+														</td>
+													</tr>
+												))
+											)}
+										</tbody>
 									</table>
 								</div>
 							</div>
@@ -704,6 +842,14 @@ const ChitDetails = () => {
 				onSuccess={handleAddLifterSuccess}
 				chitId={chitId}
 				monthNumber={selectedMonth}
+			/>
+
+			{/* Member Payment History Modal */}
+			<MemberPaymentHistoryModal
+				isOpen={isPaymentHistoryModalOpen}
+				onClose={() => setIsPaymentHistoryModalOpen(false)}
+				memberData={selectedMember}
+				chitName={chitDetails?.chit_name}
 			/>
 		</div>
 	);

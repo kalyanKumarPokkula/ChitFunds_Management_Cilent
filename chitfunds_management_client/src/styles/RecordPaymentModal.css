@@ -132,7 +132,7 @@
 	color: #1976d2;
 }
 
-.section-title {
+.recordPayment-section-title {
 	font-weight: bold;
 	margin: 15px 0;
 	color: #333;
@@ -147,7 +147,7 @@
 
 .chit-item {
 	padding: 15px;
-	border: 1px solid #eee;
+	border: 2px solid rgba(128, 128, 128, 0.53);
 	border-radius: 4px;
 	margin-bottom: 10px;
 	cursor: pointer;

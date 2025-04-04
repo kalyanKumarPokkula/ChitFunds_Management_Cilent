@@ -155,6 +155,7 @@ const Payments = () => {
 		const matchesChitScheme =
 			chitSchemeFilter === 'All Schemes' ||
 			payment.chitScheme === chitSchemeFilter;
+		console.log(chitSchemeFilter);
 
 		return matchesSearch && matchesStatus && matchesChitScheme;
 	});
@@ -242,6 +243,7 @@ const Payments = () => {
 								onChange={handleChitSchemeChange}
 							>
 								<option>All Schemes</option>
+								{console.log(uniqueChitSchemes)}
 								{uniqueChitSchemes.map((scheme) => (
 									<option key={scheme}>{scheme}</option>
 								))}
