@@ -449,6 +449,9 @@ def get_users_by_chit_group(chit_group_id):
     #     ["user_id", "full_name", "phone", "email", "is_lifted", "pending_installments", "lifted_amount"]
     # ]
 
+     lifted_members["month_number"] = lifted_members["month_number"].fillna("not_lifted")
+     lifted_members["total_payout"] = lifted_members["total_payout"].fillna(0)
+
      lifted_members = lifted_members[["user_id","chit_group_id_x","full_name","month_number","pending_months","total_payout","total_pending_amount","phone"]].to_dict(orient="records")
 
     
