@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import AddMemberModal from '../components/AddMemberModal';
+import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/Members.css';
 
 const Members = () => {
@@ -96,9 +97,7 @@ const Members = () => {
 				</div>
 
 				{isLoading ? (
-					<div className="loading-indicator">
-						<i className="fas fa-spinner fa-spin"></i> Loading members...
-					</div>
+					<LoadingStatus message="Loading Members..." />
 				) : error ? (
 					<div className="error-message">
 						<i className="fas fa-exclamation-triangle"></i> {error}

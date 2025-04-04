@@ -47,7 +47,6 @@
 	margin-bottom: 1.5rem;
 }
 
-.loading-indicator,
 .error-message,
 .no-data-message {
 	display: flex;
@@ -61,19 +60,10 @@
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.loading-indicator i,
 .error-message i,
 .no-data-message i {
 	font-size: 2rem;
 	margin-bottom: 1rem;
-}
-
-.loading-indicator {
-	color: #6b7280;
-}
-
-.loading-indicator i {
-	color: #3b82f6;
 }
 
 .error-message {
