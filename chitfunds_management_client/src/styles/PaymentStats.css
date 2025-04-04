@@ -33,6 +33,18 @@
 	font-size: 1.25rem;
 }
 
+.trust {
+	background-color: #0369a1;
+}
+
+.paid {
+	background-color: #166534;
+}
+
+.due {
+	background-color: #c2410c;
+}
+
 .stats-card.trust .stats-icon {
 	background-color: #e0f2fe;
 	color: #0369a1;
@@ -52,23 +64,27 @@
 	flex: 1;
 }
 
+.blue-card {
+	background-color: #0369a1;
+}
+
 .stats-content h3 {
 	margin: 0 0 0.5rem 0;
 	font-size: 0.875rem;
 	font-weight: 500;
-	color: #6b7280;
+	color: #e0f2fe;
 }
 
 .stats-amount {
 	font-size: 1.5rem;
 	font-weight: 600;
-	color: #1f2937;
+	color: #ffffff;
 	margin-bottom: 0.25rem;
 }
 
 .stats-percentage {
 	font-size: 0.875rem;
-	color: #6b7280;
+	color: #e5e7eb;
 }
 
 .payment-progress-container {

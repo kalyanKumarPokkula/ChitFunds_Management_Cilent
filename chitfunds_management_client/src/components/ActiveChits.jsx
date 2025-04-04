@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import ActionButton from './ActionButton';
+import MemberPaymentHistoryModal from './MemberPaymentHistoryModal';
 import '../styles/ActiveChits.css';
 
 const ActiveChits = ({ currentMonthPayments }) => {
 	const [selectedMonth, setSelectedMonth] = useState('April');
+	const [selectedChit, setSelectedChit] = useState(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const formatCurrency = (amount) => {
 		return `₹${parseInt(amount).toLocaleString('en-IN')}`;
+	};
+
+	const handleChitClick = (chit) => {
+		setSelectedChit(chit);
+		setIsModalOpen(true);
 	};
 
 	return (
@@ -40,7 +48,9 @@ const ActiveChits = ({ currentMonthPayments }) => {
 					currentMonthPayments.map((chit, index) => (
 						<div
 							key={`${chit.chit_group_id}-${index}`}
-							className="active-chit-card"
+							className="active-chit-card clickable"
+							onClick={() => handleChitClick(chit)}
+							title="Click to view payment history"
 						>
 							<div className="chit-info">
 								<div className="chit-title">
@@ -76,7 +86,10 @@ const ActiveChits = ({ currentMonthPayments }) => {
 										label="Pay Now"
 										icon="money-bill-wave"
 										variant="primary"
-										onClick={() => console.log('Pay now for', chit.chit_name)}
+										onClick={(e) => {
+											e.stopPropagation(); // Prevent card click
+											console.log('Pay now for', chit.chit_name);
+										}}
 									/>
 								</div>
 							)}
@@ -89,6 +102,14 @@ const ActiveChits = ({ currentMonthPayments }) => {
 					</div>
 				)}
 			</div>
+
+			{/* Payment History Modal */}
+			<MemberPaymentHistoryModal
+				isOpen={isModalOpen}
+				onClose={() => setIsModalOpen(false)}
+				memberData={selectedChit}
+				chitName={selectedChit?.chit_name}
+			/>
 		</div>
 	);
 };

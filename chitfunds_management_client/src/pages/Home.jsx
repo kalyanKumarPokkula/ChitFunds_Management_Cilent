@@ -3,12 +3,14 @@ import '../styles/Home.css';
 import PaymentStats from '../components/PaymentStats';
 import AddMemberModal from '../components/AddMemberModal';
 import CreateChitModal from '../components/CreateChitModal';
+import RecordPaymentModal from '../components/RecordPaymentModal';
 import { useState } from 'react';
 
 const Home = () => {
 	const [currentDate] = useState(new Date());
 	const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
 	const [isChitModalOpen, setIsChitModalOpen] = useState(false);
+	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
 	const quickCreateItems = [
 		{ id: 'member', icon: '👤', label: 'New Member' },
@@ -53,6 +55,9 @@ const Home = () => {
 			case 'chit':
 				setIsChitModalOpen(true);
 				break;
+			case 'payment':
+				setIsPaymentModalOpen(true);
+				break;
 			// Add more cases for other quick create items as needed
 			default:
 				console.log(`Quick create action for ${itemId} not implemented yet`);
@@ -67,6 +72,11 @@ const Home = () => {
 	const handleChitSuccess = () => {
 		// Handle chit creation success - could refresh data if needed
 		console.log('Chit created successfully');
+	};
+
+	const handlePaymentSuccess = () => {
+		// Handle payment creation success
+		console.log('Payment recorded successfully');
 	};
 
 	return (
@@ -155,6 +165,12 @@ const Home = () => {
 				isOpen={isChitModalOpen}
 				onClose={() => setIsChitModalOpen(false)}
 				onSuccess={handleChitSuccess}
+			/>
+
+			<RecordPaymentModal
+				isOpen={isPaymentModalOpen}
+				onClose={() => setIsPaymentModalOpen(false)}
+				onPaymentAdded={handlePaymentSuccess}
 			/>
 		</div>
 	);
