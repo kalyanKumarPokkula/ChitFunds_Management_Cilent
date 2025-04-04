@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import UserDetails from '../components/UserDetails';
 import ChitFundSummary from '../components/ChitFundSummary';
 import ActiveChits from '../components/ActiveChits';
+import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/MemberDetails.css';
 
 const MemberDetails = () => {
@@ -53,9 +54,7 @@ const MemberDetails = () => {
 				<h1>Member Details</h1>
 
 				{isLoading ? (
-					<div className="loading-indicator">
-						<i className="fas fa-spinner fa-spin"></i> Loading member details...
-					</div>
+					<LoadingStatus message="Loading Memeber Details...." />
 				) : error ? (
 					<div className="error-message">
 						<i className="fas fa-exclamation-triangle"></i> {error}

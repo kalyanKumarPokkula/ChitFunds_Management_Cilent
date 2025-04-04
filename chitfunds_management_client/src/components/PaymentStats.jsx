@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../styles/PaymentStats.css';
+import LoadingStatus from './ui/LoadingStatus';
 
 const PaymentStats = () => {
 	const [stats, setStats] = useState({
@@ -55,10 +56,7 @@ const PaymentStats = () => {
 	if (isLoading) {
 		return (
 			<div className="payment-stats-wrapper loading">
-				<div className="loading-spinner">
-					<i className="fas fa-spinner fa-spin"></i>
-					<span>Loading payment statistics...</span>
-				</div>
+				<LoadingStatus message="Loading Payments Stats...." />
 			</div>
 		);
 	}

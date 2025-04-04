@@ -164,8 +164,7 @@
 	margin: 0;
 }
 
-/* Loading and Error Messages */
-.loading-indicator,
+/* Error Messages */
 .error-message {
 	display: flex;
 	align-items: center;
@@ -177,18 +176,9 @@
 	text-align: center;
 }
 
-.loading-indicator i,
 .error-message i {
 	margin-right: 0.75rem;
 	font-size: 1.25rem;
-}
-
-.loading-indicator {
-	color: #6b7280;
-}
-
-.loading-indicator i {
-	color: #3b82f6;
 }
 
 .error-message {

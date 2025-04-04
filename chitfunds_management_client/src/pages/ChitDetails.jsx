@@ -7,12 +7,13 @@ import EditChitModal from '../components/EditChitModal';
 import AddProjectionsModal from '../components/AddProjectionsModal';
 import AddLifterModal from '../components/AddLifterModal';
 import { useNotification } from '../context/NotificationContext';
+import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
 import { useParams } from 'react-router-dom';
 
 const ChitDetails = () => {
-	const { chitId } = useParams(); 
+	const { chitId } = useParams();
 	const [activeTab, setActiveTab] = useState('projections');
 	const [searchQuery, setSearchQuery] = useState('');
 	const [chitDetails, setChitDetails] = useState(null);
@@ -41,8 +42,8 @@ const ChitDetails = () => {
 		try {
 			setIsLoading(true);
 			setError(null);
-			console.log(chitId , "inside the chit details");
-			
+			console.log(chitId, 'inside the chit details');
+
 			const response = await fetch(
 				`http://127.0.0.1:5001/get_chit?chit_group_id=${chitId}`
 			);
@@ -225,9 +226,7 @@ const ChitDetails = () => {
 			<div className="chit-details-page">
 				<Navbar />
 				<div className="page-container">
-					<div className="loading-message">
-						<i className="fas fa-spinner fa-spin"></i> Loading chit details...
-					</div>
+					<LoadingStatus message="Loading Chit Details..." />
 				</div>
 			</div>
 		);
@@ -561,10 +560,7 @@ const ChitDetails = () => {
 											{isMembersLoading ? (
 												<tr>
 													<td colSpan="6" className="loading-cell">
-														<div className="loading-message">
-															<i className="fas fa-spinner fa-spin"></i> Loading
-															members...
-														</div>
+														<LoadingStatus message="Loading Members..." />
 													</td>
 												</tr>
 											) : membersError ? (

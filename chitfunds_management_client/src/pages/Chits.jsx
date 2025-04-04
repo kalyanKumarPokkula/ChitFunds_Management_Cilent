@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import ChitCard from '../components/ChitCard';
 import CreateChitModal from '../components/CreateChitModal';
+import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/Chits.css';
 
 const Chits = () => {
@@ -115,9 +116,7 @@ const Chits = () => {
 				</div>
 
 				{isLoading ? (
-					<div className="loading-indicator">
-						<i className="fas fa-spinner fa-spin"></i> Loading chit schemes...
-					</div>
+					<LoadingStatus message="Loading chits..." />
 				) : error ? (
 					<div className="error-message">
 						<i className="fas fa-exclamation-triangle"></i> {error}

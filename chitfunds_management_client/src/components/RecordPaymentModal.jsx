@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
+import LoadingStatus from './ui/LoadingStatus';
 import '../styles/RecordPaymentModal.css';
 
 const RecordPaymentModal = ({ isOpen, onClose }) => {
@@ -215,14 +216,6 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 		setSelectedInstallments([]);
 	};
 
-	// Loading indicator component
-	const LoadingIndicator = () => (
-		<div className="loading-container">
-			<div className="loading-spinner"></div>
-			<p>Loading...</p>
-		</div>
-	);
-
 	// Render modal title based on current step
 	const renderTitle = () => {
 		switch (step) {
@@ -260,7 +253,7 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 							/>
 						</div>
 						{loading ? (
-							<LoadingIndicator />
+							<LoadingStatus message="Loading users...." />
 						) : (
 							<div className="users-list">
 								{filteredUsers.map((user) => (
@@ -285,8 +278,11 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 					<div className="select-chit-container">
 						<div className="selected-user">
 							<div className="user-info">
-								<div className="user-name">{selectedUser?.full_name}</div>
-								<div className="user-phone">+91 {selectedUser?.phone}</div>
+								<div className="user-name">
+									<h3>{selectedUser?.full_name}</h3>
+									<span>{selectedUser?.phone}</span>
+								</div>
+								{/* <div className="user-phone">+91 {selectedUser?.phone}</div> */}
 							</div>
 							<button className="change-button" onClick={handleUserChange}>
 								<i className="fas fa-times"></i> Change
@@ -294,7 +290,7 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 						</div>
 						<div className="section-title">Select Chit Scheme</div>
 						{loading ? (
-							<LoadingIndicator />
+							<LoadingStatus message="Loading Chits..." />
 						) : (
 							<div className="chits-list">
 								{userChits.length > 0 ? (
@@ -339,7 +335,7 @@ const RecordPaymentModal = ({ isOpen, onClose }) => {
 						</div>
 						<div className="section-title">Select Installments to Pay</div>
 						{loading ? (
-							<LoadingIndicator />
+							<LoadingStatus message="Loading Installments..." />
 						) : (
 							<>
 								<div className="installments-table">

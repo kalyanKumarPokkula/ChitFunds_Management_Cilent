@@ -182,8 +182,8 @@
 	}
 }
 
-/* Loading and Error styles */
-.loading-indicator,
+/*Error styles */
+
 .error-message {
 	display: flex;
 	align-items: center;
@@ -198,14 +198,9 @@
 	margin-top: 20px;
 }
 
-.loading-indicator i,
 .error-message i {
 	margin-right: 10px;
 	font-size: 1.2rem;
-}
-
-.loading-indicator i {
-	color: #3b82f6;
 }
 
 .error-message {

@@ -448,7 +448,6 @@
 	padding: 2rem !important;
 }
 
-.loading-message,
 .empty-message {
 	display: flex;
 	align-items: center;
@@ -456,11 +455,6 @@
 	gap: 0.5rem;
 	color: #666;
 	font-size: 0.9rem;
-}
-
-.loading-message i {
-	color: #1a73e8;
-	font-size: 1.2rem;
 }
 
 .empty-message i {
