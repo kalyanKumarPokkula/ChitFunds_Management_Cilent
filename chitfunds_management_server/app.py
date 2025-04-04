@@ -1,7 +1,7 @@
 from chit_groups import chit_groups , chit_lifted_member,add_chit_monthly_projections ,update_chit_group, add_chit , get_chit_by_id , delete_chit_group_by_id,get_users, get_users_by_chit_group , add_members
 from flask import Flask , request , jsonify
 from flask_cors import CORS 
-from users import create_new_user,get_users_chit_details,get_members , get_payments,process_payment,get_unpaid_installments,get_chit_groups_by_user_id,get_current_month_payment_stats,get_all_member_installments
+from users import create_new_user,get_users_chit_details,get_members , chit_group_payments, get_payments,process_payment,get_unpaid_installments,get_chit_groups_by_user_id,get_current_month_payment_stats,get_all_member_installments
 
 app = Flask(__name__)
 
@@ -260,9 +260,17 @@ def payment_process():
 @app.route("/get_payments" , methods=['GET'])
 def fetch_payments():
     try:
-
-    
         response =  get_payments()
+
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route("/get_chit_group_payments" , methods=['GET'])
+def get_chit_group_payments():
+    try:
+        data = request.args.get("chit_group_id")
+        print(data)
+        response = chit_group_payments(data)
 
         return jsonify(response), 200
     except Exception as e:

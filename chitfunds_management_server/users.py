@@ -506,11 +506,79 @@ def get_payments():
 
     print(df_merged)
 
+    df_merged["payment_date"] = pd.to_datetime(df_merged['payment_date'])
+
+    df_merged = df_merged.sort_values(by='payment_date', ascending=False)
+
     df_final = df_merged[['payment_id', "user_id" , "chit_group_id",'full_name', 'chit_name', 'payment_amount', 'payment_date', "reference_number", 'payment_method', 'payment_status']]
 
     print(df_final)
 
     return df_final.to_dict(orient="records")
+
+
+def chit_group_payments(chit_group_id):
+
+    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+    chit_groups_sheet = chit_groups.get_all_records()
+    chit_groups_df = pd.DataFrame(chit_groups_sheet)
+
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+    chit_members_sheet = chit_members.get_all_records()
+    chit_members_df = pd.DataFrame(chit_members_sheet)
+
+    # Read Users Table
+    users_ws = spreadsheet_credentials().worksheet("users")
+    users_data = users_ws.get_all_records()
+    users_df = pd.DataFrame(users_data)
+
+    payments = spreadsheet_credentials().worksheet("payments")
+    payments_sheet = payments.get_all_records()
+    payments_df = pd.DataFrame(payments_sheet)
+
+    chit_group = chit_groups_df[chit_groups_df["chit_group_id"] == chit_group_id]
+
+    print(chit_group)
+
+    chit_group_members = chit_members_df[chit_members_df["chit_group_id"] == chit_group_id]
+
+    print(chit_group_members)
+
+    chit_group_members = chit_group_members.merge(chit_group , on="chit_group_id" , how="inner")
+
+
+
+    print(chit_group_members)
+
+    chit_group_members = chit_group_members.merge(users_df,on="user_id" , how="inner")
+
+    print(chit_group_members)
+
+    chit_member_ids = chit_group_members['chit_member_id'].tolist()
+
+    print(chit_member_ids)
+
+    chit_members_payments = payments_df[payments_df['chit_member_id'].isin(chit_member_ids)]
+
+    print(chit_members_payments)
+
+    final = chit_members_payments.merge(chit_group_members, on="chit_member_id" , how="inner")
+
+    print(final)
+
+    final['payment_date'] = pd.to_datetime(final['payment_date'])
+
+    final = final.sort_values(by='payment_date', ascending=False)
+
+    result = final[["chit_member_id", "full_name" , "chit_name" , "user_id" , "chit_group_id","payment_date" , "payment_amount", "payment_method" , "reference_number" , "payment_status"]].to_dict(orient="records")
+
+    print(result)
+
+    return result
+
+    
+
+    
 
 
 
