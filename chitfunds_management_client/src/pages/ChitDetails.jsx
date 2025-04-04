@@ -75,6 +75,8 @@ const ChitDetails = () => {
 			}
 
 			const result = await response.json();
+			console.log(result);
+
 			setMembers(result.data);
 			setFilteredMembers(result.data);
 		} catch (error) {
@@ -550,8 +552,9 @@ const ChitDetails = () => {
 											<tr>
 												<th>Name</th>
 												<th>Contact</th>
-												<th>Email</th>
+												{/* <th>Email</th> */}
 												<th>Lifted</th>
+												<th>Lifted Month</th>
 												<th>Lifted Amount</th>
 												<th>Pending Installments</th>
 											</tr>
@@ -586,12 +589,13 @@ const ChitDetails = () => {
 													<tr key={member.user_id}>
 														<td>{member.full_name}</td>
 														<td>{member.phone}</td>
-														<td>{member.email}</td>
+														{/* <td>{member.email}</td> */}
 														<td>
-															{member.is_lifted === 'TRUE' ? 'Yes' : 'No'}
+															{member.month_number === 'NaN' ? 'No' : 'Yes'}
 														</td>
-														<td>{formatCurrency(member.lifted_amount)}</td>
-														<td>{member.pending_installments}</td>
+														<td>{member.month_number}</td>
+														<td>{formatCurrency(member.total_payout)}</td>
+														<td>{member.pending_months}</td>
 													</tr>
 												))
 											)}
