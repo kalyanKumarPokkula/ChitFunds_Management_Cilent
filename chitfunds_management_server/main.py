@@ -1,7 +1,7 @@
-from users import chit_group_payments
+from users import chit_group_payments, generate_current_month_installments
 import uuid
 
 
 
-chit_group_payments("a0dc58de1cc9")
+generate_current_month_installments('a0dc58de1cc9')
 

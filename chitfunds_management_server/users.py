@@ -1,6 +1,6 @@
 from google_authorize import spreadsheet_credentials
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 
 def create_new_user(data):
@@ -575,6 +575,96 @@ def chit_group_payments(chit_group_id):
     print(result)
 
     return result
+
+
+def generate_current_month_installments(chit_group_id):
+
+    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+    chit_groups_sheet = chit_groups.get_all_records()
+    chit_groups_df = pd.DataFrame(chit_groups_sheet)
+    chit_groups_df["start_date"] = pd.to_datetime(chit_groups_df["start_date"])
+
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+    chit_members_sheet = chit_members.get_all_records()
+    chit_members_df = pd.DataFrame(chit_members_sheet)
+
+    chit_group_projections = spreadsheet_credentials().worksheet("monthly_projections")
+    chit_group_projections_sheet  = chit_group_projections.get_all_records()
+    chit_group_projections_df = pd.DataFrame(chit_group_projections_sheet)
+
+     # Read installments
+    installments = spreadsheet_credentials().worksheet("installments")
+    installments_sheet = installments.get_all_records()
+    installments_df = pd.DataFrame(installments_sheet)
+
+    print(installments_df)
+
+    chit_group = chit_groups_df[chit_groups_df["chit_group_id"] == chit_group_id]
+
+    today = datetime.today()
+    chit_group["current_month"] = (
+        ((today.year - chit_group["start_date"].dt.year) * 12) +
+        (today.month - chit_group["start_date"].dt.month) + 1
+    ).clip(upper=chit_group["duration_months"])
+
+    
+
+    print(chit_group)
+
+    chit_members_ids = chit_members_df[chit_members_df["chit_group_id"] == chit_group_id]["chit_member_id"].unique()
+
+    print(chit_members_ids)
+
+    current_month = chit_group["current_month"].iloc[0]
+    print(current_month)
+
+    current_month_projection = chit_group_projections_df[(chit_group_projections_df["chit_group_id"] == chit_group_id) & (chit_group_projections_df["month_number"] == current_month)]
+    print(current_month_projection)
+
+    current_month_installments = installments_df[(installments_df["chit_member_id"].isin(chit_members_ids)) & (installments_df["month_number"] == current_month)]
+
+    existing_ids = current_month_installments[
+    current_month_installments["month_number"] == current_month
+    ]["chit_member_id"].unique()
+
+    # Find members missing their installment
+    missing_members = set(chit_members_ids) - set(existing_ids)
+
+    if not missing_members:
+        print("✅ All members already have current month installments.")
+        return {"message" : "✅ All members already have current month installments."}
+
+    print(missing_members)
+
+    print(current_month_installments)
+
+    new_installments = []
+    due_date = today + timedelta(days=20)  # example logic
+
+    for member_id in missing_members:
+        new_installments.append([
+            str(uuid.uuid4().hex[:16]),  # unique ID
+            str(member_id),
+            str(current_month),
+            due_date.strftime("%Y-%m-%d"),
+            int(current_month_projection["monthly_subcription"].iloc[0]),  # or dynamic based on group
+            int(0),
+            str("unpaid")
+        ])
+
+    print(new_installments)
+
+    installments.append_rows(new_installments)
+
+    return {"message" : "successfully created a members installments"}
+
+
+
+
+
+
+
+
 
     
 
