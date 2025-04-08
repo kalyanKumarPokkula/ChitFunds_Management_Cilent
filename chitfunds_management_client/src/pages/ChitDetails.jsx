@@ -695,7 +695,11 @@ const ChitDetails = () => {
 													<tr
 														key={member.user_id}
 														onClick={() => handleMemberClick(member)}
-														className="clickable-row"
+														className={`clickable-row ${
+															member.month_number !== 'not_lifted'
+																? 'lifted'
+																: ''
+														}`}
 														title="Click to view payment history"
 													>
 														<td>{member.full_name}</td>
