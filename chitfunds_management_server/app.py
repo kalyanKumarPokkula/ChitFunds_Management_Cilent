@@ -238,7 +238,7 @@ def get_chit_groups_user_id():
 @app.route("/get_members_unpaid_installments" , methods=['GET'])
 def get_members_unpaid_installments():
     try:
-        data = request.args.get("chit_member_id")
+        data = request.args.get("user_id")
         print(data)
         response = get_unpaid_installments(data)
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from google_authorize import spreadsheet_credentials
 import pandas as pd
 from flask import jsonify
@@ -346,12 +347,46 @@ def get_chit_by_id(chit_group_id):
 
     row = df[df["chit_group_id"] == str(chit_group_id)]
 
+    print(row)
+
     if row.empty:
             return jsonify({"error": "Chit group not found"}), 404
+    
+    row["start_date"] = pd.to_datetime(row["start_date"], errors="coerce")  
+    row["duration_months"] = pd.to_numeric(row["duration_months"], errors="coerce")
+    
+    today = datetime.today()
+
+    # Calculate current month of the chit
+
+    start_date = row["start_date"].iloc[0]
+    duration_months = row["duration_months"].iloc[0]
+
+    current_month = ((today.year - start_date.year) * 12 +
+                    (today.month - start_date.month) + 1)
+
+    # Ensure current_month doesn't exceed the total duration
+    current_month = min(current_month, duration_months)
+
+    # current_month = ((today.year - row["start_date"].dt.year) * 12 +
+                                    # (today.month - row["start_date"].dt.month) + 1).clip(upper=row["duration_months"])
+    
+    print(current_month)
+
+    monthly_projection =  monthly_projections(chit_group_id)
+
+    current_projection = next((item for item in monthly_projection if int(item["month_number"]) == current_month), None)
+
+    print(current_projection)
+
+    row["monthly_installment"] = current_projection["monthly_subcription"]
+    row["chit_amount"] = current_projection["total_payout"]
 
     result = row.iloc[0].to_dict()
 
-    result["monthly_projections"] = monthly_projections(chit_group_id)
+    result["monthly_projections"] = monthly_projection
+
+    result["current_month"] = current_month
 
     return result
 

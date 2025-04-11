@@ -2,6 +2,9 @@ from google_authorize import spreadsheet_credentials
 import uuid
 from datetime import datetime, timedelta
 import pandas as pd
+from collections import defaultdict
+import json
+
 
 def create_new_user(data):
 
@@ -77,24 +80,80 @@ def get_chit_groups_by_user_id(user_id):
 
     return result
 
-def get_unpaid_installments(member_id):
+def get_unpaid_installments(user_id):
 
-    # Read installments
+    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+    chit_group_sheet = chit_groups.get_all_records()
+    chit_group_df = pd.DataFrame(chit_group_sheet)
+
+    chit_group_members = spreadsheet_credentials().worksheet("chit_members")
+    chit_members_sheet  =chit_group_members.get_all_records()
+    chit_members_df = pd.DataFrame(chit_members_sheet)
+
+     # Read installments
     installments = spreadsheet_credentials().worksheet("installments")
     installments_sheet = installments.get_all_records()
     instllments_df = pd.DataFrame(installments_sheet)
 
-    results = instllments_df[(instllments_df["chit_member_id"] == member_id) & (instllments_df["status"] == "unpaid")]
+    active_chits_members = chit_members_df[chit_members_df["user_id"] == user_id]
 
-    results["total_amount"] = pd.to_numeric(results["total_amount"], errors="coerce")
-    results["paid_amount"] = pd.to_numeric(results["paid_amount"], errors="coerce").fillna(0)
+    print(active_chits_members)
 
-    results["total_amount"] = results["total_amount"] - results["paid_amount"].fillna(0)
+    chits_groups = chit_group_df[chit_group_df["chit_group_id"].isin(active_chits_members["chit_group_id"]) & (chit_group_df["status"] == "active")]
+
+    print(chits_groups)
+
+    active_chits = chits_groups.merge(active_chits_members , on="chit_group_id" , how="inner")
+
+    print(active_chits)
+
+
+    unpaid_installments = instllments_df[(instllments_df["chit_member_id"].isin(active_chits["chit_member_id"])) & (instllments_df["status"] == "unpaid")]
+
+    print(unpaid_installments)
+
+    unpaid_installments["total_amount"] = pd.to_numeric(unpaid_installments["total_amount"], errors="coerce")
+    unpaid_installments["paid_amount"] = pd.to_numeric(unpaid_installments["paid_amount"], errors="coerce").fillna(0)
+
+    unpaid_installments["overdue_amount"] = unpaid_installments["total_amount"] - unpaid_installments["paid_amount"].fillna(0)
+
+    print(unpaid_installments)
+
+    results = unpaid_installments.merge(active_chits, on="chit_member_id" , how="left")
 
     print(results)
 
-    return results[["installment_id" , "month_number" , "status", "paid_amount", "total_amount"]].to_dict(orient="records")
+    results = results.to_dict(orient="records")
 
+
+    grouped_data = {}
+
+    for item in results:
+        key = (item['chit_name'], item['chit_group_id'], item['chit_member_id'])
+
+        if key not in grouped_data:
+            grouped_data[key] = {
+                "chit_name": item["chit_name"],
+                "chit_group_id": item["chit_group_id"],
+                "chit_member_id": item["chit_member_id"],
+                "unpaid_installments": []
+            }
+
+        grouped_data[key]["unpaid_installments"].append({
+            "installment_id": item["installment_id"],
+            "month_number": item["month_number"],
+            "total_amount": item["total_amount"],
+            "paid_amount": item["paid_amount"],
+            "overdue_amount": item["overdue_amount"],
+            "status": item["status_x"]
+        })
+
+    # Convert to list format
+    result = list(grouped_data.values())
+
+    print(json.dumps(result, indent=2))
+
+    return result
 
 
 
