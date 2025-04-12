@@ -11,15 +11,17 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [selectedUser, setSelectedUser] = useState(null);
 	const [userChits, setUserChits] = useState([]);
-	const [selectedChit, setSelectedChit] = useState(null);
-	const [installments, setInstallments] = useState([]);
+	const [unpaidInstallments, setUnpaidInstallments] = useState([]);
 	const [selectedInstallments, setSelectedInstallments] = useState([]);
-	const [paymentAmount, setPaymentAmount] = useState(0);
-	const [paymentMethod, setPaymentMethod] = useState('NEFT');
+	const [totalPaymentAmount, setTotalPaymentAmount] = useState('');
+	const [paymentMethods, setPaymentMethods] = useState([
+		{ method: 'Cash', amount: '', id: Date.now() },
+	]);
 	const [referenceNumber, setReferenceNumber] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [remainingAmount, setRemainingAmount] = useState(0);
 	const { showSuccess, showError } = useNotification();
 
 	// Fetch users on component mount
@@ -29,16 +31,24 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		}
 	}, [isOpen]);
 
-	// Calculate total payment amount when selected installments change
+	// Update remaining amount when selected installments change
 	useEffect(() => {
-		const total = selectedInstallments.reduce((sum, id) => {
-			const installment = installments.find(
-				(inst) => inst.installment_id.toString() === id.toString()
+		if (totalPaymentAmount) {
+			const total = selectedInstallments.reduce(
+				(sum, inst) => sum + inst.total_amount,
+				0
 			);
-			return sum + (installment ? installment.total_amount : 0);
+			setRemainingAmount(parseInt(totalPaymentAmount) - total);
+		}
+	}, [selectedInstallments, totalPaymentAmount]);
+
+	// Calculate total payment amount when payment methods change
+	useEffect(() => {
+		const total = paymentMethods.reduce((sum, method) => {
+			return sum + (method.amount ? parseInt(method.amount) : 0);
 		}, 0);
-		setPaymentAmount(total);
-	}, [selectedInstallments, installments]);
+		setTotalPaymentAmount(total.toString());
+	}, [paymentMethods]);
 
 	// Filter users based on search query
 	useEffect(() => {
@@ -71,40 +81,19 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		}
 	};
 
-	// Fetch chits for a specific user
-	const fetchUserChits = async (userId) => {
+	// Fetch unpaid installments for a specific user
+	const fetchUnpaidInstallments = async (userId) => {
 		setLoading(true);
 		setError(null);
 		try {
 			const response = await fetch(
-				`http://127.0.0.1:5001/get_chit_groups_by_user_id?user_id=${userId}`
-			);
-			if (!response.ok) {
-				throw new Error('Failed to fetch chits');
-			}
-			const data = await response.json();
-			setUserChits(data);
-		} catch (err) {
-			setError('Error fetching chits: ' + err.message);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	// Fetch installments for a specific chit member
-	const fetchInstallments = async (chitMemberId) => {
-		setLoading(true);
-		setError(null);
-		try {
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_members_unpaid_installments?chit_member_id=${chitMemberId}`
+				`http://127.0.0.1:5001/get_members_unpaid_installments?user_id=${userId}`
 			);
 			if (!response.ok) {
 				throw new Error('Failed to fetch installments');
 			}
 			const data = await response.json();
-			setInstallments(data);
-			setSelectedInstallments([]);
+			setUnpaidInstallments(data);
 		} catch (err) {
 			setError('Error fetching installments: ' + err.message);
 		} finally {
@@ -117,12 +106,23 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		setIsSubmitting(true);
 		setError(null);
 		try {
+			// Format the installment_ids for the API
+			const installment_ids = selectedInstallments.map((inst) =>
+				inst.installment_id.toString()
+			);
+
+			// Format payment methods array for API
+			const formattedPaymentMethods = paymentMethods.map((pm) => ({
+				method: pm.method.toLowerCase(),
+				amount: parseInt(pm.amount),
+				reference: pm.reference || pm.method.toLowerCase(),
+			}));
+
 			const payload = {
-				chit_member_id: selectedChit.chit_member_id,
-				installment_ids: selectedInstallments,
-				payment_amount: paymentAmount,
-				payment_method: paymentMethod.toLowerCase(),
-				reference_number: referenceNumber || paymentMethod.toLowerCase(),
+				user_id: selectedUser.user_id,
+				installment_ids: installment_ids,
+				payment_amount: parseInt(totalPaymentAmount),
+				payment_methods: formattedPaymentMethods,
 			};
 
 			const response = await fetch('http://127.0.0.1:5001/process_payments', {
@@ -139,9 +139,9 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 
 			// Show success notification
 			showSuccess(
-				`Payment of ₹${paymentAmount.toLocaleString()} recorded successfully for ${
-					selectedUser.full_name
-				}`
+				`Payment of ₹${parseInt(
+					totalPaymentAmount
+				).toLocaleString()} recorded successfully for ${selectedUser.full_name}`
 			);
 
 			// Refresh payments data if callback is provided
@@ -162,14 +162,53 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 	// Handle user selection
 	const handleUserSelect = (user) => {
 		setSelectedUser(user);
-		fetchUserChits(user.user_id);
 		setStep(2);
 	};
 
-	// Handle chit selection
-	const handleChitSelect = (chit) => {
-		setSelectedChit(chit);
-		fetchInstallments(chit.chit_member_id);
+	// Handle payment method change
+	const handlePaymentMethodChange = (id, field, value) => {
+		setPaymentMethods((prevMethods) =>
+			prevMethods.map((method) =>
+				method.id === id ? { ...method, [field]: value } : method
+			)
+		);
+	};
+
+	// Add new payment method
+	const addPaymentMethod = () => {
+		setPaymentMethods([
+			...paymentMethods,
+			{ method: 'Cash', amount: '', reference: '', id: Date.now() },
+		]);
+	};
+
+	// Remove payment method
+	const removePaymentMethod = (id) => {
+		setPaymentMethods((prevMethods) =>
+			prevMethods.filter((method) => method.id !== id)
+		);
+	};
+
+	// Handle next from amount entry
+	const handleAmountNext = () => {
+		// Check if total payment amount is valid
+		if (!totalPaymentAmount || parseInt(totalPaymentAmount) <= 0) {
+			setError('Please enter a valid payment amount');
+			return;
+		}
+
+		// Check if all payment methods have valid amounts
+		const invalidPaymentMethod = paymentMethods.find(
+			(method) => !method.amount || parseInt(method.amount) <= 0
+		);
+
+		if (invalidPaymentMethod) {
+			setError('Please enter valid amounts for all payment methods');
+			return;
+		}
+
+		fetchUnpaidInstallments(selectedUser.user_id);
+		setRemainingAmount(parseInt(totalPaymentAmount));
 		setStep(3);
 	};
 
@@ -178,27 +217,52 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		setStep(1);
 		setSearchQuery('');
 		setSelectedUser(null);
-		setSelectedChit(null);
-		setInstallments([]);
+		setUnpaidInstallments([]);
 		setSelectedInstallments([]);
-		setPaymentAmount(0);
-		setPaymentMethod('NEFT');
+		setTotalPaymentAmount('');
+		setPaymentMethods([{ method: 'Cash', amount: '', id: Date.now() }]);
 		setReferenceNumber('');
+		setRemainingAmount(0);
 		onClose();
 	};
 
-	// Handle installment selection toggle
-	const handleInstallmentToggle = (installmentId) => {
-		const id = installmentId.toString();
-		if (selectedInstallments.includes(id)) {
-			setSelectedInstallments(selectedInstallments.filter((i) => i !== id));
+	// Handle installment selection
+	const handleInstallmentToggle = (chitGroup, installment) => {
+		const isSelected = selectedInstallments.some(
+			(item) =>
+				item.installment_id.toString() === installment.installment_id.toString()
+		);
+
+		if (isSelected) {
+			// Remove this installment
+			setSelectedInstallments(
+				selectedInstallments.filter(
+					(item) =>
+						item.installment_id.toString() !==
+						installment.installment_id.toString()
+				)
+			);
 		} else {
-			setSelectedInstallments([...selectedInstallments, id]);
+			// Check if there's enough remaining amount
+			if (installment.total_amount > remainingAmount) {
+				setError('Cannot select this installment. Exceeds available amount.');
+				return;
+			}
+
+			// Add this installment with chit information
+			setSelectedInstallments([
+				...selectedInstallments,
+				{
+					...installment,
+					chit_name: chitGroup.chit_name,
+					chit_member_id: chitGroup.chit_member_id,
+				},
+			]);
 		}
 	};
 
-	// Continue to payment details
-	const handleContinueToPayment = () => {
+	// Continue to payment summary
+	const handleContinueToSummary = () => {
 		if (selectedInstallments.length === 0) {
 			setError('Please select at least one installment to pay');
 			return;
@@ -207,51 +271,46 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		setStep(4);
 	};
 
-	// Handle payment amount change
-	const handlePaymentAmountChange = (e) => {
-		const value = parseInt(e.target.value) || 0;
-		setPaymentAmount(value);
-	};
-
-	// Handle user change in step 2, 3, or 4
-	const handleUserChange = () => {
-		setStep(1);
-		setSelectedUser(null);
-		setSelectedChit(null);
-		setInstallments([]);
-		setSelectedInstallments([]);
-	};
-
-	// Handle chit change in step 3 or 4
-	const handleChitChange = () => {
-		setStep(2);
-		setSelectedChit(null);
-		setInstallments([]);
-		setSelectedInstallments([]);
-	};
-
 	// Render modal title based on current step
 	const renderTitle = () => {
 		switch (step) {
 			case 1:
 				return 'Record Payment';
 			case 2:
-				return 'Select Chit Scheme';
+				return 'Payment Amount';
 			case 3:
 				return 'Select Installments to Pay';
 			case 4:
+				return 'Payment Summary';
+			case 5:
 				return 'Record Payment';
 			default:
 				return 'Record Payment';
 		}
 	};
 
+	// Check if an installment is already selected
+	const isInstallmentSelected = (installmentId) => {
+		return selectedInstallments.some(
+			(item) => item.installment_id.toString() === installmentId.toString()
+		);
+	};
+
 	// Render modal content based on current step
 	const renderContent = () => {
 		if (error) {
-			return <div className="error">{error}</div>;
+			return (
+				<>
+					<div className="error">{error}</div>
+					{renderStepContent()}
+				</>
+			);
 		}
 
+		return renderStepContent();
+	};
+
+	const renderStepContent = () => {
 		switch (step) {
 			case 1:
 				return (
@@ -289,48 +348,113 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 				);
 			case 2:
 				return (
-					<div className="select-chit-container">
+					<div className="payment-amount-container">
 						<div className="selected-user">
 							<div className="user-info">
-								<div className="user-name">
-									<h3>{selectedUser?.full_name}</h3>
-									<span>{selectedUser?.phone}</span>
-								</div>
+								<div className="user-name">{selectedUser?.full_name}</div>
+								<div className="user-phone">+91 {selectedUser?.phone}</div>
 							</div>
-							<button className="change-button" onClick={handleUserChange}>
+							<button className="change-button" onClick={() => setStep(1)}>
 								<i className="fas fa-times"></i> Change
 							</button>
 						</div>
-						<div className="recordPayment-section-title">
-							Select Chit Scheme
-						</div>
-						{loading ? (
-							<LoadingStatus message="Loading Chits..." />
-						) : (
-							<div className="chits-list">
-								{userChits.length > 0 ? (
-									userChits.map((chit) => (
-										<div
-											key={chit.chit_member_id}
-											className="chit-item"
-											onClick={() => handleChitSelect(chit)}
-										>
-											<div className="chit-name">
-												{chit.chit_name} {chit.chit_amount / 100000}L
-											</div>
-											<div className="chit-amount">
-												Monthly Payment: ₹
-												{(chit.chit_amount / 12).toLocaleString()}
-											</div>
-										</div>
-									))
-								) : (
-									<div className="no-results">
-										No chit schemes found for this user
-									</div>
-								)}
+
+						<div className="payment-methods-form">
+							<div className="payment-methods-header">
+								<div className="section-title">Payment Methods</div>
+								<div className="payment-total-display">
+									Total: ₹{parseInt(totalPaymentAmount || 0).toLocaleString()}
+								</div>
 							</div>
-						)}
+
+							<div className="payment-methods-list">
+								{paymentMethods.map((method, index) => (
+									<div key={method.id} className="payment-method-row">
+										<div className="payment-method-select-container">
+											<select
+												value={method.method}
+												onChange={(e) =>
+													handlePaymentMethodChange(
+														method.id,
+														'method',
+														e.target.value
+													)
+												}
+												className="payment-method-select"
+											>
+												<option value="Cash">Cash</option>
+												<option value="UPI/GPay">UPI/GPay</option>
+												<option value="UPI/PhonePay">UPI/PhonePay</option>
+												<option value="UPI/Paytm">UPI/Paytm</option>
+												<option value="Cheque">Cheque</option>
+											</select>
+										</div>
+
+										<div className="payment-amount-container">
+											<input
+												type="text"
+												value={method.amount}
+												onChange={(e) =>
+													handlePaymentMethodChange(
+														method.id,
+														'amount',
+														e.target.value.replace(/[^0-9]/g, '')
+													)
+												}
+												placeholder="Enter amount"
+												className="payment-amount-input"
+											/>
+										</div>
+
+										{method.method !== 'Cash' && (
+											<div className="payment-reference-container">
+												<input
+													type="text"
+													value={method.reference || ''}
+													onChange={(e) =>
+														handlePaymentMethodChange(
+															method.id,
+															'reference',
+															e.target.value
+														)
+													}
+													placeholder="Reference #"
+													className="payment-reference-input"
+												/>
+											</div>
+										)}
+
+										{paymentMethods.length > 1 && (
+											<button
+												className="remove-payment-method"
+												onClick={() => removePaymentMethod(method.id)}
+											>
+												<i className="fas fa-times"></i>
+											</button>
+										)}
+									</div>
+								))}
+							</div>
+
+							<button className="add-payment-method" onClick={addPaymentMethod}>
+								<i className="fas fa-plus"></i> Add Payment Method
+							</button>
+
+							<div className="nav-buttons">
+								<button className="back-button" onClick={() => setStep(1)}>
+									<i className="fas fa-arrow-left"></i> Back
+								</button>
+								<button
+									className="continue-button"
+									onClick={handleAmountNext}
+									disabled={
+										!totalPaymentAmount || parseInt(totalPaymentAmount) <= 0
+									}
+								>
+									Continue <i className="fas fa-arrow-right"></i>
+								</button>
+							</div>
+						</div>
 					</div>
 				);
 			case 3:
@@ -338,161 +462,236 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 					<div className="select-installments-container">
 						<div className="selected-user">
 							<div className="user-info">
-								<div className="user-name">
-									<h3>{selectedUser?.full_name}</h3>
-									<span>{selectedUser?.phone}</span>
+								<div className="user-name">{selectedUser?.full_name}</div>
+								<div className="payment-info">
+									Payment: ₹{parseInt(totalPaymentAmount).toLocaleString()}
 								</div>
 							</div>
-							<button className="change-button" onClick={handleUserChange}>
+							<button className="change-button" onClick={() => setStep(1)}>
 								<i className="fas fa-times"></i> Change
 							</button>
 						</div>
-						<div className="recordPayment-section-title">
-							Select Installments to Pay
+
+						<div className="select-installments-header">
+							<div className="section-title">Select Installments to Pay</div>
+							<div className="remaining-amount">
+								Remaining: ₹{remainingAmount.toLocaleString()}
+							</div>
 						</div>
+
 						{loading ? (
-							<LoadingStatus message="Loading Installments..." />
+							<LoadingStatus message="Loading installments..." />
 						) : (
-							<>
-								<div className="installments-table">
-									<div className="installments-header">
-										<div className="column month">Month</div>
-										<div className="column amount">Amount</div>
-										<div className="column status">Status</div>
-									</div>
-									<div className="installments-body">
-										{installments.length > 0 ? (
-											installments.map((installment) => (
-												<div
-													key={installment.installment_id}
-													className={`installment-row ${
-														selectedInstallments.includes(
-															installment.installment_id.toString()
-														)
-															? 'selected'
-															: ''
-													}`}
-													onClick={() =>
-														handleInstallmentToggle(installment.installment_id)
-													}
-												>
-													<div className="column month">
-														{selectedInstallments.includes(
-															installment.installment_id.toString()
-														) && <i className="fas fa-check check-icon"></i>}
-														Month {installment.month_number}
-													</div>
-													<div className="column amount">
-														₹{installment.total_amount.toLocaleString()}
-													</div>
-													<div className="column status">
-														<span className="status-badge unpaid">
-															{installment.status}
-														</span>
-													</div>
-												</div>
-											))
-										) : (
-											<div className="no-results">
-												No unpaid installments found
+							<div className="chit-groups-installments">
+								{unpaidInstallments.length > 0 ? (
+									unpaidInstallments.map((chitGroup) => (
+										<div
+											key={chitGroup.chit_group_id}
+											className="chit-group-section"
+										>
+											<div className="chit-group-header">
+												<span>{chitGroup.chit_name}</span>
+												{chitGroup.unpaid_installments.some((inst) =>
+													isInstallmentSelected(inst.installment_id)
+												) && (
+													<button
+														className="close-button"
+														onClick={() => {
+															setSelectedInstallments(
+																selectedInstallments.filter(
+																	(item) =>
+																		!chitGroup.unpaid_installments.some(
+																			(unpaid) =>
+																				unpaid.installment_id.toString() ===
+																				item.installment_id.toString()
+																		)
+																)
+															);
+														}}
+													>
+														<i className="fas fa-times"></i>
+													</button>
+												)}
 											</div>
-										)}
-									</div>
-								</div>
-								{installments.length > 0 && (
+
+											<div className="installments-table">
+												<div className="installments-header">
+													<div className="column month">Month</div>
+													<div className="column other-amount">
+														Total Amount
+													</div>
+													<div className="column other-amount">Paid Amount</div>
+													<div className="column amount">Due Amount</div>
+													<div className="column status">Status</div>
+												</div>
+												<div className="installments-body">
+													{chitGroup.unpaid_installments.map((installment) => (
+														<div
+															key={installment.installment_id}
+															className={`installment-row ${
+																isInstallmentSelected(
+																	installment.installment_id
+																)
+																	? 'selected'
+																	: ''
+															}`}
+															onClick={() =>
+																handleInstallmentToggle(chitGroup, installment)
+															}
+														>
+															<div className="column month">
+																{isInstallmentSelected(
+																	installment.installment_id
+																) && (
+																	<i className="fas fa-check check-icon"></i>
+																)}
+																Month {installment.month_number}
+															</div>
+															<div className="column other-amount">
+																₹{installment.total_amount.toLocaleString()}
+															</div>
+															<div className="column other-amount">
+																₹{installment.paid_amount.toLocaleString()}
+															</div>
+															<div className="column amount">
+																₹{installment.overdue_amount.toLocaleString()}
+															</div>
+															<div className="column status">
+																<span className="status-badge unpaid">
+																	{installment.status}
+																</span>
+															</div>
+														</div>
+													))}
+												</div>
+											</div>
+										</div>
+									))
+								) : (
+									<div className="no-results">No unpaid installments found</div>
+								)}
+
+								{selectedInstallments.length > 0 && (
 									<div className="payment-summary">
 										<div className="payment-total">
 											<span>
 												Selected: {selectedInstallments.length} installments
 											</span>
-											<span>Total: ₹{paymentAmount.toLocaleString()}</span>
+											<span>
+												Total: ₹
+												{selectedInstallments
+													.reduce((sum, inst) => sum + inst.total_amount, 0)
+													.toLocaleString()}
+											</span>
 										</div>
-										<div className="continue-button-container">
+										<div className="nav-buttons">
+											<button
+												className="back-button"
+												onClick={() => setStep(2)}
+											>
+												<i className="fas fa-arrow-left"></i> Back
+											</button>
 											<button
 												className="continue-button"
-												onClick={handleContinueToPayment}
+												onClick={handleContinueToSummary}
 												disabled={selectedInstallments.length === 0}
 											>
-												Continue to Payment
+												Continue <i className="fas fa-arrow-right"></i>
 											</button>
 										</div>
 									</div>
 								)}
-							</>
+							</div>
 						)}
 					</div>
 				);
 			case 4:
 				return (
-					<div className="payment-details-container">
+					<div className="payment-summary-container">
 						<div className="selected-user">
 							<div className="user-info">
 								<div className="user-name">{selectedUser?.full_name}</div>
-								<div className="user-details">
-									{selectedChit?.chit_name} {selectedChit?.chit_amount / 100000}
-									L
+								<div className="payment-info">
+									Payment: ₹{parseInt(totalPaymentAmount).toLocaleString()}
 								</div>
 							</div>
-							<button className="change-button" onClick={handleUserChange}>
+							<button className="change-button" onClick={() => setStep(1)}>
 								<i className="fas fa-times"></i> Change
 							</button>
 						</div>
 
-						<div className="payment-form">
-							<div className="form-group">
-								<label htmlFor="payment-amount">Payment Amount (₹)</label>
-								<input
-									type="number"
-									id="payment-amount"
-									value={paymentAmount}
-									onChange={handlePaymentAmountChange}
-									className="payment-input"
-								/>
-							</div>
+						<div className="payment-summary-section">
+							<div className="section-title">Payment Summary</div>
 
-							<div className="form-group">
-								<label htmlFor="payment-method">Payment Method</label>
-								<div className="payment-method-dropdown">
-									<select
-										id="payment-method"
-										value={paymentMethod}
-										onChange={(e) => setPaymentMethod(e.target.value)}
-										className="payment-select"
-									>
-										<option value="NEFT">NEFT</option>
-										<option value="IMPS">IMPS</option>
-										<option value="UPI">UPI</option>
-										<option value="Cash">Cash</option>
-										<option value="Cheque">Cheque</option>
-									</select>
+							<div className="summary-details">
+								<div className="summary-row">
+									<div className="summary-label">Total Installments:</div>
+									<div className="summary-value">
+										{selectedInstallments.length}
+									</div>
 								</div>
-							</div>
-
-							<div className="form-group">
-								<label htmlFor="reference-number">Reference Number</label>
-								<input
-									type="text"
-									id="reference-number"
-									value={referenceNumber}
-									onChange={(e) => setReferenceNumber(e.target.value)}
-									placeholder="Enter reference number"
-									className="payment-input"
-								/>
+								<div className="summary-row">
+									<div className="summary-label">Chit Schemes:</div>
+									<div className="summary-value">
+										{
+											new Set(
+												selectedInstallments.map((inst) => inst.chit_name)
+											).size
+										}
+									</div>
+								</div>
+								<div className="summary-row">
+									<div className="summary-label">Payment Amount:</div>
+									<div className="summary-value">
+										₹{parseInt(totalPaymentAmount).toLocaleString()}
+									</div>
+								</div>
+								<div className="summary-row">
+									<div className="summary-label">Applied to Installments:</div>
+									<div className="summary-value">
+										₹
+										{selectedInstallments
+											.reduce((sum, inst) => sum + inst.total_amount, 0)
+											.toLocaleString()}
+									</div>
+								</div>
+								<div className="summary-row">
+									<div className="summary-label">Remaining Amount:</div>
+									<div className="summary-value">
+										₹{remainingAmount.toLocaleString()}
+									</div>
+								</div>
 							</div>
 						</div>
 
-						<div className="payment-action-buttons">
-							<button
-								className="cancel-button"
-								onClick={handleClose}
-								disabled={isSubmitting}
-							>
-								Cancel
+						<div className="payment-methods-section">
+							<div className="section-title">Payment Methods</div>
+
+							<div className="payment-methods-summary">
+								{paymentMethods.map((method, index) => (
+									<div key={method.id} className="payment-method-summary-row">
+										<div className="payment-method-name">{method.method}</div>
+										<div className="payment-method-amount">
+											₹{parseInt(method.amount).toLocaleString()}
+										</div>
+										{method.method !== 'Cash' && method.reference && (
+											<div className="payment-method-reference">
+												Ref: {method.reference}
+											</div>
+										)}
+									</div>
+								))}
+							</div>
+						</div>
+
+						<div className="nav-buttons payment-action-buttons">
+							<button className="back-button" onClick={() => setStep(3)}>
+								<i className="fas fa-arrow-left"></i> Back
 							</button>
 							<button
 								className="record-payment-button"
 								onClick={processPayment}
-								disabled={isSubmitting || paymentAmount <= 0}
+								disabled={isSubmitting || selectedInstallments.length === 0}
 							>
 								{isSubmitting ? (
 									<>
@@ -521,7 +720,7 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 			closeOnOverlayClick={false}
 		>
 			{renderContent()}
-			{step < 4 && (
+			{step === 1 && (
 				<div className="modal-custom-footer">
 					<button className="cancel-button" onClick={handleClose}>
 						Cancel
