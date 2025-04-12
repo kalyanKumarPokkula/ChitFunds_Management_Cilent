@@ -299,6 +299,29 @@ const ChitDetails = () => {
 			.join(' ');
 	};
 
+	// Add new function to handle Generate Installments
+	const handleGenerateInstallments = async () => {
+		try {
+			const response = await fetch(
+				`http://127.0.0.1:5001/add_current_month_installments?chit_group_id=${chitId}`
+			);
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
+
+			const result = await response.json();
+
+			// Show the response message to the user
+			showSuccess(
+				result.message || 'Current month installments generated successfully!'
+			);
+		} catch (error) {
+			console.error('Error generating installments:', error);
+			showError('Failed to generate installments. Please try again.');
+		}
+	};
+
 	if (isLoading) {
 		return (
 			<div className="chit-details-page">
@@ -357,6 +380,12 @@ const ChitDetails = () => {
 						</div>
 					</div>
 					<div className="header-right">
+						<ActionButton
+							label="Generate Installments"
+							variant="primary"
+							icon="calendar-plus"
+							onClick={handleGenerateInstallments}
+						/>
 						<ActionButton
 							label="Delete"
 							variant="danger"
@@ -666,7 +695,11 @@ const ChitDetails = () => {
 													<tr
 														key={member.user_id}
 														onClick={() => handleMemberClick(member)}
-														className="clickable-row"
+														className={`clickable-row ${
+															member.month_number !== 'not_lifted'
+																? 'lifted'
+																: ''
+														}`}
 														title="Click to view payment history"
 													>
 														<td>{member.full_name}</td>

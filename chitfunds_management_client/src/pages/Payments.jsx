@@ -13,10 +13,12 @@ const Payments = () => {
 	const [payments, setPayments] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [selectedDate, setSelectedDate] = useState('');
+	const [startDate, setStartDate] = useState('');
+	const [endDate, setEndDate] = useState('');
 	const [originalPayments, setOriginalPayments] = useState([]);
 	const [uniqueChitSchemes, setUniqueChitSchemes] = useState([]);
-	const dateInputRef = useRef(null);
+	const startDateInputRef = useRef(null);
+	const endDateInputRef = useRef(null);
 
 	useEffect(() => {
 		fetchPayments();
@@ -32,26 +34,36 @@ const Payments = () => {
 		}
 	}, [originalPayments]);
 
-	// Filter payments when selected date changes
+	// Filter payments when date range changes
 	useEffect(() => {
-		if (selectedDate && originalPayments.length > 0) {
-			const filteredByDate = originalPayments.filter((payment) => {
-				const paymentDate = new Date(payment.rawDate);
-				const selectedDateTime = new Date(selectedDate);
+		if (originalPayments.length > 0) {
+			let filteredPayments = [...originalPayments];
 
-				return (
-					paymentDate.getDate() === selectedDateTime.getDate() &&
-					paymentDate.getMonth() === selectedDateTime.getMonth() &&
-					paymentDate.getFullYear() === selectedDateTime.getFullYear()
-				);
-			});
+			// Apply start date filter if set
+			if (startDate) {
+				const startDateTime = new Date(startDate);
+				startDateTime.setHours(0, 0, 0, 0);
 
-			setPayments(filteredByDate);
-		} else if (originalPayments.length > 0) {
-			// If no date selected, show all payments
-			setPayments(originalPayments);
+				filteredPayments = filteredPayments.filter((payment) => {
+					const paymentDate = new Date(payment.rawDate);
+					return paymentDate >= startDateTime;
+				});
+			}
+
+			// Apply end date filter if set
+			if (endDate) {
+				const endDateTime = new Date(endDate);
+				endDateTime.setHours(23, 59, 59, 999);
+
+				filteredPayments = filteredPayments.filter((payment) => {
+					const paymentDate = new Date(payment.rawDate);
+					return paymentDate <= endDateTime;
+				});
+			}
+
+			setPayments(filteredPayments);
 		}
-	}, [selectedDate, originalPayments]);
+	}, [startDate, endDate, originalPayments]);
 
 	const fetchPayments = async () => {
 		try {
@@ -125,20 +137,48 @@ const Payments = () => {
 		setShowRecordPaymentModal(false);
 	};
 
-	const handleDateChange = (e) => {
-		setSelectedDate(e.target.value);
-	};
+	const handleStartDateChange = (e) => {
+		const newStartDate = e.target.value;
+		setStartDate(newStartDate);
 
-	const clearDateFilter = () => {
-		setSelectedDate('');
-	};
-
-	const handleFocusDateInput = () => {
-		// When the wrapper is clicked, focus and open the date input
-		if (dateInputRef.current) {
-			dateInputRef.current.focus();
-			dateInputRef.current.showPicker();
+		// If end date is set and is before start date, clear end date
+		if (endDate && new Date(newStartDate) > new Date(endDate)) {
+			setEndDate('');
 		}
+	};
+
+	const handleEndDateChange = (e) => {
+		setEndDate(e.target.value);
+	};
+
+	const clearDateFilters = () => {
+		setStartDate('');
+		setEndDate('');
+	};
+
+	const handleFocusStartDateInput = () => {
+		if (startDateInputRef.current) {
+			startDateInputRef.current.focus();
+			startDateInputRef.current.showPicker();
+		}
+	};
+
+	const handleFocusEndDateInput = () => {
+		if (endDateInputRef.current) {
+			endDateInputRef.current.focus();
+			endDateInputRef.current.showPicker();
+		}
+	};
+
+	const getDateRangeDisplayText = () => {
+		if (startDate && endDate) {
+			return `${formatDate(startDate)} to ${formatDate(endDate)}`;
+		} else if (startDate) {
+			return `From ${formatDate(startDate)}`;
+		} else if (endDate) {
+			return `Until ${formatDate(endDate)}`;
+		}
+		return '';
 	};
 
 	const filteredPayments = payments.filter((payment) => {
@@ -172,37 +212,63 @@ const Payments = () => {
 					</div>
 					<div className="header-right">
 						<div className="action-buttons">
-							<div className="date-input-container">
-								<div
-									className="date-input-wrapper"
-									onClick={handleFocusDateInput}
-								>
+							<div className="date-range-container">
+								<div className="date-input-wrapper">
 									<i className="fas fa-calendar date-input-icon"></i>
-									<input
-										type="date"
-										value={selectedDate}
-										onChange={handleDateChange}
-										className="date-input"
-										placeholder="Filter by date"
-										ref={dateInputRef}
-									/>
-									{selectedDate && (
+									<div className="date-inputs">
+										<div
+											className="date-input-field"
+											onClick={handleFocusStartDateInput}
+										>
+											<input
+												type="date"
+												value={startDate}
+												onChange={handleStartDateChange}
+												className="date-input"
+												placeholder="From date"
+												ref={startDateInputRef}
+												max={endDate || undefined}
+											/>
+											<span className="date-label">From</span>
+										</div>
+
+										<div className="date-input-divider">-</div>
+
+										<div
+											className="date-input-field"
+											onClick={handleFocusEndDateInput}
+										>
+											<input
+												type="date"
+												value={endDate}
+												onChange={handleEndDateChange}
+												className="date-input"
+												placeholder="To date"
+												ref={endDateInputRef}
+												min={startDate || undefined}
+											/>
+											<span className="date-label">To</span>
+										</div>
+									</div>
+
+									{(startDate || endDate) && (
 										<button
 											className="clear-date-btn"
-											onClick={clearDateFilter}
-											title="Clear date filter"
+											onClick={clearDateFilters}
+											title="Clear date filters"
 										>
 											<i className="fas fa-times"></i>
 										</button>
 									)}
 								</div>
-								{selectedDate && (
+
+								{(startDate || endDate) && (
 									<div className="selected-date-display">
-										Showing payments for:{' '}
-										{selectedDate ? formatDate(selectedDate) : ''}
+										Showing payments for: {getDateRangeDisplayText()}
 									</div>
 								)}
 							</div>
+
 							<ActionButton
 								label="Export"
 								icon="file-export"

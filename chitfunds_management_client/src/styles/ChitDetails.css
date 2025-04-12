@@ -157,6 +157,10 @@
 	flex-direction: column;
 }
 
+.lifted {
+	background-color: #dcfce7;
+}
+
 .detail-item.with-icon {
 	display: flex;
 	flex-direction: row;
