@@ -473,8 +473,9 @@ def get_current_month_payment_stats():
 
 def process_payment(data):
 
+
     print(data)
-    print(data.get("installment_ids")
+    print(data.get("installments")
           )
 
     # Read installments
@@ -488,10 +489,13 @@ def process_payment(data):
     # Convert installment_id to string for easy lookup
     installments_df["installment_id"] = installments_df["installment_id"].astype(str)
 
-    installment_ids = set(data["installment_ids"])
-    # print(installment_ids)
-    payment_amount = data["payment_amount"]
-    # print(payment_amount)
+    installment_ids = [str(inst["installment_id"]) for inst in data["installments"]]
+    print(installment_ids)
+    payment_amount = data["total_amount"]
+    print(payment_amount)
+
+    unique_chit_member_ids = list({inst["chit_member_id"] for inst in data['installments']})
+    print(unique_chit_member_ids)
 
     for idx, row in installments_df.iterrows():
         if row["installment_id"] in installment_ids:
@@ -513,19 +517,24 @@ def process_payment(data):
             if payment_amount == 0:
                 break  # No more funds left to distribute
     
-    # for idx, row in installments_df.iterrows():
-    #     if row["installment_id"] in installment_ids:
-    #         print(row)
+    for idx, row in installments_df.iterrows():
+        if row["installment_id"] in installment_ids:
+            print(row)
 
     payment = [
         str(uuid.uuid4().hex[:18]),
-        str(data["chit_member_id"]),
-        data["payment_amount"],
+        str(", ".join(unique_chit_member_ids)),
+        str(", ".join(installment_ids)),
+        data["total_amount"],
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        str(data["payment_method"]),
+        int(data["cash_amount"]),
+        int(data["online_amount"]),
+        str(data["online_payment_methond"]),
         str(data["reference_number"]),
         str("success")
     ]
+
+    print(payment)
 
     result = payments.append_row(payment)
     if result: 
