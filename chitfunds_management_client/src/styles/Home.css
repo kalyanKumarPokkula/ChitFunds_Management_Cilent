@@ -49,7 +49,7 @@
 	position: relative;
 }
 
-.section-title::after {
+/* .section-title::after {
 	content: '';
 	position: absolute;
 	bottom: -15px;
@@ -58,7 +58,7 @@
 	width: 80px;
 	height: 4px;
 	background-color: #4361ee;
-}
+} */
 
 .features-container {
 	display: grid;
