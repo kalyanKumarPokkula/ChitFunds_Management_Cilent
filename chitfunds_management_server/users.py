@@ -403,6 +403,10 @@ def get_current_month_payment_stats():
     chit_members_data = chit_members_ws.get_all_records()
     chit_members_df = pd.DataFrame(chit_members_data)
 
+    monthly_projections = spreadsheet_credentials().worksheet("monthly_projections")
+    monthly_projections_sheet  = monthly_projections.get_all_records()
+    monthly_projections_df = pd.DataFrame(monthly_projections_sheet)
+
     # Read installments
     installments = spreadsheet_credentials().worksheet("installments")
     installments_sheet = installments.get_all_records()
@@ -422,11 +426,31 @@ def get_current_month_payment_stats():
         (today.month - active_chits_df["start_date"].dt.month) + 1
     ).clip(upper=active_chits_df["duration_months"])
     
-    print(active_chits_df)
+    # print(active_chits_df)
 
     active_members_df = chit_members_df[chit_members_df["chit_group_id"].isin(active_chits_df["chit_group_id"])]
 
-    print(active_members_df)
+    # print(active_members_df)
+
+    monthly_projections_current_month  = active_chits_df[['chit_group_id', 'current_month']].merge(
+    monthly_projections_df,
+    left_on=['chit_group_id', 'current_month'],
+    right_on=['chit_group_id', 'month_number'],
+    how='inner'
+)
+    
+    monthly_projections_current_month['user_id'] = monthly_projections_current_month["user_id"].replace('', 0).fillna(0)
+    # print(monthly_projections_current_month)
+
+    unpaid_monthly_projections = monthly_projections_current_month[monthly_projections_current_month['user_id'] == 0]
+
+    # print(unpaid_monthly_projections)
+
+    unpaid_current_monthly_projections_total = unpaid_monthly_projections['total_payout'].sum()
+
+    # print(unpaid_current_monthly_projections_total)
+
+    
 
     # Step 4: Get current month's installments
     merged_installments = installments_df.merge(active_members_df, on="chit_member_id")
@@ -437,15 +461,15 @@ def get_current_month_payment_stats():
         on="chit_group_id"
     )
 
-    print(merged_installments)
+    # print(merged_installments)
 
     # Filter installments for the current month of the respective chit groups
     current_month_installments = merged_installments[
     merged_installments["month_number"] == merged_installments["current_month"]
     ]
 
-    print(current_month_installments)
-    print(current_month_installments[["total_amount", "paid_amount"]].dtypes)
+    # print(current_month_installments)
+    # print(current_month_installments[["total_amount", "paid_amount"]].dtypes)
     current_month_installments["total_amount"] = pd.to_numeric(current_month_installments["total_amount"], errors="coerce")
     current_month_installments["paid_amount"] = pd.to_numeric(current_month_installments["paid_amount"], errors="coerce")
 
@@ -456,19 +480,40 @@ def get_current_month_payment_stats():
         total_paid_this_month=("paid_amount", "sum")
     ).reset_index()
 
-    print(final_result)
-    print(final_result["total_paid_this_month"])
+    # print(final_result)
+    # print(final_result["total_paid_this_month"])
     # Calculate total unpaid
     final_result["total_unpaid_this_month"] = final_result["total_due_this_month"] - final_result["total_paid_this_month"]
 
-    print(final_result)
+    # print(final_result)
 
     data = final_result[["total_unpaid_this_month","total_due_this_month","total_paid_this_month"]].to_dict(orient="records")
 
+    total_unpaid_amount = installments_df[installments_df["status"] == "unpaid"]
+    total_unpaid_amount['paid_amount'] = total_unpaid_amount['paid_amount'].replace('', 0).fillna(0)
+    total_unpaid_amount["total_amount"] = pd.to_numeric(total_unpaid_amount["total_amount"], errors="coerce")
+    total_unpaid_amount["paid_amount"] = pd.to_numeric(total_unpaid_amount["paid_amount"], errors="coerce")
+
+    total_unpaid_amount["overdue_amount"] = total_unpaid_amount["total_amount"] - total_unpaid_amount["paid_amount"]
+
+
+    # print(total_unpaid_amount)
+
+    total_overdue = total_unpaid_amount['overdue_amount'].sum()
+    print("Total Overdue Amount:", total_overdue)
+
     data_df = pd.DataFrame(data)
+    # print(data_df)
     totals = data_df.sum()
 
-    return totals.to_dict()
+    result = totals.to_dict()
+
+    result['total_unpaid_this_month'] = int(total_overdue)
+    result['unpaid_current_month_projections'] = int(unpaid_current_monthly_projections_total)
+
+    print(result)
+
+    return result
 
 
 def process_payment(data):

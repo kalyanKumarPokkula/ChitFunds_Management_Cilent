@@ -1,7 +1,7 @@
-from users import chit_group_payments, generate_current_month_installments, get_unpaid_installments
+from users import chit_group_payments, generate_current_month_installments, get_unpaid_installments, get_current_month_payment_stats
 import uuid
 
 
 
-get_unpaid_installments("67630a5c3c56")
+print(get_current_month_payment_stats())
 
