@@ -773,6 +773,100 @@ def generate_current_month_installments(chit_group_id):
 
 
 
+def get_payment_details(payment_id):
+
+    chit_groups = spreadsheet_credentials().worksheet("chit_groups")
+    chit_groups_sheet = chit_groups.get_all_records()
+    chit_groups_df = pd.DataFrame(chit_groups_sheet)
+    chit_groups_df["start_date"] = pd.to_datetime(chit_groups_df["start_date"])
+
+    chit_members = spreadsheet_credentials().worksheet("chit_members")
+    chit_members_sheet = chit_members.get_all_records()
+    chit_members_df = pd.DataFrame(chit_members_sheet)
+
+    payments = spreadsheet_credentials().worksheet("payments")
+    payments_sheet  = payments.get_all_records()
+    payment_df = pd.DataFrame(payments_sheet)
+
+     # Read installments
+    installments = spreadsheet_credentials().worksheet("installments")
+    installments_sheet = installments.get_all_records()
+    installments_df = pd.DataFrame(installments_sheet)
+
+    payment = payment_df[payment_df['payment_id'] == payment_id]
+    payment['installment_id'] = payment['installment_id'].apply(lambda x: [i.strip() for i in x.split(',')])
+    payment['chit_member_id'] = payment['chit_member_id'].apply(lambda x: [i.strip() for i in x.split(',')])
+
+    print(payment)
+
+    installment_ids = payment["installment_id"].iloc[0]
+    chit_member_ids = payment["chit_member_id"].iloc[0]
+
+    installments_df['installment_id'] = installments_df['installment_id'].astype(str).str.strip()
+
+    paid_installments = installments_df[installments_df['installment_id'].isin(installment_ids)]
+
+    print(paid_installments)
+    paid_members = chit_members_df[chit_members_df["chit_member_id"].isin(chit_member_ids)]
+
+    print(paid_members)
+
+    merged_df = pd.merge(
+    paid_installments,
+    paid_members,
+    on='chit_member_id',
+    how='inner'  # or 'inner' if you only want matching members
+    )
+
+    print(merged_df)
+
+    chit_group = chit_groups_df[chit_groups_df["chit_group_id"].isin(merged_df["chit_group_id"])]
+
+    print(chit_group)
+
+    merged_df = merged_df.merge(chit_group, on="chit_group_id", how="inner")
+
+    print(merged_df)
+
+    payment_amount = int(payment["payment_amount"])
+
+    print(payment_amount)
+
+    for installment_id in installment_ids:
+    # Filter rows that match current installment_id
+        matching_rows = merged_df[merged_df["installment_id"] == installment_id]
+        print(matching_rows)
+
+        for index, row in matching_rows.iterrows():
+            paid_amount = row["paid_amount"] if pd.notnull(row["paid_amount"]) else 0
+            total_amount = row["total_amount"]
+
+            due_amount = total_amount
+
+            if payment_amount >= due_amount:
+                merged_df.at[index, "paid_amount"] = total_amount
+                payment_amount -= due_amount
+            else:
+                merged_df.at[index, "paid_amount"] = payment_amount
+                payment_amount = 0  # Stop processing if payment is exhausted
+
+            if payment_amount == 0:
+                break  # No more funds to allocate
+        
+    
+    print(merged_df)
+
+    amount_paid_installment_details =  merged_df[["chit_group_id" , "chit_name", "installment_id" , "month_number" , "total_amount" , "paid_amount" , "chit_member_id"]].to_dict(orient="records")
+
+    payment_details = payment[["net_paid_cash" , "net_paid_online" , "payment_amount" , "payment_date" ,"payment_id" , "payment_method", "payment_status"]].to_dict(orient="records")
+
+    payment_details[0]["installment_details"] = amount_paid_installment_details
+    
+    return payment_details[0]
+
+
+    
+   
 
 
 
