@@ -574,7 +574,7 @@ def process_payment(data):
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         int(data["cash_amount"]),
         int(data["online_amount"]),
-        str(data["online_payment_methond"]),
+        str(data["online_payment_method"]),
         str(data["reference_number"]),
         str("success")
     ]
