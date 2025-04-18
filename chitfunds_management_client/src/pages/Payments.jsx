@@ -75,6 +75,7 @@ const Payments = () => {
 			}
 
 			const data = await response.json();
+			console.log(data);
 
 			// Transform the data to match our UI format
 			const transformedData = data.map((payment, index) => ({
