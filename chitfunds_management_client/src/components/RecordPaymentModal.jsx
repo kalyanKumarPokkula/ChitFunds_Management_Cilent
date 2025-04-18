@@ -35,7 +35,7 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 	useEffect(() => {
 		if (totalPaymentAmount) {
 			const total = selectedInstallments.reduce(
-				(sum, inst) => sum + inst.total_amount,
+				(sum, inst) => sum + inst.overdue_amount,
 				0
 			);
 			setRemainingAmount(parseInt(totalPaymentAmount) - total);
@@ -106,23 +106,38 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		setIsSubmitting(true);
 		setError(null);
 		try {
-			// Format the installment_ids for the API
-			const installment_ids = selectedInstallments.map((inst) =>
-				inst.installment_id.toString()
-			);
+			// Calculate cash and online payment amounts
+			let cashAmount = 0;
+			let onlineAmount = 0;
+			let onlinePaymentMethod = '';
+			let referenceNum = '';
 
-			// Format payment methods array for API
-			const formattedPaymentMethods = paymentMethods.map((pm) => ({
-				method: pm.method.toLowerCase(),
-				amount: parseInt(pm.amount),
-				reference: pm.reference || pm.method.toLowerCase(),
+			paymentMethods.forEach((pm) => {
+				if (pm.method === 'Cash') {
+					cashAmount += parseInt(pm.amount) || 0;
+				} else {
+					onlineAmount += parseInt(pm.amount) || 0;
+					// Use the first online payment method and reference
+					if (!onlinePaymentMethod && pm.amount && parseInt(pm.amount) > 0) {
+						onlinePaymentMethod = pm.method.toLowerCase();
+						referenceNum = pm.reference || '';
+					}
+				}
+			});
+
+			// Format installments for API
+			const installments = selectedInstallments.map((inst) => ({
+				chit_member_id: inst.chit_member_id,
+				installment_id: inst.installment_id.toString(),
 			}));
 
 			const payload = {
-				user_id: selectedUser.user_id,
-				installment_ids: installment_ids,
-				payment_amount: parseInt(totalPaymentAmount),
-				payment_methods: formattedPaymentMethods,
+				cash_amount: cashAmount,
+				online_amount: onlineAmount,
+				online_payment_method: onlinePaymentMethod,
+				total_amount: parseInt(totalPaymentAmount),
+				reference_number: referenceNum,
+				installments: installments,
 			};
 
 			const response = await fetch('http://127.0.0.1:5001/process_payments', {
@@ -243,12 +258,6 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 				)
 			);
 		} else {
-			// Check if there's enough remaining amount
-			if (installment.total_amount > remainingAmount) {
-				setError('Cannot select this installment. Exceeds available amount.');
-				return;
-			}
-
 			// Add this installment with chit information
 			setSelectedInstallments([
 				...selectedInstallments,
@@ -580,7 +589,7 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 											<span>
 												Total: ₹
 												{selectedInstallments
-													.reduce((sum, inst) => sum + inst.total_amount, 0)
+													.reduce((sum, inst) => sum + inst.overdue_amount, 0)
 													.toLocaleString()}
 											</span>
 										</div>
@@ -651,7 +660,7 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 									<div className="summary-value">
 										₹
 										{selectedInstallments
-											.reduce((sum, inst) => sum + inst.total_amount, 0)
+											.reduce((sum, inst) => sum + inst.overdue_amount, 0)
 											.toLocaleString()}
 									</div>
 								</div>
