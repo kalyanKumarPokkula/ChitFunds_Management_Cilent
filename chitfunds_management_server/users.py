@@ -606,6 +606,20 @@ def get_payments():
     payments = spreadsheet_credentials().worksheet("payments")
     payments_sheet = payments.get_all_records()
     payments_df = pd.DataFrame(payments_sheet)
+    # Step 1: Split and explode comma-separated values
+    payments_df["chit_member_id"] = payments_df["chit_member_id"].astype(str).str.split(",")
+
+    print(payments_df)
+
+    # Explode to normalize the rows
+    payments_df = payments_df.explode("chit_member_id").explode("installment_id")
+
+    print(payments_df)
+
+    # Remove leading/trailing spaces if any
+    payments_df["chit_member_id"] = payments_df["chit_member_id"].str.strip()
+
+    print(payments_df)
 
     df_merged = payments_df.merge(chit_members_df, on="chit_member_id" , how="left")
 
@@ -627,7 +641,17 @@ def get_payments():
 
     print(df_final)
 
-    return df_final.to_dict(orient="records")
+    grouped_df = df_final.groupby(
+    ["payment_id", "user_id", "payment_amount", "payment_date"]
+    ).agg({
+        "full_name": "first",  # Same user for all rows, just take one
+        "chit_group_id": lambda x: ", ".join(x.dropna().unique()),
+        "chit_name": lambda x: ", ".join(x.dropna().unique())
+    }).reset_index()
+
+    print(grouped_df)
+
+    return grouped_df.to_dict(orient="records")
 
 
 def chit_group_payments(chit_group_id):
