@@ -87,6 +87,18 @@ const PaymentStats = () => {
 					</div>
 				</div>
 
+				<div className="stats-card semi-trust">
+					<div className="stats-icon">
+						<i className="fas fa-money-check-alt"></i>
+					</div>
+					<div className="stats-content">
+						<h3>Total Payout Due This Month</h3>
+						<div className="stats-amount">
+							{formatCurrency(stats.unpaid_current_month_projections)}
+						</div>
+					</div>
+				</div>
+
 				<div className="stats-card paid">
 					<div className="stats-icon">
 						<i className="fas fa-check-circle"></i>
