@@ -115,6 +115,9 @@ const Payments = () => {
 	};
 
 	const capitalizeFirst = (text) => {
+		if (!text) {
+			return ''; // Return an empty string or a default value if text is undefined or null
+		}
 		return text.charAt(0).toUpperCase() + text.slice(1);
 	};
 
