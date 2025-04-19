@@ -291,8 +291,10 @@ def add_current_month_installments():
 def get_payments_details():
     try:
         data = request.args.get("payment_id")
+        user_name = request.args.get("user_name")
+
         print(data)
-        response = get_payment_details(data)
+        response = get_payment_details(data, user_name)
 
         return jsonify(response), 200
     except Exception as e:

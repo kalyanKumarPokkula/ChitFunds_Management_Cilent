@@ -637,19 +637,29 @@ def get_payments():
 
     df_merged = df_merged.sort_values(by='payment_date', ascending=False)
 
-    df_final = df_merged[['payment_id', "user_id" , "chit_group_id",'full_name', 'chit_name', 'payment_amount', 'payment_date', "reference_number", 'payment_method', 'payment_status']]
+    df_final = df_merged[['payment_id', "user_id" , "chit_group_id",'full_name', 'chit_name', 'payment_amount', 'payment_date', "reference_number", 'payment_method', 'payment_status', "net_paid_cash" , "net_paid_online"]]
 
     print(df_final)
 
     grouped_df = df_final.groupby(
-    ["payment_id", "user_id", "payment_amount", "payment_date"]
+    ["payment_id", "user_id", "payment_amount", "payment_date", "net_paid_cash" , "net_paid_online"]
     ).agg({
         "full_name": "first",  # Same user for all rows, just take one
         "chit_group_id": lambda x: ", ".join(x.dropna().unique()),
         "chit_name": lambda x: ", ".join(x.dropna().unique())
     }).reset_index()
 
+    grouped_df['net_paid_cash'] = grouped_df['net_paid_cash'].replace('', 0)
+    grouped_df['net_paid_online'] = grouped_df['net_paid_online'].replace('', 0)
+
+    # Optionally convert them to numeric types (if needed)
+    grouped_df['net_paid_cash'] = pd.to_numeric(grouped_df['net_paid_cash'])
+    grouped_df['net_paid_online'] = pd.to_numeric(grouped_df['net_paid_online'])
+
+
     print(grouped_df)
+
+
 
     return grouped_df.to_dict(orient="records")
 
@@ -797,7 +807,7 @@ def generate_current_month_installments(chit_group_id):
 
 
 
-def get_payment_details(payment_id):
+def get_payment_details(payment_id , user_name):
 
     chit_groups = spreadsheet_credentials().worksheet("chit_groups")
     chit_groups_sheet = chit_groups.get_all_records()
@@ -883,6 +893,8 @@ def get_payment_details(payment_id):
     amount_paid_installment_details =  merged_df[["chit_group_id" , "chit_name", "installment_id" , "month_number" , "total_amount" , "paid_amount" , "chit_member_id"]].to_dict(orient="records")
 
     payment_details = payment[["net_paid_cash" , "net_paid_online" , "payment_amount" , "payment_date" ,"payment_id" , "payment_method", "payment_status"]].to_dict(orient="records")
+
+    payment_details[0]["user_name"] = user_name
 
     payment_details[0]["installment_details"] = amount_paid_installment_details
     
