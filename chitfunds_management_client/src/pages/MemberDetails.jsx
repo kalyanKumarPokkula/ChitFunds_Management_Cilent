@@ -80,6 +80,7 @@ const MemberDetails = () => {
 							<div className="profile-summary">
 								<ChitFundSummary
 									chitCount={memberData.chit_count}
+									current_total_amount={memberData.current_total_amount}
 									paymentOverdues={memberData.payment_overdues}
 								/>
 							</div>

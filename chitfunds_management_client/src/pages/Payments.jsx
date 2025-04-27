@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import RecordPaymentModal from '../components/RecordPaymentModal';
+import PaymentDetailsModal from '../components/PaymentDetailsModal';
 import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/Payments.css';
 import { useState, useEffect, useRef } from 'react';
@@ -10,6 +11,8 @@ const Payments = () => {
 	const [statusFilter, setStatusFilter] = useState('All Status');
 	const [chitSchemeFilter, setChitSchemeFilter] = useState('All Schemes');
 	const [showRecordPaymentModal, setShowRecordPaymentModal] = useState(false);
+	const [showPaymentDetailsModal, setShowPaymentDetailsModal] = useState(false);
+	const [selectedPayment, setSelectedPayment] = useState(null);
 	const [payments, setPayments] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -84,10 +87,11 @@ const Payments = () => {
 				rawDate: payment.payment_date, // Store original date for filtering
 				member: payment.full_name,
 				chitScheme: payment.chit_name,
-				amount: formatCurrency(payment.payment_amount),
-				paymentMethod: capitalizeFirst(payment.payment_method),
-				referenceNo: payment.reference_number,
+				net_paid_cash: formatCurrency(payment.net_paid_cash),
+				net_paid_online: formatCurrency(payment.net_paid_online),
+				payment_amount: formatCurrency(payment.payment_amount),
 				status: capitalizeFirst(payment.payment_status),
+				userName: payment.full_name, // Use full_name as userName for API call
 			}));
 
 			setPayments(transformedData);
@@ -185,6 +189,15 @@ const Payments = () => {
 		return '';
 	};
 
+	const handleRowClick = (payment) => {
+		setSelectedPayment(payment);
+		setShowPaymentDetailsModal(true);
+	};
+
+	const handleClosePaymentDetailsModal = () => {
+		setShowPaymentDetailsModal(false);
+	};
+
 	const filteredPayments = payments.filter((payment) => {
 		// Search across all fields
 		const matchesSearch = Object.values(payment).some((value) =>
@@ -199,7 +212,6 @@ const Payments = () => {
 		const matchesChitScheme =
 			chitSchemeFilter === 'All Schemes' ||
 			payment.chitScheme === chitSchemeFilter;
-		console.log(chitSchemeFilter);
 
 		return matchesSearch && matchesStatus && matchesChitScheme;
 	});
@@ -313,7 +325,6 @@ const Payments = () => {
 								onChange={handleChitSchemeChange}
 							>
 								<option>All Schemes</option>
-								{console.log(uniqueChitSchemes)}
 								{uniqueChitSchemes.map((scheme) => (
 									<option key={scheme}>{scheme}</option>
 								))}
@@ -334,9 +345,9 @@ const Payments = () => {
 									<th>Date</th>
 									<th>Member</th>
 									<th>Chit Scheme</th>
-									<th>Amount</th>
-									<th>Payment Method</th>
-									<th>Reference No.</th>
+									<th>Cash Paid</th>
+									<th>Online Paid</th>
+									<th>Total Amount Paid</th>
 									<th>Status</th>
 									<th>Actions</th>
 								</tr>
@@ -344,13 +355,17 @@ const Payments = () => {
 							<tbody>
 								{filteredPayments.length > 0 ? (
 									filteredPayments.map((payment) => (
-										<tr key={payment.id}>
+										<tr
+											key={payment.id}
+											onClick={() => handleRowClick(payment)}
+											className="clickable-row"
+										>
 											<td>{payment.date}</td>
 											<td>{payment.member}</td>
 											<td>{payment.chitScheme}</td>
-											<td>{payment.amount}</td>
-											<td>{payment.paymentMethod}</td>
-											<td>{payment.referenceNo}</td>
+											<td>{payment.net_paid_cash}</td>
+											<td>{payment.net_paid_online}</td>
+											<td>{payment.payment_amount}</td>
 											<td>
 												<span
 													className={`status-badge ${payment.status.toLowerCase()}`}
@@ -358,12 +373,16 @@ const Payments = () => {
 													{payment.status}
 												</span>
 											</td>
-											<td>
+											<td onClick={(e) => e.stopPropagation()}>
 												<ActionButton
 													label="View"
 													icon="eye"
 													variant="outline"
 													className="small"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleRowClick(payment);
+													}}
 												/>
 											</td>
 										</tr>
@@ -381,11 +400,22 @@ const Payments = () => {
 				</div>
 			</div>
 
+			{/* Record Payment Modal */}
 			<RecordPaymentModal
 				isOpen={showRecordPaymentModal}
 				onClose={handleCloseRecordPaymentModal}
 				onPaymentAdded={fetchPayments}
 			/>
+
+			{/* Payment Details Modal */}
+			{selectedPayment && (
+				<PaymentDetailsModal
+					isOpen={showPaymentDetailsModal}
+					onClose={handleClosePaymentDetailsModal}
+					paymentId={selectedPayment.id}
+					userName={selectedPayment.userName}
+				/>
+			)}
 		</div>
 	);
 };

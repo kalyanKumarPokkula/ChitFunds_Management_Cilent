@@ -642,7 +642,7 @@ def get_payments():
     print(df_final)
 
     grouped_df = df_final.groupby(
-    ["payment_id", "user_id", "payment_amount", "payment_date", "net_paid_cash" , "net_paid_online"]
+    ["payment_id", "user_id", "payment_amount", "payment_date", "net_paid_cash" , "net_paid_online", "payment_status"]
     ).agg({
         "full_name": "first",  # Same user for all rows, just take one
         "chit_group_id": lambda x: ", ".join(x.dropna().unique()),
