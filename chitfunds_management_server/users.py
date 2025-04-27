@@ -659,6 +659,8 @@ def get_payments():
 
     print(grouped_df)
 
+    grouped_df = grouped_df.sort_values(by='payment_date', ascending=False)
+
 
 
     return grouped_df.to_dict(orient="records")
@@ -828,10 +830,11 @@ def get_payment_details(payment_id , user_name):
     installments_df = pd.DataFrame(installments_sheet)
 
     payment = payment_df[payment_df['payment_id'] == payment_id]
-    payment['installment_id'] = payment['installment_id'].apply(lambda x: [i.strip() for i in x.split(',')])
-    payment['chit_member_id'] = payment['chit_member_id'].apply(lambda x: [i.strip() for i in x.split(',')])
+    payment['installment_id'] = payment['installment_id'].apply(lambda x: [i.strip() for i in str(x).split(',')])
+    payment['chit_member_id'] = payment['chit_member_id'].apply(lambda x: [i.strip() for i in str(x).split(',')])
 
-    print(payment)
+
+    print(payment) 
 
     installment_ids = payment["installment_id"].iloc[0]
     chit_member_ids = payment["chit_member_id"].iloc[0]
