@@ -1,11 +1,14 @@
 import React from 'react';
 import '../styles/ChitFundSummary.css';
 
-const ChitFundSummary = ({ chitCount, paymentOverdues }) => {
+const ChitFundSummary = ({
+	chitCount,
+	paymentOverdues,
+	current_total_amount,
+}) => {
 	// Calculate total active chits count
 	const totalChits = chitCount || 0;
-	
-	
+
 	// Calculate the monthly contribution (sum of all overdues divided by total overdue months)
 	const calculateMonthlyContribution = () => {
 		if (!paymentOverdues || paymentOverdues.length === 0) return 0;
@@ -44,7 +47,7 @@ const ChitFundSummary = ({ chitCount, paymentOverdues }) => {
 				<div className="stat-card">
 					<span className="stat-label">Monthly Contribution</span>
 					<span className="stat-value">
-						{formatCurrency(monthlyContribution)}
+						{formatCurrency(current_total_amount)}
 					</span>
 				</div>
 			</div>

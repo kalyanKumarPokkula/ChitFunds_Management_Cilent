@@ -68,16 +68,50 @@
 	justify-content: space-between;
 }
 
-.loading,
-.error,
-.no-data {
-	text-align: center;
-	padding: 20px;
-	color: #7f8c8d;
+.loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+	color: #666;
+}
+
+.loading p {
+	margin-top: 16px;
+	font-size: 0.9rem;
+}
+
+.spinner {
+	width: 40px;
+	height: 40px;
+	border: 3px solid rgba(0, 0, 0, 0.1);
+	border-radius: 50%;
+	border-top-color: #2196f3;
+	animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 .error {
 	color: #e74c3c;
+}
+
+.small {
+	font-size: 0.8rem;
+	color: #777;
+	margin-top: 10px;
+}
+
+.no-data-message {
+	text-align: center;
+	color: #777;
+	padding: 12px;
+	font-style: italic;
 }
 
 .payment-summary {
@@ -239,4 +273,60 @@
 
 .print-btn:hover {
 	background-color: #1e88e5;
+}
+
+.error-container {
+	padding: 24px;
+	display: flex;
+	color: #721c24;
+	background-color: #f8d7da;
+	border-radius: 4px;
+	margin: 20px;
+}
+
+.error-icon {
+	margin-right: 16px;
+	font-size: 24px;
+	color: #dc3545;
+}
+
+.error-content {
+	flex: 1;
+}
+
+.error-content h4 {
+	margin-top: 0;
+	margin-bottom: 10px;
+	font-size: 1.1rem;
+	color: #721c24;
+}
+
+.error-content p {
+	margin-bottom: 15px;
+	font-size: 0.95rem;
+}
+
+.error-troubleshooting {
+	background-color: #fff;
+	padding: 12px;
+	border-radius: 4px;
+	margin-top: 15px;
+}
+
+.error-troubleshooting h5 {
+	margin-top: 0;
+	margin-bottom: 8px;
+	font-size: 0.9rem;
+	color: #555;
+}
+
+.error-troubleshooting ul {
+	margin: 0;
+	padding-left: 20px;
+}
+
+.error-troubleshooting li {
+	margin-bottom: 6px;
+	font-size: 0.85rem;
+	color: #555;
 }

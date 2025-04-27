@@ -5,29 +5,97 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 	const [paymentDetails, setPaymentDetails] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [attemptCount, setAttemptCount] = useState(0);
 
 	useEffect(() => {
 		if (isOpen && paymentId && userName) {
+			setAttemptCount(0); // Reset attempt count when modal opens
 			fetchPaymentDetails();
 		}
 	}, [isOpen, paymentId, userName]);
 
+	// Try different parameter combinations if the first one fails
+	useEffect(() => {
+		if (error && attemptCount < 2) {
+			fetchPaymentDetailsAlternative();
+		}
+	}, [error, attemptCount]);
+
 	const fetchPaymentDetails = async () => {
 		try {
 			setLoading(true);
+			console.log(
+				`Fetching payment details for ID: ${paymentId}, User: ${userName}`
+			);
+
+			// First attempt with original params
 			const response = await fetch(
 				`http://127.0.0.1:5001/get_payments_details?payment_id=${paymentId}&user_name=${userName}`
 			);
 
 			if (!response.ok) {
-				throw new Error('Failed to fetch payment details');
+				const errorText = await response.text();
+				console.error('API Error Response:', response.status, errorText);
+
+				throw new Error(
+					`Failed to fetch payment details (Status: ${response.status}). The server might be having issues processing this request.`
+				);
 			}
 
 			const data = await response.json();
+			console.log('Payment details received:', data);
 			setPaymentDetails(data);
+			setError(null);
 		} catch (err) {
 			setError(err.message);
 			console.error('Error fetching payment details:', err);
+			setAttemptCount((prevCount) => prevCount + 1);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const fetchPaymentDetailsAlternative = async () => {
+		try {
+			setLoading(true);
+			let url;
+
+			// Try alternative parameter names based on attempt count
+			if (attemptCount === 1) {
+				// Try with different parameter names
+				url = `http://127.0.0.1:5001/get_payment_details?payment_id=${paymentId}&user_name=${userName}`;
+				console.log('Trying alternative endpoint (no "s" at the end):', url);
+			} else {
+				// Try different parameter structure
+				url = `http://127.0.0.1:5001/get_payments_details?id=${paymentId}&username=${userName}`;
+				console.log('Trying alternative parameter names:', url);
+			}
+
+			const response = await fetch(url);
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error(
+					'Alternative API Error Response:',
+					response.status,
+					errorText
+				);
+
+				throw new Error(
+					`Failed to fetch payment details on attempt ${
+						attemptCount + 1
+					} (Status: ${response.status}).`
+				);
+			}
+
+			const data = await response.json();
+			console.log('Payment details received from alternative endpoint:', data);
+			setPaymentDetails(data);
+			setError(null);
+		} catch (err) {
+			setError(err.message);
+			console.error(`Error on fetch attempt ${attemptCount + 1}:`, err);
+			setAttemptCount((prevCount) => prevCount + 1);
 		} finally {
 			setLoading(false);
 		}
@@ -268,9 +336,44 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 
 				<div className="modal-content">
 					{loading ? (
-						<div className="loading">Loading payment details...</div>
+						<div className="loading">
+							<div className="spinner"></div>
+							<p>Loading payment details...</p>
+						</div>
 					) : error ? (
-						<div className="error">{error}</div>
+						<div className="error-container">
+							<div className="error-icon">
+								<i className="fas fa-exclamation-triangle"></i>
+							</div>
+							<div className="error-content">
+								<h4>Error Loading Payment Details</h4>
+								<p>{error}</p>
+								<div className="error-troubleshooting">
+									<h5>Possible solutions:</h5>
+									<ul>
+										<li>
+											Verify the backend server is running at
+											http://127.0.0.1:5001
+										</li>
+										<li>
+											Check if the API endpoint is correct
+											(get_payments_details)
+										</li>
+										<li>
+											Ensure the parameters being passed are correct (payment_id
+											and user_name)
+										</li>
+										<li>
+											Check the server logs for more details about the error
+										</li>
+									</ul>
+									<p className="small">
+										Technical details: Trying to fetch details for payment ID:{' '}
+										{paymentId} and user: {userName}
+									</p>
+								</div>
+							</div>
+						</div>
 					) : paymentDetails ? (
 						<>
 							<div className="payment-summary">
@@ -365,14 +468,23 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 											</tr>
 										</thead>
 										<tbody>
-											{paymentDetails.installment_details.map(
-												(installment, index) => (
-													<tr key={index}>
-														<td>{installment.chit_name}</td>
-														<td>Month {installment.month_number}</td>
-														<td>{formatCurrency(installment.paid_amount)}</td>
-													</tr>
+											{paymentDetails.installment_details &&
+											paymentDetails.installment_details.length > 0 ? (
+												paymentDetails.installment_details.map(
+													(installment, index) => (
+														<tr key={index}>
+															<td>{installment.chit_name}</td>
+															<td>Month {installment.month_number}</td>
+															<td>{formatCurrency(installment.paid_amount)}</td>
+														</tr>
+													)
 												)
+											) : (
+												<tr>
+													<td colSpan="3" className="no-data-message">
+														No installment details available
+													</td>
+												</tr>
 											)}
 										</tbody>
 										<tfoot>
@@ -398,9 +510,11 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 					<button className="btn close-btn" onClick={onClose}>
 						Close
 					</button>
-					<button className="btn print-btn" onClick={handlePrintReceipt}>
-						Print Receipt
-					</button>
+					{paymentDetails && (
+						<button className="btn print-btn" onClick={handlePrintReceipt}>
+							Print Receipt
+						</button>
+					)}
 				</div>
 			</div>
 		</div>
