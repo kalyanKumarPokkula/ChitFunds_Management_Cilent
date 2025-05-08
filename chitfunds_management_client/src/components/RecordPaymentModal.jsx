@@ -392,11 +392,12 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 												}
 												className="payment-method-select"
 											>
-												<option value="Cash">Cash</option>
-												<option value="UPI/GPay">UPI/GPay</option>
-												<option value="UPI/PhonePay">UPI/PhonePay</option>
-												<option value="UPI/Paytm">UPI/Paytm</option>
-												<option value="Cheque">Cheque</option>
+												<option value="cash">Cash</option>
+												<option value="gpay">UPI/GPay</option>
+												<option value="phonepay">UPI/PhonePay</option>
+												<option value="paytm">UPI/Paytm</option>
+												<option value="cheque">Cheque</option>
+												<option value="other">Cheque</option>
 											</select>
 										</div>
 

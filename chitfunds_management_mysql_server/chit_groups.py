@@ -179,8 +179,7 @@ def add_chit_monthly_projections(data):
                 monthly_projections_id=projection_id,
                 chit_group_id=chit_group_id,
                 month_number=int(row.get("month_number", 0)),
-                monthly_subcription=float(row.get("monthly_subcription", 0)),
-                user_id=None,  # Will be updated when a user wins the auction
+                monthly_subcription=float(row.get("monthly_subcription", 0)),  # Will be updated when a user wins the auction
                 total_payout=float(row.get("total_payout", 0))
             )
             
@@ -243,12 +242,47 @@ def update_chit_group(data):
         db.close()
 
 
+# def get_chit_by_id(chit_group_id):
+#     """
+#     Retrieves details of a specific chit group by its ID from the database.
+
+#     Args:
+#         chit_group_id (str): The ID of the chit group to retrieve.
+
+#     Returns:
+#         dict: A dictionary containing chit group details along with its monthly projections.
+#               If the chit group is not found, returns a JSON error response with a 404 status.
+#     """
+#     db = get_db()
+#     try:
+#         chit_group = db.query(ChitGroup).filter(ChitGroup.chit_group_id == str(chit_group_id)).first()
+        
+#         if not chit_group:
+#             return jsonify({"error": "Chit group not found"}), 404
+        
+#         result = {
+#             "chit_group_id": chit_group.chit_group_id,
+#             "chit_name": chit_group.chit_name,
+#             "chit_amount": chit_group.chit_amount,
+#             "duration_months": chit_group.duration_months,
+#             "total_members": chit_group.total_members,
+#             "monthly_installment": chit_group.monthly_installment,
+#             "status": chit_group.status,
+#             "start_date": chit_group.start_date,
+#             "end_date": chit_group.end_date,
+#             "monthly_projections": monthly_projections(chit_group_id)
+#         }
+        
+#         return result
+#     finally:
+#         db.close()
+
 def get_chit_by_id(chit_group_id):
     """
     Retrieves details of a specific chit group by its ID from the database.
 
     Args:
-        chit_group_id (str): The ID of the chit group to retrieve.
+        chit_group_id (str or int): The ID of the chit group to retrieve.
 
     Returns:
         dict: A dictionary containing chit group details along with its monthly projections.
@@ -257,23 +291,47 @@ def get_chit_by_id(chit_group_id):
     db = get_db()
     try:
         chit_group = db.query(ChitGroup).filter(ChitGroup.chit_group_id == str(chit_group_id)).first()
-        
+
         if not chit_group:
             return jsonify({"error": "Chit group not found"}), 404
-        
+
+        # Step 1: Calculate current month
+        start_date = chit_group.start_date
+        duration_months = chit_group.duration_months
+
+        today = datetime.today()
+        current_month = ((today.year - start_date.year) * 12 + (today.month - start_date.month) + 1)
+        current_month = min(current_month, duration_months)
+
+        # Step 2: Fetch monthly projections
+        projections = monthly_projections(chit_group_id)
+
+        # Step 3: Get current projection based on current month
+        current_projection = next((item for item in projections if int(item["month_number"]) == current_month), None)
+
+        # Step 4: Update values from current projection
+        if current_projection:
+            monthly_installment = current_projection["monthly_subcription"]
+            chit_amount = current_projection["total_payout"]
+        else:
+            monthly_installment = chit_group.monthly_installment
+            chit_amount = chit_group.chit_amount
+
+        # Step 5: Prepare the result
         result = {
             "chit_group_id": chit_group.chit_group_id,
             "chit_name": chit_group.chit_name,
-            "chit_amount": chit_group.chit_amount,
+            "chit_amount": chit_amount,
             "duration_months": chit_group.duration_months,
             "total_members": chit_group.total_members,
-            "monthly_installment": chit_group.monthly_installment,
+            "monthly_installment": monthly_installment,
             "status": chit_group.status,
             "start_date": chit_group.start_date,
             "end_date": chit_group.end_date,
-            "monthly_projections": monthly_projections(chit_group_id)
+            "monthly_projections": projections,
+            "current_month": current_month
         }
-        
+
         return result
     finally:
         db.close()
@@ -361,27 +419,97 @@ def delete_chit_group_by_id(chit_group_id):
 
 def get_users_by_chit_group(chit_group_id):
     """
-    Gets all users (members) for a specific chit group.
+    Retrieves user details for a specific chit group using a MySQL database.
 
     Args:
-        chit_group_id (str): The ID of the chit group.
+        chit_group_id (str or int): The ID of the chit group.
 
     Returns:
         list[dict]: A list of dictionaries containing user details for the specified chit group.
     """
     db = get_db()
     try:
+        # Step 1: Get chit members in the given group
         query = text("""
-            SELECT u.user_id, u.full_name, u.email, u.phone, cm.chit_member_id
-            FROM users u
-            JOIN chit_members cm ON u.user_id = cm.user_id
-            WHERE cm.chit_group_id = :chit_group_id
+            SELECT chit_member_id, user_id, chit_group_id
+            FROM chit_members
+            WHERE chit_group_id = :chit_group_id
         """)
-        
         result = db.execute(query, {"chit_group_id": chit_group_id})
-        users = [dict(row._mapping) for row in result]
-        
-        return users
+        matched_members = [dict(row._mapping) for row in result]
+
+        if not matched_members:
+            return []
+
+        member_ids = [m["chit_member_id"] for m in matched_members]
+        user_id_map = {m["chit_member_id"]: m["user_id"] for m in matched_members}
+        chit_group_map = {m["chit_member_id"]: m["chit_group_id"] for m in matched_members}
+
+        # Step 2: Fetch unpaid installments
+        query = text("""
+            SELECT chit_member_id, total_amount, paid_amount, month_number
+            FROM installments
+            WHERE chit_member_id IN :member_ids AND status = 'unpaid'
+        """)
+        result = db.execute(query, {"member_ids": tuple(member_ids)})
+        installments = [dict(row._mapping) for row in result]
+
+        # Step 3: Aggregate pending installments
+        pending_summary = {}
+        for inst in installments:
+            cm_id = inst["chit_member_id"]
+            total = float(inst.get("total_amount") or 0)
+            paid = float(inst.get("paid_amount") or 0)
+            pending_amt = total - paid
+
+            if cm_id not in pending_summary:
+                pending_summary[cm_id] = {"total_pending_amount": 0, "pending_months": 0}
+            pending_summary[cm_id]["total_pending_amount"] += pending_amt
+            pending_summary[cm_id]["pending_months"] += 1
+
+        # Step 4: Get user details
+        user_ids = list(set(m["user_id"] for m in matched_members))
+        query = text("""
+            SELECT user_id, full_name, phone
+            FROM users
+            WHERE user_id IN :user_ids
+        """)
+        result = db.execute(query, {"user_ids": tuple(user_ids)})
+        users = {row._mapping["user_id"]: dict(row._mapping) for row in result}
+
+        # Step 5: Get lifted members from monthly_projections
+        query = text("""
+            SELECT user_id, month_number, total_payout
+            FROM monthly_projections
+            WHERE chit_group_id = :chit_group_id AND user_id IS NOT NULL
+        """)
+        result = db.execute(query, {"chit_group_id": chit_group_id})
+        projections = {row._mapping["user_id"]: dict(row._mapping) for row in result}
+
+        # Step 6: Combine all into final result
+        final_result = []
+        for cm in matched_members:
+            cm_id = cm["chit_member_id"]
+            uid = cm["user_id"]
+
+            user_info = users.get(uid, {})
+            pending = pending_summary.get(cm_id, {"total_pending_amount": 0, "pending_months": 0})
+            projection = projections.get(uid, {"month_number": "not_lifted", "total_payout": 0})
+
+            final_result.append({
+                "user_id": uid,
+                "chit_member_id": cm_id,
+                "chit_group_id": cm["chit_group_id"],
+                "full_name": user_info.get("full_name", ""),
+                "phone": user_info.get("phone", ""),
+                "month_number": projection["month_number"],
+                "total_payout": projection["total_payout"],
+                "pending_months": pending["pending_months"],
+                "total_pending_amount": pending["total_pending_amount"],
+            })
+
+        return final_result
+
     finally:
         db.close()
 
@@ -412,6 +540,7 @@ def chit_lifted_member(data):
             return {"message": "Monthly projection not found"}
         
         projection.user_id = user_id
+        projection.lifted_date = datetime.now().date()
         db.commit()
         
         return {"message": "Chit lifted member updated successfully"}

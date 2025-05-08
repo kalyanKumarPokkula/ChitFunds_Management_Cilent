@@ -16,7 +16,14 @@ from users import (
     get_members, 
     get_current_month_payment_stats, 
     get_all_member_installments, 
-    get_users
+    get_users,
+    generate_installments,
+    generate_current_month_installments,
+    get_chit_groups_by_user_id,
+    get_unpaid_installments,
+    process_payment,
+    get_payments,
+    get_payment_details
 )
 
 def register_routes(app):
@@ -207,6 +214,29 @@ def register_routes(app):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+    @app.route("/get_chit_groups_by_user_id" , methods=['GET'])
+    def get_chit_groups_user_id():
+        try:
+            data = request.args.get("user_id")
+            print(data)
+            response = get_chit_groups_by_user_id(data)
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/add_current_month_installments" , methods=['GET'])
+    def add_current_month_installments():
+        try:
+            data = request.args.get("chit_group_id")
+            print(data)
+            print(data)
+            response = generate_current_month_installments(data)
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     @app.route('/get_member_installments', methods=['GET'])
     def get_member_installments():
         try:
@@ -227,3 +257,48 @@ def register_routes(app):
             return jsonify({"data": response}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500 
+        
+    @app.route("/get_members_unpaid_installments" , methods=['GET'])
+    def get_members_unpaid_installments():
+        try:
+            data = request.args.get("user_id")
+            print(data)
+            response = get_unpaid_installments(data)
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route("/process_payments" , methods=['POST'])
+    def payment_process():
+        try:
+            data = request.get_json()
+            print(data)
+            response = process_payment(data)
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+
+    @app.route("/get_payments" , methods=['GET'])
+    def fetch_payments():
+        try:
+            response =  get_payments()
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route("/get_payments_details" , methods=['GET'])
+    def get_payments_details():
+        try:
+            data = request.args.get("payment_id")
+            user_name = request.args.get("user_name")
+
+            print(data)
+            response = get_payment_details(data, user_name)
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500

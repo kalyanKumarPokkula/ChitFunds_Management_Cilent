@@ -17,4 +17,4 @@ class ChitMember(Base):
     chit_group = relationship("ChitGroup", back_populates="chit_members")
     user = relationship("User", back_populates="chit_members")
     installments = relationship("Installment", back_populates="chit_member")
-    payments = relationship("Payment", foreign_keys="[Payment.chit_member_id]")
+    payment_installments = relationship("PaymentInstallment", back_populates="chit_member")

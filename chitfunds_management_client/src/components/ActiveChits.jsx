@@ -4,6 +4,8 @@ import MemberPaymentHistoryModal from './MemberPaymentHistoryModal';
 import '../styles/ActiveChits.css';
 
 const ActiveChits = ({ currentMonthPayments }) => {
+
+	
 	const [selectedMonth, setSelectedMonth] = useState('April');
 	const [selectedChit, setSelectedChit] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,8 +75,8 @@ const ActiveChits = ({ currentMonthPayments }) => {
 												chit.status_x === 'unpaid' ? 'unpaid' : 'paid'
 											}`}
 										>
-											{chit.status_x.charAt(0).toUpperCase() +
-												chit.status_x.slice(1)}
+											{chit.status.charAt(0).toUpperCase() +
+												chit.status.slice(1)}
 										</span>
 									</div>
 								</div>

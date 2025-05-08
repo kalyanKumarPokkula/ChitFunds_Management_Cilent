@@ -16,7 +16,7 @@ class Installment(Base):
     installment_id = Column(String(36), primary_key=True)
     chit_member_id = Column(String(36), ForeignKey("chit_members.chit_member_id"), nullable=False)
     month_number = Column(Integer, nullable=False)
-    due_date = Column(String(20), nullable=True)
+    due_date = Column(Date, nullable=False)
     total_amount = Column(Float, nullable=False)
     paid_amount = Column(Float, nullable=False, default=0)
     status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.UNPAID)
@@ -27,4 +27,4 @@ class Installment(Base):
     
     # Relationships
     chit_member = relationship("ChitMember", back_populates="installments")
-    payments = relationship("Payment", foreign_keys="[Payment.installment_id]")
+    payment_installments = relationship("PaymentInstallment", back_populates="installment")

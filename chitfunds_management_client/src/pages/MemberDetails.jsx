@@ -31,7 +31,7 @@ const MemberDetails = () => {
 			}
 
 			const data = await response.json();
-			console.log('Member data fetched:', data);
+			console.log("inside the memeber details");
 
 			// Make sure each chit has the necessary properties for the payment history modal
 			if (data.current_month_payment) {

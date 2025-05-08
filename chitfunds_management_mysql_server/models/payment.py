@@ -11,16 +11,17 @@ class PaymentStatusEnum(enum.Enum):
 
 class PaymentMethodEnum(enum.Enum):
     CASH = "cash"
-    UPI = "upi"
     PHONEPAY = "phonepay"
     GPAY = "gpay"
+    PAYTM = "paytm"
+    CHEQUE = "cheque"
     OTHER = "other"
+
+
 class Payment(Base):
     __tablename__ = "payments"
 
     payment_id = Column(String(36), primary_key=True)
-    chit_member_id = Column(String(36), ForeignKey("chit_members.chit_member_id"), nullable=False)
-    installment_id = Column(String(36), ForeignKey("installments.installment_id"), nullable=False)
 
     payment_amount = Column(Float, nullable=False)
     payment_date = Column(DateTime, default=func.now())
@@ -34,8 +35,7 @@ class Payment(Base):
 
     note = Column(Text, nullable=True)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_at = Column(DateTime, default=func.now())
+    created_by = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # Relationships
-    chit_member = relationship("ChitMember", foreign_keys=[chit_member_id])
-    installment = relationship("Installment", foreign_keys=[installment_id])
+    payment_installments = relationship("PaymentInstallment", back_populates="payment", cascade="all, delete-orphan")

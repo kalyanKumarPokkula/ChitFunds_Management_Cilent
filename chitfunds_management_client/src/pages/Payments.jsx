@@ -85,13 +85,13 @@ const Payments = () => {
 				id: payment.payment_id,
 				date: formatDate(payment.payment_date),
 				rawDate: payment.payment_date, // Store original date for filtering
-				member: payment.full_name,
-				chitScheme: payment.chit_name,
+				member: payment.full_names,
+				chitScheme: payment.chit_names,
 				net_paid_cash: formatCurrency(payment.net_paid_cash),
 				net_paid_online: formatCurrency(payment.net_paid_online),
 				payment_amount: formatCurrency(payment.payment_amount),
 				status: capitalizeFirst(payment.payment_status),
-				userName: payment.full_name, // Use full_name as userName for API call
+				userName: payment.full_names, // Use full_name as userName for API call
 			}));
 
 			setPayments(transformedData);
