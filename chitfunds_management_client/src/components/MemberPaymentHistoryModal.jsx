@@ -110,6 +110,7 @@ const MemberPaymentHistoryModal = ({
 							<tr>
 								<th>MONTH</th>
 								<th>AMOUNT</th>
+								<th>PAID AMOUNT</th>
 								<th>STATUS</th>
 								<th>PAID ON</th>
 							</tr>
@@ -126,15 +127,18 @@ const MemberPaymentHistoryModal = ({
 									<tr key={index}>
 										<td>{formatMonth(item.due_date)}</td>
 										<td>{formatCurrency(item.total_amount)}</td>
+										<td>{formatCurrency(item.paid_amount)}</td>
 										<td>
-											<span
-												className={`status-pill ${item.status?.toLowerCase()}`}
-											>
-												{item.status === 'paid' ? 'Paid' : 'Pending'}
+											<span className={`status-pill ${item.status?.toLowerCase()}`}>
+												{{
+													'PAID': 'Paid',
+													'PARTIAL': 'Partial',
+													'UNPAID': 'Pending'
+												}[item.status] || 'Pending'}
 											</span>
 										</td>
 										<td>
-											{item.status === 'paid' ? formatDate(item.due_date) : '-'}
+											{item.status === 'paid' ? formatDate(item.payment_date) : '-'}
 										</td>
 									</tr>
 								))

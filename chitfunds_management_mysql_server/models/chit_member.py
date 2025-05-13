@@ -9,8 +9,8 @@ class ChitMember(Base):
     chit_member_id = Column(String(36), primary_key=True)
     chit_group_id = Column(String(36), ForeignKey("chit_groups.chit_group_id"), nullable=False)
     user_id = Column(String(36), ForeignKey("users.user_id"), nullable=False)
+    created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_by = Column(DateTime, default=func.now(), onupdate=func.now())
     
     
     # Relationships

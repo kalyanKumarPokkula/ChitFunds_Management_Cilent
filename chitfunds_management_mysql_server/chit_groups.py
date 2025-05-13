@@ -332,6 +332,37 @@ def get_chit_by_id(chit_group_id):
             "current_month": current_month
         }
 
+        # Step 6: Calculate current month installment stats
+        installments = db.execute(text("""
+            SELECT 
+                COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paid_count,
+                COUNT(CASE WHEN status IN ('UNPAID', 'PARTIAL') THEN 1 END) AS unpaid_count,
+                SUM(total_amount) AS total_payable,
+                SUM(paid_amount) AS total_paid
+            FROM installments
+            WHERE chit_member_id IN (
+                SELECT chit_member_id FROM chit_members WHERE chit_group_id = :chit_group_id
+            )
+            AND month_number = :current_month
+        """), {
+            "chit_group_id": chit_group_id,
+            "current_month": current_month
+        }).fetchone()
+
+        # Safely handle NULL sums
+        paid_count = installments.paid_count or 0
+        unpaid_count = installments.unpaid_count or 0
+        total_payable = installments.total_payable or 0
+        total_paid = installments.total_paid or 0
+
+        # Step 7: Add to result
+        result.update({
+            "current_month_paid_count": paid_count,
+            "current_month_unpaid_count": unpaid_count,
+            "current_month_total_payable": total_payable,
+            "current_month_total_paid": total_paid
+        })
+
         return result
     finally:
         db.close()

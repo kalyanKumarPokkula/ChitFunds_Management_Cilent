@@ -26,6 +26,5 @@ class User(Base):
     created_at = Column(DateTime, default=func.now())
     is_verified = Column(Boolean, default=True)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_by = Column(DateTime, default=func.now(), onupdate=func.now())
 
     chit_members = relationship("ChitMember", back_populates="user")

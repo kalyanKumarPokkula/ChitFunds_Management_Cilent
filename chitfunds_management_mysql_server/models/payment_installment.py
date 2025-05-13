@@ -11,6 +11,8 @@ class PaymentInstallment(Base):
     payment_id = Column(String(36), ForeignKey("payments.payment_id"), nullable=False)
     installment_id = Column(String(36), ForeignKey("installments.installment_id"), nullable=False)
     chit_member_id = Column(String(36), ForeignKey("chit_members.chit_member_id"), nullable=False)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
 
     payment = relationship("Payment", back_populates="payment_installments")

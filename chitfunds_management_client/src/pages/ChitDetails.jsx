@@ -469,18 +469,18 @@ const ChitDetails = () => {
 					<div className="chit-summary-card">
 						<h2>Chit Summary</h2>
 						<div className="investment-summary">
-							<h3>Investment Details</h3>
+							<h3>Current Payment Details</h3>
 							<div className="investment-details">
 								<div className="investment-item">
-									<label>Monthly Payment</label>
+									<label>Paid Amount</label>
 									<span className="amount">
-										{formatCurrency(chitDetails.monthly_installment)}
+										{formatCurrency(chitDetails.current_month_total_paid)}
 									</span>
 								</div>
 								<div className="investment-item">
-									<label>Total Investment</label>
+									<label>Due Amount</label>
 									<span className="amount">
-										{formatCurrency(chitDetails.chit_amount)}
+										{formatCurrency(chitDetails.current_month_total_payable)}
 									</span>
 								</div>
 							</div>
@@ -490,18 +490,18 @@ const ChitDetails = () => {
 							<h3>Quick Stats</h3>
 							<div className="stats-list">
 								<div className="stat-item">
-									<span className="stat-label">Completed Months</span>
+									<span className="stat-label">Current Month</span>
 									<span className="stat-value">
-										{calculateCompletedMonths()}/{chitDetails.duration_months}
+										{chitDetails.current_month}/{chitDetails.duration_months}
 									</span>
 								</div>
 								<div className="stat-item">
 									<span className="stat-label">Current Month Paid Count</span>
-									<span className="stat-value">8</span>
+									<span className="stat-value">{chitDetails.current_month_paid_count}</span>
 								</div>
 								<div className="stat-item">
 									<span className="stat-label">Current Month Unpaid Count</span>
-									<span className="stat-value">2</span>
+									<span className="stat-value">{chitDetails.current_month_unpaid_count}</span>
 								</div>
 							</div>
 						</div>

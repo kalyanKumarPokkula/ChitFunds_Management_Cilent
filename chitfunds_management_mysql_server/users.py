@@ -6,7 +6,7 @@ from models.chit_group import ChitGroup
 from models.installment import Installment
 from models.payment import Payment
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import pandas as pd
 from sqlalchemy import text
 
@@ -676,55 +676,96 @@ def get_unpaid_installments(user_id):
 def process_payment(data):
     db = get_db()
     try:
-        installment_ids = [inst["installment_id"] for inst in data["installments"]]
-        print("Installment IDs:", installment_ids)
-
-        unique_chit_member_ids = list({inst["chit_member_id"] for inst in data["installments"]})
-        print("Unique Chit Member IDs:", unique_chit_member_ids)
-
+        # Get installment IDs and total payment amount
+        installments_data = data["installments"]
         total_payment_amount = float(data["total_amount"])
-        print("Total Payment Amount:", total_payment_amount)
-
-        # Fetch installments to update their payment status
-        query = text("""
-            SELECT * FROM installments 
-            WHERE installment_id IN :installment_ids
-            FOR UPDATE
-        """)
-        result = db.execute(query, {"installment_ids": tuple(installment_ids)})
-        installments = result.fetchall()
-        print("Installments fetched:", installments)
-
-        # Process payments for installments
-        for row in installments:
-            due_amount = row.total_amount - (row.paid_amount or 0)
-            installment_id = row.installment_id
-
-            if total_payment_amount >= due_amount:
-                db.execute(text("""
-                    UPDATE installments SET paid_amount = total_amount, status = 'paid'
-                    WHERE installment_id = :installment_id
-                """), {"installment_id": installment_id})
-                total_payment_amount -= due_amount
-            else:
-                db.execute(text("""
-                    UPDATE installments
-                    SET paid_amount = paid_amount + :payment_amount,
-                        status = 'unpaid'
-                    WHERE installment_id = :installment_id
-                """), {
-                    "payment_amount": total_payment_amount,
-                    "installment_id": installment_id
-                })
-                total_payment_amount = 0
-                break
-
-        # Insert into the payments table
-        payment_id = uuid.uuid4().hex[:18]  # Create a unique payment ID
+        remaining_amount = total_payment_amount
+        processed = False
         
-        # Payment method - default to cash if not specified
-        payment_method = data.get("online_payment_method", "cash")
+        # Process each installment in the order provided
+        for installment_item in installments_data:
+            installment_id = installment_item["installment_id"]
+            
+            # Get current installment details
+            query = text("""
+                SELECT installment_id, total_amount, paid_amount, status 
+                FROM installments 
+                WHERE installment_id = :installment_id
+                FOR UPDATE
+            """)
+            row = db.execute(query, {"installment_id": installment_id}).fetchone()
+            
+            if not row:
+                continue  # Skip if installment not found
+                
+            # Calculate due amount
+            current_paid = float(row.paid_amount or 0)
+            total_amount = float(row.total_amount)
+            due_amount = total_amount - current_paid
+            
+            # Skip if already fully paid
+            if due_amount <= 0:
+                continue
+                
+            processed = True
+            
+            # Calculate payment amount for this installment
+            payment_amount = min(remaining_amount, due_amount)
+            new_paid = current_paid + payment_amount
+            # new_status = 'paid' if new_paid >= total_amount else 'unpaid'
 
+            if new_paid >= total_amount:
+                new_status = 'paid'
+            elif new_paid > 0:
+                new_status = 'partial'
+            else:
+                new_status = 'unpaid'
+            
+           # Update installment with payment_date
+            update_query = text("""
+                UPDATE installments 
+                SET paid_amount = :paid_amount, 
+                    status = :status,
+                    payment_date = :payment_date
+                WHERE installment_id = :installment_id
+            """)
+
+            db.execute(update_query, {
+                "paid_amount": new_paid,
+                "status": new_status,
+                "payment_date": date.today(),  # Only the date part, no time
+                "installment_id": installment_id
+            })
+            
+            # Reduce remaining payment amount
+            remaining_amount -= payment_amount
+            
+            # Stop if no more money to allocate
+            if remaining_amount <= 0:
+                break
+                
+        # Check if any valid installments were processed
+        if not processed:
+            return {"error": "No valid installments to process"}
+            
+        # Create payment record
+        payment_id = uuid.uuid4().hex[:18]
+        payment_method = data.get("online_payment_method", "cash")
+        
+        # Handle empty payment method
+        if not payment_method:
+            payment_method = "cash"
+            
+        # Handle missing cash or online amounts
+        cash_amount = data.get("cash_amount", 0)
+        if cash_amount == "" or cash_amount is None:
+            cash_amount = 0
+            
+        online_amount = data.get("online_amount", 0)
+        if online_amount == "" or online_amount is None:
+            online_amount = 0
+            
+        # Insert payment record
         db.execute(text("""
             INSERT INTO payments (
                 payment_id, payment_amount, payment_date, 
@@ -739,33 +780,39 @@ def process_payment(data):
             "payment_id": payment_id,
             "payment_amount": data["total_amount"],
             "payment_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "net_paid_cash": int(data["cash_amount"]),
-            "net_paid_online": int(data["online_amount"]),
+            "net_paid_cash": int(cash_amount),
+            "net_paid_online": int(online_amount),
             "payment_method": payment_method,
             "reference_number": data.get("reference_number", "N/A"),
             "payment_status": "success"
         })
-
-        # Insert corresponding entries into payment_installments
-        for installment in data["installments"]:
-            chit_member_id = installment["chit_member_id"]
-            installment_id = installment["installment_id"]
+        
+        # Link payments to installments
+        for installment in installments_data:
             db.execute(text("""
-                INSERT INTO payment_installments (payment_id, installment_id, chit_member_id)
-                VALUES (:payment_id, :installment_id, :chit_member_id)
+                INSERT INTO payment_installments (
+                    payment_id, installment_id, chit_member_id
+                ) VALUES (
+                    :payment_id, :installment_id, :chit_member_id
+                )
             """), {
                 "payment_id": payment_id,
-                "installment_id": installment_id,
-                "chit_member_id": chit_member_id
+                "installment_id": installment["installment_id"],
+                "chit_member_id": installment["chit_member_id"]
             })
-
-        db.commit()  # Commit all changes
-        return {"message": "Payment processed successfully"}
-
+        
+        # Commit changes
+        db.commit()
+        
+        return {
+            "message": "Payment processed successfully",
+            "payment_id": payment_id
+        }
+        
     except Exception as e:
         db.rollback()
         return {"error": str(e)}
-
+        
     finally:
         db.close()
 

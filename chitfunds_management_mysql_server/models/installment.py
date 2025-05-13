@@ -22,8 +22,8 @@ class Installment(Base):
     status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.UNPAID)
     payment_date = Column(Date, nullable=True)
     note = Column(Text, nullable=True) 
+    created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_by = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
     chit_member = relationship("ChitMember", back_populates="installments")

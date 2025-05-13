@@ -34,8 +34,8 @@ class Payment(Base):
     payment_status = Column(Enum(PaymentStatusEnum), nullable=False, default=PaymentStatusEnum.SUCCESS)
 
     note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_by = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # Relationships
     payment_installments = relationship("PaymentInstallment", back_populates="payment", cascade="all, delete-orphan")

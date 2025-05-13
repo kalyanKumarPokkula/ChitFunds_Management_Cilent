@@ -15,8 +15,8 @@ class ChitGroup(Base):
     status = Column(String(20), nullable=False)  # active, upcoming, completed
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
+    created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_by = Column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
     chit_members = relationship("ChitMember", back_populates="chit_group")

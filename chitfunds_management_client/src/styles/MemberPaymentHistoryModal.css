@@ -87,8 +87,13 @@
 }
 
 .status-pill.pending {
-	background-color: #fff7e6;
-	color: #fa8c16;
+	background-color: red;
+	color: white
+}
+
+.status-pill.partial {
+    background-color: orange;
+    color: white;
 }
 
 .no-data {

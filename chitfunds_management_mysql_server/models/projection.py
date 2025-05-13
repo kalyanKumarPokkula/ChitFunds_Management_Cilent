@@ -14,8 +14,8 @@ class MonthlyProjection(Base):
     total_payout = Column(Float, nullable=False)
     lifted_date = Column(Date, nullable=True)
     note = Column(Text, nullable=True) 
+    created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_by = Column(DateTime, default=func.now(), onupdate=func.now())
     
     
     # Relationships
