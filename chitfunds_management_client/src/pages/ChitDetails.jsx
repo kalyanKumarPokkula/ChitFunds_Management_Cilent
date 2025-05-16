@@ -183,6 +183,19 @@ const ChitDetails = () => {
 		});
 	};
 
+	const formatDateN = (dateString) => {
+		if (!dateString) return '-';
+	  
+		const parsedDate = new Date(Date.parse(dateString));
+		if (isNaN(parsedDate.getTime())) return '-';
+	  
+		return parsedDate.toLocaleDateString('en-IN', {
+		  year: 'numeric',
+		  month: 'short',
+		  day: 'numeric',
+		});
+	  };
+
 	const calculateCompletedMonths = () => {
 		if (!chitDetails || !chitDetails.start_date) return 0;
 
@@ -480,7 +493,7 @@ const ChitDetails = () => {
 								<div className="investment-item">
 									<label>Due Amount</label>
 									<span className="amount">
-										{formatCurrency(chitDetails.current_month_total_payable)}
+										{formatCurrency(chitDetails.current_month_total_payable - chitDetails.current_month_total_paid)}
 									</span>
 								</div>
 							</div>
@@ -578,6 +591,8 @@ const ChitDetails = () => {
 												<th>Monthly Subscription</th>
 												<th>Total Payout</th>
 												<th>Payout User</th>
+												<th>Lifted Date</th>
+												<th>Note</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -613,6 +628,8 @@ const ChitDetails = () => {
 																</button>
 															)}
 														</td>
+														<td>{formatDateN(projection.lifted_date)}</td>
+														<td>{projection.note}</td>
 													</tr>
 												))
 											) : (

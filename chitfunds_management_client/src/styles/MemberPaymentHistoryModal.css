@@ -86,7 +86,7 @@
 	color: #00a854;
 }
 
-.status-pill.pending {
+.status-pill.unpaid {
 	background-color: red;
 	color: white
 }

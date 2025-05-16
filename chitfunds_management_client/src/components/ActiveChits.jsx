@@ -6,7 +6,14 @@ import '../styles/ActiveChits.css';
 const ActiveChits = ({ currentMonthPayments }) => {
 
 	
-	const [selectedMonth, setSelectedMonth] = useState('April');
+	const [selectedMonth, setSelectedMonth] = useState(() => {
+		const monthNames = [
+		  'January', 'February', 'March', 'April', 'May', 'June',
+		  'July', 'August', 'September', 'October', 'November', 'December'
+		];
+		const currentMonthIndex = new Date().getMonth(); // 0-11
+		return monthNames[currentMonthIndex];
+	});
 	const [selectedChit, setSelectedChit] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -70,14 +77,10 @@ const ActiveChits = ({ currentMonthPayments }) => {
 
 									<div className="payment-status">
 										<span className="label">{selectedMonth} Status:</span>
-										<span
-											className={`status ${
-												chit.status_x === 'unpaid' ? 'unpaid' : 'paid'
-											}`}
-										>
-											{chit.status.charAt(0).toUpperCase() +
-												chit.status.slice(1)}
-										</span>
+										<span className={`status-pill ${chit.status.toLowerCase()}`}>
+											{chit.status.toUpperCase()}
+											</span>
+				
 									</div>
 								</div>
 							</div>

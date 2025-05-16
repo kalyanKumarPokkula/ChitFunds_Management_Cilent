@@ -12,7 +12,10 @@ const AddLifterModal = ({
 	monthNumber,
 }) => {
 	const [members, setMembers] = useState([]);
+	const [filteredMembers, setFilteredMembers] = useState([]);
+	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedUserId, setSelectedUserId] = useState(null);
+	const [note, setNote] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState(null);
@@ -22,6 +25,8 @@ const AddLifterModal = ({
 	useEffect(() => {
 		if (isOpen) {
 			setSelectedUserId(null);
+			setNote('');
+			setSearchQuery('');
 			setError(null);
 
 			if (chitId) {
@@ -29,6 +34,19 @@ const AddLifterModal = ({
 			}
 		}
 	}, [isOpen, chitId]);
+
+	// Filter members when search query changes
+	useEffect(() => {
+		if (!searchQuery.trim()) {
+			setFilteredMembers(members);
+			return;
+		}
+
+		const filtered = members.filter((member) =>
+			member.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+		);
+		setFilteredMembers(filtered);
+	}, [searchQuery, members]);
 
 	const fetchMembers = async () => {
 		try {
@@ -54,6 +72,7 @@ const AddLifterModal = ({
 
 			console.log('Available members:', availableMembers);
 			setMembers(availableMembers);
+			setFilteredMembers(availableMembers);
 		} catch (error) {
 			console.error('Error fetching members:', error);
 			setError('Failed to load members. Please try again.');
@@ -64,6 +83,14 @@ const AddLifterModal = ({
 
 	const handleUserSelect = (userId) => {
 		setSelectedUserId(userId);
+	};
+
+	const handleSearchChange = (e) => {
+		setSearchQuery(e.target.value);
+	};
+
+	const clearSearch = () => {
+		setSearchQuery('');
 	};
 
 	const handleSubmit = async () => {
@@ -78,6 +105,7 @@ const AddLifterModal = ({
 			user_id: selectedUserId,
 			month_number: monthNumber,
 			chit_group_id: chitId,
+			note: note
 		};
 
 		try {
@@ -116,7 +144,7 @@ const AddLifterModal = ({
 				onClick={onClose}
 				disabled={isSubmitting}
 			>
-				Cancel
+				<i className="fas fa-times"></i> Cancel
 			</button>
 			<ActionButton
 				label={isSubmitting ? 'Saving...' : 'Add Lifter'}
@@ -132,13 +160,21 @@ const AddLifterModal = ({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			title={`Select Lifter for Month ${monthNumber}`}
+			title={
+				<div className="modal-title-with-icon">
+					<i className="fas fa-trophy text-indigo-500"></i>
+					<span>Select Lifter for Month {monthNumber}</span>
+				</div>
+			}
 			footer={modalFooter}
 			size="medium"
 		>
 			{isLoading ? (
-				<div className="loading-message">
-					<i className="fas fa-spinner fa-spin"></i> Loading members...
+				<div className="loading-container">
+					<div className="loading-spinner">
+						<i className="fas fa-spinner fa-spin"></i>
+					</div>
+					<p>Loading members...</p>
 				</div>
 			) : error ? (
 				<div className="error-message">
@@ -146,43 +182,105 @@ const AddLifterModal = ({
 				</div>
 			) : (
 				<div className="lifter-selection">
-					<p className="selection-info">
-						<i className="fas fa-info-circle"></i> Select a member who lifted
-						the chit for this month.
-					</p>
+					<div className="selection-header">
+						<div className="selection-info">
+							<i className="fas fa-info-circle"></i> 
+							<span>Select a member who lifted the chit for this month.</span>
+						</div>
+						
+						<div className="members-count">
+							<span>{members.length}</span> eligible {members.length === 1 ? 'member' : 'members'}
+						</div>
+					</div>
 
-					<div className="members-list">
-						{members.length === 0 ? (
-							<div className="empty-message">
-								<i className="fas fa-users-slash"></i> No members found
+					{members.length === 0 ? (
+						<div className="empty-members">
+							<div className="empty-icon">
+								<i className="fas fa-users-slash"></i>
 							</div>
-						) : (
-							members.map((member) => (
-								<div
-									key={member.user_id}
-									className={`member-item ${
-										selectedUserId === member.user_id ? 'selected' : ''
-									}`}
-									onClick={() => handleUserSelect(member.user_id)}
-								>
-									<div className="radio-button">
-										{selectedUserId === member.user_id && (
-											<i className="fas fa-check"></i>
-										)}
-									</div>
-									<div className="member-info">
-										<div className="member-name">{member.full_name}</div>
-										<div className="member-details">
-											<span>
-												<i className="fas fa-envelope"></i> {member.email}
-											</span>
-											<span>
-												<i className="fas fa-phone"></i> {member.phone}
-											</span>
-										</div>
-									</div>
+							<p>No eligible members found</p>
+							<span>All members have already lifted in this chit</span>
+						</div>
+					) : (
+						<>
+							<div className="search-container">
+								<div className="search-input-wrapper">
+									<i className="fas fa-search search-icon"></i>
+									<input
+										type="text"
+										className="search-input"
+										placeholder="Search members by name..."
+										value={searchQuery}
+										onChange={handleSearchChange}
+									/>
+									{searchQuery && (
+										<button className="clear-search" onClick={clearSearch}>
+											<i className="fas fa-times-circle"></i>
+										</button>
+									)}
 								</div>
-							))
+							</div>
+
+							<div className="members-list">
+								{filteredMembers.length === 0 ? (
+									<div className="no-search-results">
+										<i className="fas fa-search"></i>
+										<p>No members found matching "{searchQuery}"</p>
+										<button onClick={clearSearch} className="reset-search-btn">
+											Clear search
+										</button>
+									</div>
+								) : (
+									filteredMembers.map((member) => (
+										<div
+											key={member.user_id}
+											className={`member-item ${
+												selectedUserId === member.user_id ? 'selected' : ''
+											}`}
+											onClick={() => handleUserSelect(member.user_id)}
+										>
+											<div className="member-avatar">
+												{member.full_name.charAt(0).toUpperCase()}
+											</div>
+											<div className="radio-button">
+												{selectedUserId === member.user_id && (
+													<i className="fas fa-check"></i>
+												)}
+											</div>
+											<div className="member-info">
+												<div className="member-name">{member.full_name}</div>
+												<div className="member-details">
+													<span>
+														<i className="fas fa-envelope"></i> {member.email}
+													</span>
+													<span>
+														<i className="fas fa-phone"></i> {member.phone}
+													</span>
+												</div>
+											</div>
+										</div>
+									))
+								)}
+							</div>
+						</>
+					)}
+
+					<div className="note-input-container">
+						<label htmlFor="lifter-note" className="note-label">
+							<i className="fas fa-sticky-note"></i> Add Transaction Note
+						</label>
+						<textarea
+							id="lifter-note"
+							className="note-textarea"
+							placeholder="Enter details about this transaction (e.g., payment method, special terms, etc.)"
+							value={note}
+							onChange={(e) => setNote(e.target.value)}
+							rows={3}
+						/>
+						{note && (
+							<div className="note-character-count">
+								{note.length} character{note.length !== 1 ? 's' : ''}
+							</div>
 						)}
 					</div>
 				</div>

@@ -382,7 +382,7 @@ def monthly_projections(chit_group_id):
     db = get_db()
     try:
         query = text("""
-            SELECT mp.monthly_projections_id, mp.month_number, mp.monthly_subcription, 
+            SELECT mp.monthly_projections_id, mp.month_number, mp.monthly_subcription, mp.lifted_date , mp.note,
                 mp.total_payout, u.full_name
             FROM monthly_projections mp
             LEFT JOIN users u ON mp.user_id = u.user_id
@@ -559,6 +559,7 @@ def chit_lifted_member(data):
     try:
         chit_group_id = data.get("chit_group_id")
         month_number = int(data.get("month_number", 0))
+        note = data.get("note")
         user_id = data.get("user_id")
         
         # Update the monthly projection for this month and chit
@@ -572,6 +573,7 @@ def chit_lifted_member(data):
         
         projection.user_id = user_id
         projection.lifted_date = datetime.now().date()
+        projection.note = note
         db.commit()
         
         return {"message": "Chit lifted member updated successfully"}

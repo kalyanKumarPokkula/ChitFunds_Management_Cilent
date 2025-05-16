@@ -131,14 +131,14 @@ const MemberPaymentHistoryModal = ({
 										<td>
 											<span className={`status-pill ${item.status?.toLowerCase()}`}>
 												{{
-													'PAID': 'Paid',
-													'PARTIAL': 'Partial',
-													'UNPAID': 'Pending'
-												}[item.status] || 'Pending'}
+													'PAID': 'PAID',
+													'PARTIAL': 'PARTIAL',
+													'UNPAID': 'UNPAID'
+												}[item.status] || 'UNPAID'}
 											</span>
 										</td>
 										<td>
-											{item.status === 'paid' ? formatDate(item.payment_date) : '-'}
+											{item.payment_date ? formatDate(item.payment_date) : '-'}
 										</td>
 									</tr>
 								))

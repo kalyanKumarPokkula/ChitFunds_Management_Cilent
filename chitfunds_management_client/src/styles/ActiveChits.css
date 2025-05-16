@@ -110,24 +110,30 @@
 	color: #111827;
 }
 
-.status {
+.status-pill {
 	font-size: 0.75rem;
 	font-weight: 500;
 	padding: 2px 8px;
 	border-radius: 9999px;
 	display: inline-block;
+	text-transform: capitalize;
 }
-
-.status.unpaid {
-	background-color: #fee2e2;
-	color: #dc2626;
+  
+.status-pill.paid {
+	background-color: #00a854;
+	color: #e6f7ed;
 }
-
-.status.paid {
-	background-color: #dcfce7;
-	color: #166534;
+  
+.status-pill.unpaid {
+	background-color: red;
+	color: white;
 }
-
+  
+.status-pill.partial {
+	background-color: orange;
+	color: white;
+}
+  
 .payment-actions {
 	margin-left: 16px;
 }
