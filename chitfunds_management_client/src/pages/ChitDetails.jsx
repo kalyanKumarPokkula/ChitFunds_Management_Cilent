@@ -12,6 +12,7 @@ import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/ChitDetails.css';
 import { differenceInMonths, isFuture } from 'date-fns';
 import { useParams } from 'react-router-dom';
+import { apiRequest } from '../utils/api';
 
 const ChitDetails = () => {
 	const { chitId } = useParams();
@@ -52,9 +53,7 @@ const ChitDetails = () => {
 			setError(null);
 			console.log(chitId, 'inside the chit details');
 
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_chit?chit_group_id=${chitId}`
-			);
+			const response = await apiRequest(`/get_chit?chit_group_id=${chitId}`);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -74,9 +73,7 @@ const ChitDetails = () => {
 		try {
 			setIsMembersLoading(true);
 			setMembersError(null);
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_chit_members?chit_group_id=${chitId}`
-			);
+			const response = await apiRequest(`/get_chit_members?chit_group_id=${chitId}`);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -99,9 +96,7 @@ const ChitDetails = () => {
 		try {
 			setIsPaymentsLoading(true);
 			setPaymentsError(null);
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_chit_group_payments?chit_group_id=${chitId}`
-			);
+			const response = await apiRequest(`/get_chit_group_payments?chit_group_id=${chitId}`);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -218,12 +213,9 @@ const ChitDetails = () => {
 
 	const handleDeleteConfirm = async () => {
 		try {
-			const response = await fetch(
-				`http://127.0.0.1:5001/delete-chit?chit_group_id=${chitId}`,
-				{
-					method: 'DELETE',
-				}
-			);
+			const response = await apiRequest(`/delete-chit?chit_group_id=${chitId}`, {
+				method: 'DELETE'
+			});
 
 			if (!response.ok) {
 				throw new Error('Failed to delete chit');
@@ -315,9 +307,7 @@ const ChitDetails = () => {
 	// Add new function to handle Generate Installments
 	const handleGenerateInstallments = async () => {
 		try {
-			const response = await fetch(
-				`http://127.0.0.1:5001/add_current_month_installments?chit_group_id=${chitId}`
-			);
+			const response = await apiRequest(`/add_current_month_installments?chit_group_id=${chitId}`);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -325,10 +315,7 @@ const ChitDetails = () => {
 
 			const result = await response.json();
 
-			// Show the response message to the user
-			showSuccess(
-				result.message || 'Current month installments generated successfully!'
-			);
+			showSuccess(result.message || 'Current month installments generated successfully!');
 		} catch (error) {
 			console.error('Error generating installments:', error);
 			showError('Failed to generate installments. Please try again.');

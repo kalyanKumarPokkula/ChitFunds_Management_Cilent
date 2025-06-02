@@ -4,6 +4,7 @@ import ActionButton from './ActionButton';
 import Modal from './Modal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
+import { apiRequest } from '../utils/api';
 
 const memberSchema = z.object({
 	full_name: z
@@ -35,6 +36,9 @@ const memberSchema = z.object({
 		.string()
 		.min(6, { message: 'Pincode must be at least 6 digits' })
 		.regex(/^\d+$/, { message: 'Pincode must contain only digits' }),
+	role: z.enum(['user', 'admin'], { 
+		message: 'Role must be either "user" or "admin"' 
+	}),
 });
 
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
@@ -48,6 +52,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 		city: '',
 		state: '',
 		pincode: '',
+		role: 'user',
 	});
 
 	const [errors, setErrors] = useState({});
@@ -89,11 +94,8 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 		try {
 			console.log(formData);
 
-			const response = await fetch('http://127.0.0.1:5001/create_new_user', {
+			const response = await apiRequest('/create_new_user', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
 				body: JSON.stringify(formData),
 			});
 
@@ -114,6 +116,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 					city: '',
 					state: '',
 					pincode: '',
+					role: 'user',
 				});
 
 				// Close modal after delay to show success message
@@ -214,6 +217,26 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 						/>
 						{errors.phone && (
 							<span className="error-message">{errors.phone}</span>
+						)}
+					</div>
+
+					<div className="form-group">
+						<label htmlFor="role">
+							Role <span className="required">*</span>
+						</label>
+						<select
+							id="role"
+							name="role"
+							value={formData.role}
+							onChange={handleChange}
+							required
+							className="form-select"
+						>
+							<option value="user">User</option>
+							<option value="admin">Admin</option>
+						</select>
+						{errors.role && (
+							<span className="error-message">{errors.role}</span>
 						)}
 					</div>
 

@@ -3,6 +3,7 @@ import Modal from './Modal';
 import LoadingStatus from './ui/LoadingStatus';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/RecordPaymentModal.css';
+import { apiRequest } from '../utils/api';
 
 const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 	const [step, setStep] = useState(1);
@@ -67,7 +68,7 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		setLoading(true);
 		setError(null);
 		try {
-			const response = await fetch('http://127.0.0.1:5001/users');
+			const response = await apiRequest('/users');
 			if (!response.ok) {
 				throw new Error('Failed to fetch users');
 			}
@@ -86,9 +87,7 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 		setLoading(true);
 		setError(null);
 		try {
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_members_unpaid_installments?user_id=${userId}`
-			);
+			const response = await apiRequest(`/get_members_unpaid_installments?user_id=${userId}`);
 			if (!response.ok) {
 				throw new Error('Failed to fetch installments');
 			}
@@ -141,11 +140,8 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 			};
 			console.log(payload);
 
-			const response = await fetch('http://127.0.0.1:5001/process_payments', {
+			const response = await apiRequest('/process_payments', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
 				body: JSON.stringify(payload),
 			});
 
@@ -155,9 +151,7 @@ const RecordPaymentModal = ({ isOpen, onClose, onPaymentAdded }) => {
 
 			// Show success notification
 			showSuccess(
-				`Payment of ₹${parseInt(
-					totalPaymentAmount
-				).toLocaleString()} recorded successfully for ${selectedUser.full_name}`
+				`Payment of ₹${parseInt(totalPaymentAmount).toLocaleString()} recorded successfully for ${selectedUser.full_name}`
 			);
 
 			// Refresh payments data if callback is provided

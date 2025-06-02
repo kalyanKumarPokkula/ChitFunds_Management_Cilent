@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { apiRequest } from '../utils/api';
 import Navbar from '../components/Navbar';
 import UserDetails from '../components/UserDetails';
 import ChitFundSummary from '../components/ChitFundSummary';
@@ -22,9 +23,7 @@ const MemberDetails = () => {
 			setIsLoading(true);
 			setError(null);
 
-			const response = await fetch(
-				`http://127.0.0.1:5001/user_details?user_id=${userId}`
-			);
+			const response = await apiRequest(`/user_details?user_id=${userId}`);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -32,6 +31,8 @@ const MemberDetails = () => {
 
 			const data = await response.json();
 			console.log("inside the memeber details");
+			console.log(data);
+			
 
 			// Make sure each chit has the necessary properties for the payment history modal
 			if (data.current_month_payment) {
@@ -81,6 +82,7 @@ const MemberDetails = () => {
 								<ChitFundSummary
 									chitCount={memberData.chit_count}
 									current_total_amount={memberData.current_total_amount}
+									total_overdue_amount={memberData.total_overdue_amount}
 									paymentOverdues={memberData.payment_overdues}
 								/>
 							</div>

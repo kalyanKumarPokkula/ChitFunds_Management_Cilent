@@ -3,6 +3,7 @@ import ActionButton from './ActionButton';
 import Modal from './Modal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
+import { apiRequest } from '../utils/api';
 
 const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 	const [users, setUsers] = useState([]);
@@ -27,7 +28,7 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 		try {
 			setIsLoading(true);
 			setError(null);
-			const response = await fetch('http://127.0.0.1:5001/users');
+			const response = await apiRequest('/users');
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -96,11 +97,8 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 
 			console.log(payload);
 
-			const response = await fetch('http://127.0.0.1:5001/add_chit_members', {
+			const response = await apiRequest('/add_chit_members', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
 				body: JSON.stringify(payload),
 			});
 

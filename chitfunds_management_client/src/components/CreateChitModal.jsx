@@ -4,6 +4,7 @@ import ActionButton from './ActionButton';
 import Modal from './Modal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
+import { apiRequest } from '../utils/api';
 
 const chitSchema = z.object({
 	chit_name: z
@@ -145,11 +146,8 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 		};
 
 		try {
-			const response = await fetch('http://127.0.0.1:5001/chit-groups', {
+			const response = await apiRequest('/chit-groups', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
 				body: JSON.stringify(submissionData),
 			});
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../utils/api';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import AddMemberModal from '../components/AddMemberModal';
@@ -23,7 +24,7 @@ const Members = () => {
 			setIsLoading(true);
 			setError(null);
 
-			const response = await fetch('http://127.0.0.1:5001/get_users');
+			const response = await apiRequest('/get_users');
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);

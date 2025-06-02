@@ -4,6 +4,7 @@ import ActionButton from './ActionButton';
 import Modal from './Modal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
+import { apiRequest } from '../utils/api';
 
 const projectionValidator = z.object({
 	month_number: z.number().int().positive(),
@@ -120,17 +121,10 @@ const AddProjectionsModal = ({
 		};
 
 		try {
-			// Use the same endpoint for both add and edit
-			const response = await fetch(
-				'http://127.0.0.1:5001/add_monthly_chit_projections',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(payload),
-				}
-			);
+			const response = await apiRequest('/add_monthly_chit_projections', {
+				method: 'POST',
+				body: JSON.stringify(payload),
+			});
 
 			const result = await response.json();
 

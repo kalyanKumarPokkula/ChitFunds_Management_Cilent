@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiRequest } from '../utils/api';
 import '../styles/PaymentDetailsModal.css';
 
 const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
@@ -29,8 +30,8 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 			);
 
 			// First attempt with original params
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_payments_details?payment_id=${paymentId}&user_name=${userName}`
+			const response = await apiRequest(
+				`/get_payments_details?payment_id=${paymentId}&user_name=${userName}`
 			);
 
 			if (!response.ok) {
@@ -63,15 +64,15 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 			// Try alternative parameter names based on attempt count
 			if (attemptCount === 1) {
 				// Try with different parameter names
-				url = `http://127.0.0.1:5001/get_payment_details?payment_id=${paymentId}&user_name=${userName}`;
+				url = `/get_payment_details?payment_id=${paymentId}&user_name=${userName}`;
 				console.log('Trying alternative endpoint (no "s" at the end):', url);
 			} else {
 				// Try different parameter structure
-				url = `http://127.0.0.1:5001/get_payments_details?id=${paymentId}&username=${userName}`;
+				url = `/get_payments_details?id=${paymentId}&username=${userName}`;
 				console.log('Trying alternative parameter names:', url);
 			}
 
-			const response = await fetch(url);
+			const response = await apiRequest(url);
 
 			if (!response.ok) {
 				const errorText = await response.text();
@@ -464,7 +465,8 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 											<tr>
 												<th>Chit Scheme</th>
 												<th>Month</th>
-												<th>Amount</th>
+												<th>Total Amount</th>
+												<th>Paid Amount</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -475,6 +477,7 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 														<tr key={index}>
 															<td>{installment.chit_name}</td>
 															<td>Month {installment.month_number}</td>
+															<td>{formatCurrency(installment.total_amount)}</td>
 															<td>{formatCurrency(installment.paid_amount)}</td>
 														</tr>
 													)
@@ -489,7 +492,7 @@ const PaymentDetailsModal = ({ isOpen, onClose, paymentId, userName }) => {
 										</tbody>
 										<tfoot>
 											<tr>
-												<td colSpan="2" className="total-label">
+												<td colSpan="3" className="total-label">
 													Total:
 												</td>
 												<td className="total-amount">

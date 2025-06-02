@@ -16,7 +16,7 @@
 
 .summary-stats {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 	gap: 16px;
 	margin-bottom: 24px;
 }
@@ -38,6 +38,12 @@
 .stat-value {
 	font-size: 1.25rem;
 	color: #111827;
+	font-weight: 700;
+}
+
+.stat-value-red {
+	font-size: 1.25rem;
+	color: #dc2626;
 	font-weight: 700;
 }
 

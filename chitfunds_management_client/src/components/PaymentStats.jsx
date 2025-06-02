@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiRequest } from '../utils/api';
 import '../styles/PaymentStats.css';
 import LoadingStatus from './ui/LoadingStatus';
 
@@ -20,9 +21,7 @@ const PaymentStats = () => {
 			setIsLoading(true);
 			setError(null);
 
-			const response = await fetch(
-				'http://127.0.0.1:5001/get_all_chit_groups_current_month_payment_stats'
-			);
+			const response = await apiRequest('/get_all_chit_groups_current_month_payment_stats');
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);

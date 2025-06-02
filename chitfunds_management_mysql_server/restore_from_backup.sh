@@ -1,30 +1,25 @@
 #!/bin/bash
 
-# Variables
-DATABASE_NAME="chitfunds"
-BACKUP_FILE_NAME=$(aws s3api list-objects-v2 --bucket tulsi-akka-chits-backup-059 --prefix 'backups/' --query 'Contents | sort_by(@, &LastModified)[-1].Key' --output text)
-MYSQL_USER="root"
-MYSQL_PASSWORD="chitfunds_password"
-S3_BUCKET="tulsi-akka-chits-backup-059"
-S3_PATH="backups"
-MYSQL_CONTAINER="chitfunds_mysql"
+# Load .env if exists
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+else
+  echo "❌ .env file not found!"
+  exit 1
+fi
 
-# # Check if file exists
-# if [ ! -f "$BACKUP_FILE_NAME" ]; then
-#   echo "❌ Backup file $BACKUP_FILE_NAME not found."
-#   exit 1
-# fi
+# Run Python script to download latest backup and capture filename
+FILE_NAME=$(python3 download_latest_backup.py)
 
-# Extract just the file name (remove the prefix path if needed)
-FILE_NAME=$(basename "$BACKUP_FILE_NAME")
+if [ ! -f "$FILE_NAME" ]; then
+  echo "❌ Failed to download: $FILE_NAME not found."
+  exit 1
+fi
 
-# Download and save with the file name
-aws s3 cp "s3://$S3_BUCKET/$BACKUP_FILE_NAME" "$FILE_NAME"
+echo "📦 Downloaded file: $FILE_NAME"
 
-# Optional: Show the saved file name
-echo "Downloaded file saved as: $FILE_NAME"
-
-# Restore using streaming (no copy needed)
-gunzip -c $FILE_NAME | docker exec -i $MYSQL_CONTAINER sh -c "mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $DATABASE_NAME" 
+# Restore using streaming
+gunzip -c "$FILE_NAME" | docker exec -i "$MYSQL_CONTAINER" sh -c "mysql -u$DB_USER -p$DB_PASSWORD $DB_NAME"
 
 echo "✅ Restore completed."
+

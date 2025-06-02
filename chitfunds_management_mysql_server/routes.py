@@ -25,6 +25,7 @@ from users import (
     get_payments,
     get_payment_details
 )
+from auth import token_required
 
 def register_routes(app):
     """Register all application routes to the Flask app instance"""
@@ -34,11 +35,13 @@ def register_routes(app):
         return jsonify({"messages": "Welcome to Chit Funds Management"})
 
     @app.route('/chit-groups', methods=['GET'])
+    @token_required
     def get_chit_groups():
         data = chit_groups()
         return jsonify({"message": "Received data", "data": data})
 
     @app.route("/users", methods=['GET'])
+    @token_required
     def users():
         try:
             data = get_users()
@@ -47,6 +50,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/delete-chit", methods=["DELETE"])
+    @token_required
     def delete_chit():
         try: 
             chit_group_id = request.args.get("chit_group_id")
@@ -60,6 +64,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/chit-lifted-member", methods=["PATCH"])
+    @token_required
     def chit_lifted():
         try:
             data = request.get_json()
@@ -74,6 +79,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/update-chit-group", methods=["PATCH"])
+    @token_required
     def update_chit():
         try: 
             data = request.get_json()
@@ -88,6 +94,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/add_monthly_chit_projections", methods=["POST"])
+    @token_required
     def monthly_chit_projections():
         try: 
             data = request.get_json()
@@ -102,6 +109,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/chit-groups', methods=['POST'])
+    @token_required
     def add_new_chit():
         try:
             data = request.get_json()
@@ -113,9 +121,14 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/get_chit', methods=['GET'])
+    @token_required
     def get_chit():
         try:
+            print("inside the get chit")
             chit_group_id = request.args.get('chit_group_id')
+            print(request.headers)
+            for key, value in request.headers.items():
+                print(f"{key}: {value}")
 
             if not chit_group_id:
                 return jsonify({"error": "Missing chit_group_id"}), 400
@@ -127,6 +140,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/get_chit_members', methods=['GET'])
+    @token_required
     def get_chit_members():
         try:
             chit_group_id = request.args.get('chit_group_id')
@@ -141,6 +155,7 @@ def register_routes(app):
              return jsonify({"error": str(e)}), 500
 
     @app.route("/add_chit_members", methods=["POST"])
+    @token_required
     def add_chit_members():
         try:
             data = request.get_json()
@@ -155,6 +170,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
         
     @app.route("/add_new_user", methods=["POST"])
+    @token_required
     def add_user():
         try:
             data = request.get_json()
@@ -169,6 +185,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/create_new_user", methods=['POST'])
+    @token_required
     def add_new_users():
         try:
             data = request.get_json()
@@ -179,6 +196,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/user_details", methods=['GET'])
+    @token_required
     def user_details():
         try:
             data = request.args.get("user_id")
@@ -189,6 +207,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/get_users', methods=['GET'])
+    @token_required
     def get_all_users():
         try:   
             response = get_members()
@@ -197,6 +216,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/get_all_chit_groups_current_month_payment_stats', methods=['GET'])
+    @token_required
     def get_all_chit_groups_current_month_stats():
         try:   
             response = get_current_month_payment_stats()
@@ -205,6 +225,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/get_chit_group_member_installments", methods=['GET'])
+    @token_required
     def get_chit_group_member_installment():
         try:
             data = request.args.get("chit_member_id")
@@ -215,6 +236,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/get_chit_groups_by_user_id" , methods=['GET'])
+    @token_required
     def get_chit_groups_user_id():
         try:
             data = request.args.get("user_id")
@@ -226,6 +248,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/add_current_month_installments" , methods=['GET'])
+    @token_required
     def add_current_month_installments():
         try:
             data = request.args.get("chit_group_id")
@@ -238,6 +261,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/get_member_installments', methods=['GET'])
+    @token_required
     def get_member_installments():
         try:
             member_id = request.args.get('member_id')
@@ -251,25 +275,33 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/get_payment_stats', methods=['GET'])
+    @token_required
     def get_payment_stats():
         try:
-            response = get_current_month_payment_stats()
-            return jsonify({"data": response}), 200
+            chit_group_id = request.args.get('chit_group_id')
+            
+            if not chit_group_id:
+                return jsonify({"error": "Missing chit_group_id"}), 400
+                
+            result = get_current_month_payment_stats([chit_group_id])
+            return jsonify({"data": result}), 200
         except Exception as e:
-            return jsonify({"error": str(e)}), 500 
-        
+            return jsonify({"error": str(e)}), 500
+
     @app.route("/get_members_unpaid_installments" , methods=['GET'])
+    @token_required
     def get_members_unpaid_installments():
         try:
-            data = request.args.get("user_id")
-            print(data)
-            response = get_unpaid_installments(data)
+            user_id = request.args.get("user_id")
+            print(user_id)
+            response = get_unpaid_installments(user_id)
 
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-        
+
     @app.route("/process_payments" , methods=['POST'])
+    @token_required
     def payment_process():
         try:
             data = request.get_json()
@@ -279,25 +311,24 @@ def register_routes(app):
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-        
 
     @app.route("/get_payments" , methods=['GET'])
+    @token_required
     def fetch_payments():
         try:
-            response =  get_payments()
+            response = get_payments()
 
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-        
+
     @app.route("/get_payments_details" , methods=['GET'])
+    @token_required
     def get_payments_details():
         try:
-            data = request.args.get("payment_id")
+            payment_id = request.args.get("payment_id")
             user_name = request.args.get("user_name")
-
-            print(data)
-            response = get_payment_details(data, user_name)
+            response = get_payment_details(payment_id, user_name)
 
             return jsonify(response), 200
         except Exception as e:

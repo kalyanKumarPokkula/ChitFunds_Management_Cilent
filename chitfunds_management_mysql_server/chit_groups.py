@@ -4,6 +4,7 @@ from models.chit_member import ChitMember
 from models.user import User
 from models.projection import MonthlyProjection
 from models.installment import Installment
+from models.payment_installment import PaymentInstallment
 import pandas as pd
 from flask import jsonify
 import uuid
@@ -228,9 +229,27 @@ def update_chit_group(data):
         if "status" in data:
             chit_group.status = str(data.get("status"))
         if "start_date" in data:
-            chit_group.start_date = str(data.get("start_date"))
+            # Convert the date string to proper MySQL format
+            start_date = data.get("start_date")
+            if isinstance(start_date, str):
+                try:
+                    # Try parsing the date string
+                    parsed_date = datetime.strptime(start_date, "%a, %d %b %Y %H:%M:%S %Z")
+                    chit_group.start_date = parsed_date.strftime("%Y-%m-%d")
+                except ValueError:
+                    # If the above format fails, try direct assignment (assuming it's already in YYYY-MM-DD format)
+                    chit_group.start_date = start_date
         if "end_date" in data:
-            chit_group.end_date = str(data.get("end_date"))
+            # Convert the date string to proper MySQL format
+            end_date = data.get("end_date")
+            if isinstance(end_date, str):
+                try:
+                    # Try parsing the date string
+                    parsed_date = datetime.strptime(end_date, "%a, %d %b %Y %H:%M:%S %Z")
+                    chit_group.end_date = parsed_date.strftime("%Y-%m-%d")
+                except ValueError:
+                    # If the above format fails, try direct assignment (assuming it's already in YYYY-MM-DD format)
+                    chit_group.end_date = end_date
         
         db.commit()
         
@@ -429,8 +448,17 @@ def delete_chit_group_by_id(chit_group_id):
         chit_members = db.query(ChitMember).filter(ChitMember.chit_group_id == chit_group_id).all()
         
         for member in chit_members:
-            # Delete installments for this member
+            # Get all installments for this member
+            installments = db.query(Installment).filter(Installment.chit_member_id == member.chit_member_id).all()
+            
+            # Delete payment installments first
+            for installment in installments:
+                db.query(PaymentInstallment).filter(PaymentInstallment.installment_id == installment.installment_id).delete()
+                db.flush()  # Ensure the payment installments are deleted before deleting the installment
+            
+            # Now delete the installments
             db.query(Installment).filter(Installment.chit_member_id == member.chit_member_id).delete()
+            db.flush()  # Ensure the installments are deleted before moving to the next member
         
         # Delete chit members
         db.query(ChitMember).filter(ChitMember.chit_group_id == chit_group_id).delete()

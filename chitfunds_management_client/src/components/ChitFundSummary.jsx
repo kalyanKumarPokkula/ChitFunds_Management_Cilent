@@ -5,6 +5,7 @@ const ChitFundSummary = ({
 	chitCount,
 	paymentOverdues,
 	current_total_amount,
+	total_overdue_amount,
 }) => {
 	// Calculate total active chits count
 	const totalChits = chitCount || 0;
@@ -50,6 +51,12 @@ const ChitFundSummary = ({
 						{formatCurrency(current_total_amount)}
 					</span>
 				</div>
+				<div className="stat-card">
+					<span className="stat-label">Total Overdue Amount</span>
+					<span className="stat-value-red">
+						{formatCurrency(total_overdue_amount)}
+					</span>
+				</div>
 			</div>
 
 			<div className="dues-section">
@@ -61,7 +68,6 @@ const ChitFundSummary = ({
 							<th>Chit Name</th>
 							<th>Total Due Amount</th>
 							<th>Due Months</th>
-							<th>Last Paid Date</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -73,7 +79,7 @@ const ChitFundSummary = ({
 										{formatCurrency(overdue.total_overdue_amount)}
 									</td>
 									<td>{overdue.overdue_months}</td>
-									<td>{/* Last Paid Date - Not available in the data */}</td>
+									{/* <td>Last Paid Date - Not available in the data</td> */}
 								</tr>
 							))
 						) : (

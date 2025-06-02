@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../utils/api';
 import Navbar from '../components/Navbar';
 import ActionButton from '../components/ActionButton';
 import ChitCard from '../components/ChitCard';
@@ -25,7 +26,7 @@ const Chits = () => {
 			setIsLoading(true);
 			setError(null);
 
-			const response = await fetch('http://127.0.0.1:5001/chit-groups');
+			const response = await apiRequest('/chit-groups');
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);

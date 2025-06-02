@@ -3,6 +3,7 @@ import ActionButton from './ActionButton';
 import Modal from './Modal';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/Modal.css';
+import { apiRequest } from '../utils/api';
 
 const AddLifterModal = ({
 	isOpen,
@@ -54,9 +55,7 @@ const AddLifterModal = ({
 			setError(null);
 
 			console.log(`Fetching members for chit ${chitId}`);
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_chit_members?chit_group_id=${chitId}`
-			);
+			const response = await apiRequest(`/get_chit_members?chit_group_id=${chitId}`);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! Status: ${response.status}`);
@@ -109,11 +108,8 @@ const AddLifterModal = ({
 		};
 
 		try {
-			const response = await fetch('http://127.0.0.1:5001/chit-lifted-member', {
+			const response = await apiRequest('/chit-lifted-member', {
 				method: 'PATCH',
-				headers: {
-					'Content-Type': 'application/json',
-				},
 				body: JSON.stringify(payload),
 			});
 
@@ -187,13 +183,13 @@ const AddLifterModal = ({
 							<i className="fas fa-info-circle"></i> 
 							<span>Select a member who lifted the chit for this month.</span>
 						</div>
-						
+
 						<div className="members-count">
 							<span>{members.length}</span> eligible {members.length === 1 ? 'member' : 'members'}
 						</div>
 					</div>
 
-					{members.length === 0 ? (
+						{members.length === 0 ? (
 						<div className="empty-members">
 							<div className="empty-icon">
 								<i className="fas fa-users-slash"></i>
@@ -229,37 +225,37 @@ const AddLifterModal = ({
 										<button onClick={clearSearch} className="reset-search-btn">
 											Clear search
 										</button>
-									</div>
-								) : (
+							</div>
+						) : (
 									filteredMembers.map((member) => (
-										<div
-											key={member.user_id}
-											className={`member-item ${
-												selectedUserId === member.user_id ? 'selected' : ''
-											}`}
-											onClick={() => handleUserSelect(member.user_id)}
-										>
+								<div
+									key={member.user_id}
+									className={`member-item ${
+										selectedUserId === member.user_id ? 'selected' : ''
+									}`}
+									onClick={() => handleUserSelect(member.user_id)}
+								>
 											<div className="member-avatar">
 												{member.full_name.charAt(0).toUpperCase()}
 											</div>
-											<div className="radio-button">
-												{selectedUserId === member.user_id && (
-													<i className="fas fa-check"></i>
-												)}
-											</div>
-											<div className="member-info">
-												<div className="member-name">{member.full_name}</div>
-												<div className="member-details">
-													<span>
-														<i className="fas fa-envelope"></i> {member.email}
-													</span>
-													<span>
-														<i className="fas fa-phone"></i> {member.phone}
-													</span>
-												</div>
-											</div>
+									<div className="radio-button">
+										{selectedUserId === member.user_id && (
+											<i className="fas fa-check"></i>
+										)}
+									</div>
+									<div className="member-info">
+										<div className="member-name">{member.full_name}</div>
+										<div className="member-details">
+											<span>
+												<i className="fas fa-envelope"></i> {member.email}
+											</span>
+											<span>
+												<i className="fas fa-phone"></i> {member.phone}
+											</span>
 										</div>
-									))
+									</div>
+								</div>
+							))
 								)}
 							</div>
 						</>

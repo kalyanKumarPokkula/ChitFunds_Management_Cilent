@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import LoadingStatus from './ui/LoadingStatus';
 import '../styles/MemberPaymentHistoryModal.css';
+import { apiRequest } from '../utils/api';
 
 const MemberPaymentHistoryModal = ({
 	isOpen,
@@ -36,8 +37,8 @@ const MemberPaymentHistoryModal = ({
 				throw new Error('Missing member ID required for fetching installments');
 			}
 
-			const response = await fetch(
-				`http://127.0.0.1:5001/get_chit_group_member_installments?chit_member_id=${memberId}`
+			const response = await apiRequest(
+				`/get_chit_group_member_installments?chit_member_id=${memberId}`
 			);
 
 			if (!response.ok) {
@@ -97,7 +98,7 @@ const MemberPaymentHistoryModal = ({
 			title={`${memberData?.full_name || ''} ${
 				chitName || ''
 			} - Payment History`}
-			size="small"
+			size="medium"
 		>
 			<div className="payment-history-modal-content">
 				{isLoading ? (
@@ -109,6 +110,7 @@ const MemberPaymentHistoryModal = ({
 						<thead>
 							<tr>
 								<th>MONTH</th>
+								<th>MONTH NUMBER</th>
 								<th>AMOUNT</th>
 								<th>PAID AMOUNT</th>
 								<th>STATUS</th>
@@ -126,6 +128,7 @@ const MemberPaymentHistoryModal = ({
 								installments.map((item, index) => (
 									<tr key={index}>
 										<td>{formatMonth(item.due_date)}</td>
+										<td>{item.month_number}</td>
 										<td>{formatCurrency(item.total_amount)}</td>
 										<td>{formatCurrency(item.paid_amount)}</td>
 										<td>

@@ -5,6 +5,7 @@ import PaymentDetailsModal from '../components/PaymentDetailsModal';
 import LoadingStatus from '../components/ui/LoadingStatus';
 import '../styles/Payments.css';
 import { useState, useEffect, useRef } from 'react';
+import { apiRequest } from '../utils/api';
 
 const Payments = () => {
 	const [searchQuery, setSearchQuery] = useState('');
@@ -71,7 +72,7 @@ const Payments = () => {
 	const fetchPayments = async () => {
 		try {
 			setLoading(true);
-			const response = await fetch('http://127.0.0.1:5001/get_payments');
+			const response = await apiRequest('/get_payments');
 
 			if (!response.ok) {
 				throw new Error('Failed to fetch payments');

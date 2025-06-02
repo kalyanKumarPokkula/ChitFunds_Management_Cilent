@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timedelta, date
 import pandas as pd
 from sqlalchemy import text
+from auth import get_password_hash
 
 def create_new_user(data):
     db = get_db()
@@ -30,12 +31,16 @@ def create_new_user(data):
             if existing_pan:
                 return {"message": f"User with PAN number {data['pan_number']} already exists."}
         
+        # Hash the password if provided, otherwise use a default hashed password
+        password = data.get("password", "123456")
+        hashed_password = get_password_hash(password)
+        
         # Create new user
         new_user = User(
             user_id=user_id,
             full_name=str(data.get("full_name")),
             email=str(data.get("email")),
-            password=str("123456"),
+            password=hashed_password,
             phone=str(data.get("phone")),
             aadhaar_number=str(data.get("aadhaar_number")),
             pan_number=str(data.get("pan_number")),
@@ -43,6 +48,7 @@ def create_new_user(data):
             city=str(data.get("city")),
             state=str(data.get("state")),
             pincode=str(data.get("pincode")),
+            role=data.get("role"),
             is_verified=True,
         )
         
@@ -106,6 +112,9 @@ def member_overdue_amounts(installments, chit_group_ids):
         chit_group_ids = []
         
     overdue_summary = {}
+
+    print("inside member overdue amounts")
+    print(chit_group_ids)
     
     # Safely create the mapping
     chit_member_to_group = {}
@@ -116,17 +125,13 @@ def member_overdue_amounts(installments, chit_group_ids):
         pass
 
     for inst in installments:
-        try:
-            due_date = datetime.strptime(inst["due_date"], "%Y-%m-%d")
-        except (ValueError, TypeError, KeyError):
-            continue
-
+        
         total = float(inst.get("total_amount", 0) or 0)
         paid = float(inst.get("paid_amount", 0) or 0)
         status = inst.get("status", "").lower()
         overdue = total - paid
 
-        if status == "unpaid" and overdue > 0:
+        if status in ["unpaid", "partial"] and overdue > 0:
             cm_id = inst.get("chit_member_id")
             if not cm_id:
                 continue
@@ -144,6 +149,10 @@ def member_overdue_amounts(installments, chit_group_ids):
     return list(overdue_summary.values())
 
 
+
+
+
+
 def get_users_chit_details(user_id):
     db = get_db()
     try:
@@ -157,9 +166,13 @@ def get_users_chit_details(user_id):
         user_info_fields = ["full_name", "email", "phone", "address", "state", "city", "user_id", "pincode", "is_verified"]
         user_information = {key: user[key] for key in user_info_fields}
 
+        print(user_information)
+
         # Get chit_members for user
         members_query = text("SELECT * FROM chit_members WHERE user_id = :user_id")
         chit_members = [dict(row._mapping) for row in db.execute(members_query, {"user_id": user_id})]
+
+
 
         if not chit_members:
             return {
@@ -212,19 +225,22 @@ def get_users_chit_details(user_id):
         chit_member_group_map = [
             {"chit_member_id": m["chit_member_id"], "chit_group_id": m["chit_group_id"]}
             for m in chit_members if m["chit_group_id"] in active_chit_ids
-        ]
+        ] 
 
         overdue_summary = member_overdue_amounts(installments, chit_member_group_map)
+
 
         # Calculate current_month
         today = datetime.today()
         for chit in active_chits:
-            try:
-                start_date = datetime.strptime(chit["start_date"], "%Y-%m-%d")
-                month_diff = (today.year - start_date.year) * 12 + (today.month - start_date.month) + 1
-                chit["current_month"] = min(month_diff, chit["duration_months"])
-            except:
-                chit["current_month"] = 1
+            # try:
+            print(chit)
+            start_date = chit["start_date"]  # already a datetime.date
+            month_diff = (today.year - start_date.year) * 12 + (today.month - start_date.month) + 1
+            chit["current_month"] = min(month_diff, chit["duration_months"])
+
+            # except:
+            #     chit["current_month"] = 1
 
         # Prepare payment_overdues
         chit_map = {ch["chit_group_id"]: ch for ch in active_chits}
@@ -240,6 +256,11 @@ def get_users_chit_details(user_id):
             })
 
         # Current month installments
+        total_overdue_amount = 0
+
+        for item in overdue_summary:
+            total_overdue_amount += item["total_overdue_amount"]
+
         current_month_payment = []
         current_total_amount = 0
 
@@ -270,7 +291,8 @@ def get_users_chit_details(user_id):
             "current_month_payment": current_month_payment,
             "payment_overdues": payment_overdues,
             "chit_count": len(active_chits),
-            "current_total_amount": int(current_total_amount)
+            "current_total_amount": int(current_total_amount),
+            "total_overdue_amount": int(total_overdue_amount)
         }
 
     finally:
