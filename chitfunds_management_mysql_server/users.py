@@ -1,5 +1,6 @@
 import enum
 from db import get_db
+from models.payment_installment import PaymentInstallment
 from models.user import User
 from models.chit_member import ChitMember
 from models.chit_group import ChitGroup
@@ -965,5 +966,76 @@ def get_payment_details(payment_id, user_name):
 
     except Exception as e:
         return {"error": str(e)}
+    finally:
+        db.close()
+
+def delete_chit_member(data):
+    """
+    Deletes a member from a chit group if the current month is 1.
+    If the month is greater than 1, the member cannot be deleted.
+
+    Args:
+        data (dict): A dictionary containing chit_group_id and user_id.
+
+    Returns:
+        dict: A message indicating the result of the operation.
+    """
+    db = get_db()
+    try:
+        chit_group_id = data.get("chit_group_id")
+        user_id = data.get("user_id")
+
+        # First, verify the chit group exists and get its start date
+        chit_group = db.query(ChitGroup).filter(ChitGroup.chit_group_id == chit_group_id).first()
+        if not chit_group:
+            return {"message": "Chit group not found"}
+
+        # Calculate current month
+        today = datetime.today()
+        start_date = chit_group.start_date
+        current_month = ((today.year - start_date.year) * 12 + (today.month - start_date.month) + 1)
+
+        if current_month > 1:
+            return {"message": "Cannot delete member after month 1"}
+
+        # Get the chit member
+        chit_member = db.query(ChitMember).filter(
+            ChitMember.chit_group_id == chit_group_id,
+            ChitMember.user_id == user_id
+        ).first()
+
+        if not chit_member:
+            return {"message": "Member not found in the chit group"}
+
+        # Get all installments for this member
+        installments = db.query(Installment).filter(
+            Installment.chit_member_id == chit_member.chit_member_id
+        ).all()
+
+        # Delete payment installments first using raw SQL to avoid model dependency issues
+        for installment in installments:
+            db.execute(text("""
+                DELETE FROM payment_installments 
+                WHERE installment_id = :installment_id
+            """), {"installment_id": installment.installment_id})
+            db.flush()
+
+        # Delete installments
+        db.query(Installment).filter(
+            Installment.chit_member_id == chit_member.chit_member_id
+        ).delete()
+        db.flush()
+
+        # Finally delete the chit member
+        db.query(ChitMember).filter(
+            ChitMember.chit_member_id == chit_member.chit_member_id
+        ).delete()
+
+        db.commit()
+        return {"message": "Member successfully deleted from the chit group"}
+
+    except Exception as e:
+        db.rollback()
+        raise e
     finally:
         db.close()

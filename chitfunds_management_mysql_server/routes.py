@@ -23,7 +23,8 @@ from users import (
     get_unpaid_installments,
     process_payment,
     get_payments,
-    get_payment_details
+    get_payment_details,
+    delete_chit_member
 )
 from auth import token_required
 
@@ -330,6 +331,23 @@ def register_routes(app):
             user_name = request.args.get("user_name")
             response = get_payment_details(payment_id, user_name)
 
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/delete-chit-member", methods=["DELETE"])
+    @token_required
+    def remove_chit_member():
+        try:
+            data = request.get_json()
+            print(data)
+            if not data:
+                return jsonify({"error": "No data provided"}), 400
+            
+            if not data.get("chit_group_id") or not data.get("user_id"):
+                return jsonify({"error": "chit_group_id and user_id are required"}), 400
+            
+            response = delete_chit_member(data)
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500

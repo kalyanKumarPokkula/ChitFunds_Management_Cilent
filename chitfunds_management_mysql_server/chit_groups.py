@@ -157,16 +157,17 @@ def add_members(data):
     finally:
         db.close()
 
+       
 
 def add_chit_monthly_projections(data):
     """
-    Adds multiple monthly projections for a chit group in the database.
+    Adds or updates multiple monthly projections for a chit group in the database.
 
     Args:
         data (dict): A dictionary containing the chit group ID and a list of monthly projections.
 
     Returns:
-        dict: A message indicating whether the rows were successfully added.
+        dict: A message indicating whether the rows were successfully added/updated.
     """
     db = get_db()
     try:
@@ -174,21 +175,33 @@ def add_chit_monthly_projections(data):
         chit_group_id = data.get("chit_group_id")
         
         for row in monthly_chit_projections:
-            projection_id = str(uuid.uuid4().hex[:16])
+            month_number = int(row.get("month_number", 0))
             
-            new_projection = MonthlyProjection(
-                monthly_projections_id=projection_id,
-                chit_group_id=chit_group_id,
-                month_number=int(row.get("month_number", 0)),
-                monthly_subcription=float(row.get("monthly_subcription", 0)),  # Will be updated when a user wins the auction
-                total_payout=float(row.get("total_payout", 0))
-            )
+            # Check if projection already exists for this month and chit group
+            existing_projection = db.query(MonthlyProjection).filter(
+                MonthlyProjection.chit_group_id == chit_group_id,
+                MonthlyProjection.month_number == month_number
+            ).first()
             
-            db.add(new_projection)
+            if existing_projection:
+                # Update existing projection
+                existing_projection.monthly_subcription = float(row.get("monthly_subcription", 0))
+                existing_projection.total_payout = float(row.get("total_payout", 0))
+            else:
+                # Create new projection
+                projection_id = str(uuid.uuid4().hex[:16])
+                new_projection = MonthlyProjection(
+                    monthly_projections_id=projection_id,
+                    chit_group_id=chit_group_id,
+                    month_number=month_number,
+                    monthly_subcription=float(row.get("monthly_subcription", 0)),
+                    total_payout=float(row.get("total_payout", 0))
+                )
+                db.add(new_projection)
         
         db.commit()
         
-        return {"message": "Monthly projections added successfully"}
+        return {"message": "Monthly projections added/updated successfully"}
     except Exception as e:
         db.rollback()
         raise e
