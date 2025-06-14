@@ -1,4 +1,6 @@
 import enum
+
+from flask import jsonify
 from db import get_db
 from models.payment_installment import PaymentInstallment
 from models.user import User
@@ -181,7 +183,8 @@ def get_users_chit_details(user_id):
                 "current_month_payment": [],
                 "payment_overdues": [],
                 "chit_count": 0,
-                "current_total_amount": 0
+                "current_total_amount": 0,
+                "total_overdue_amount": 0
             }
 
         chit_group_ids = list(set(m["chit_group_id"] for m in chit_members))
@@ -205,7 +208,8 @@ def get_users_chit_details(user_id):
                 "current_month_payment": [],
                 "payment_overdues": [],
                 "chit_count": 0,
-                "current_total_amount": 0
+                "current_total_amount": 0,
+                "total_overdue_amount": 0
             }
 
         active_chit_ids = [c["chit_group_id"] for c in active_chits]
@@ -969,73 +973,106 @@ def get_payment_details(payment_id, user_name):
     finally:
         db.close()
 
-def delete_chit_member(data):
-    """
-    Deletes a member from a chit group if the current month is 1.
-    If the month is greater than 1, the member cannot be deleted.
-
-    Args:
-        data (dict): A dictionary containing chit_group_id and user_id.
-
-    Returns:
-        dict: A message indicating the result of the operation.
-    """
+def delete_chit_member(chit_member_id):
     db = get_db()
     try:
-        chit_group_id = data.get("chit_group_id")
-        user_id = data.get("user_id")
+        # Step 1: Fetch chit member
+        print(chit_member_id)
+        chit_member = db.query(ChitMember).filter(
+            ChitMember.chit_member_id == chit_member_id
+        ).first()
+        if not chit_member:
+            return {"message": "Chit member not found"}
+        
 
-        # First, verify the chit group exists and get its start date
-        chit_group = db.query(ChitGroup).filter(ChitGroup.chit_group_id == chit_group_id).first()
-        if not chit_group:
-            return {"message": "Chit group not found"}
+        # Step 2: Get chit_group to find start_date
+        chit_group = db.query(ChitGroup).filter(
+            ChitGroup.chit_group_id == chit_member.chit_group_id
+        ).first()
+        if not chit_group or not chit_group.start_date:
+            return {"message": "Chit group or start date not found"}
+        
 
-        # Calculate current month
+        # Step 3: Calculate month difference
         today = datetime.today()
         start_date = chit_group.start_date
-        current_month = ((today.year - start_date.year) * 12 + (today.month - start_date.month) + 1)
+        current_month = ((today.year - start_date.year) * 12) + (today.month - start_date.month) + 1
+    
 
         if current_month > 1:
-            return {"message": "Cannot delete member after month 1"}
+            return {"message": "Cannot delete: More than 1 month has passed since group start"}
 
-        # Get the chit member
-        chit_member = db.query(ChitMember).filter(
-            ChitMember.chit_group_id == chit_group_id,
-            ChitMember.user_id == user_id
-        ).first()
-
-        if not chit_member:
-            return {"message": "Member not found in the chit group"}
-
-        # Get all installments for this member
+        # Step 4: Fetch member's installments
         installments = db.query(Installment).filter(
-            Installment.chit_member_id == chit_member.chit_member_id
+            Installment.chit_member_id == chit_member_id
         ).all()
 
-        # Delete payment installments first using raw SQL to avoid model dependency issues
-        for installment in installments:
+        for i in installments:
+            print({k: v for k, v in i.__dict__.items() if not k.startswith('_')})
+
+        # Step 5: Check for PAID status
+        for inst in installments:
+            status = inst.status
+            if status.value == 'paid':
+                return {"message": "Cannot delete: Member has paid the installment"}
+
+        # Step 6: Delete unpaid/partial installments and related payment_installments
+        for inst in installments:
             db.execute(text("""
                 DELETE FROM payment_installments 
                 WHERE installment_id = :installment_id
-            """), {"installment_id": installment.installment_id})
-            db.flush()
+            """), {"installment_id": inst.installment_id})
 
-        # Delete installments
-        db.query(Installment).filter(
-            Installment.chit_member_id == chit_member.chit_member_id
-        ).delete()
-        db.flush()
+            db.query(Installment).filter(
+                Installment.installment_id == inst.installment_id
+            ).delete()
 
-        # Finally delete the chit member
+        # Step 7: Delete chit member
         db.query(ChitMember).filter(
-            ChitMember.chit_member_id == chit_member.chit_member_id
+            ChitMember.chit_member_id == chit_member_id
         ).delete()
 
         db.commit()
-        return {"message": "Member successfully deleted from the chit group"}
+        return {"message": "Chit member deleted successfully"}
 
     except Exception as e:
         db.rollback()
         raise e
+    finally:
+        db.close()
+
+
+def deactivate_user(user_id):
+    db = get_db()
+    try:
+        # 1. Check if user exists
+        user = db.query(User).filter(User.user_id == user_id).first()
+        if not user:
+            return {"message": "User not found"}
+
+        # 2. Check if user is part of any active chit group
+        active_memberships = (
+            db.query(ChitMember)
+            .join(ChitGroup, ChitMember.chit_group_id == ChitGroup.chit_group_id)
+            .filter(
+                ChitMember.user_id == user_id,
+                ChitGroup.status == "ACTIVE"
+            )
+            .all()
+        )
+
+        if active_memberships:
+            return {"message": "User is in an active chit group. Cannot deactivate."}
+
+        # 3. Set is_active = False (soft delete)
+        user.is_active = False
+        user.updated_at = datetime.now()
+        db.commit()
+
+        return {"message": "User has been deactivated successfully"}
+
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
     finally:
         db.close()

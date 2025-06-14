@@ -15,7 +15,7 @@ BACKUP_FILE_NAME="mysql_backup_$(date +%Y%m%d).sql.gz"
 FULL_S3_PATH="$S3_PATH/$BACKUP_FILE_NAME"
 
 # Backup the database from Docker container and compress
-if docker exec "$MYSQL_CONTAINER" sh -c "exec mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME" | gzip > "$BACKUP_FILE_NAME"; then
+if docker mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME" | gzip > "$BACKUP_FILE_NAME"; then
   echo "✅ Database backup created: $BACKUP_FILE_NAME"
 else
   echo "❌ Failed to create database backup."

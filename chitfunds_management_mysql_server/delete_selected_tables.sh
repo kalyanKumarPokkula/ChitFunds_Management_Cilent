@@ -28,7 +28,7 @@ fi
 # Drop selected tables
 for table in "${TABLES_ARRAY[@]}"; do
   echo "🗑️ Dropping table: $table"
-  docker exec "$MYSQL_CONTAINER" sh -c "mysql -u$DB_USER -p$DB_PASSWORD -e 'DROP TABLE IF EXISTS \`$DB_NAME\`.\`$table\`;'" || {
+  mysql -u$DB_USER -p$DB_PASSWORD -e 'DROP TABLE IF EXISTS \`$DB_NAME\`.\`$table\`;' || {
     echo "❌ Failed to drop $table"
   }
 done

@@ -1,24 +1,42 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  server:
-    build: ./chitfunds_management_server
-    container_name: chit-server
-    ports:
-      - '5001:5001'
+  mysql:
+    image: mysql:8.0
+    restart: always
     environment:
-      - FLASK_ENV=development
-      - FLASK_APP=app.py
-    volumes:
-      - ./chitfunds_management_server:/app
-      - /app/__pycache__
-    restart: unless-stopped
-
-  client:
-    build: ./chitfunds_management_client
-    container_name: chit-client
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: chitfunds
+      MYSQL_USER: root
+      MYSQL_PASSWORD: chitfunds_password
     ports:
-      - '3000:3000'
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./chitfunds_management_mysql_server
+    restart: always
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: chitfunds_password
+      DB_NAME: chitfunds
+      DB_PORT: 3306
+    ports:
+      - "5001:5001"
     depends_on:
-      - server
-    restart: unless-stopped
+      - mysql
+
+  frontend:
+    build:
+      context: ./chitfunds_management_client
+    restart: always
+    ports:
+      - "5173:5173"  # or "3000:3000" if using create-react-app
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

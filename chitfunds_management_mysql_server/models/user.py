@@ -24,6 +24,7 @@ class User(Base):
     pincode = Column(String(10), nullable=True)
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     created_at = Column(DateTime, default=func.now())
+    is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=True)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 

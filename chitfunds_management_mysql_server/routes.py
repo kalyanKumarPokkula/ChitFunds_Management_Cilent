@@ -339,13 +339,11 @@ def register_routes(app):
     @token_required
     def remove_chit_member():
         try:
-            data = request.get_json()
+            data = request.args.get("chit_member_id")
             print(data)
-            if not data:
-                return jsonify({"error": "No data provided"}), 400
             
-            if not data.get("chit_group_id") or not data.get("user_id"):
-                return jsonify({"error": "chit_group_id and user_id are required"}), 400
+            if not data:
+                return jsonify({"error": "chit_member_id are required"}), 400
             
             response = delete_chit_member(data)
             return jsonify(response), 200

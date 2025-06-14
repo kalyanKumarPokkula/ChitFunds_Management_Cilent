@@ -19,7 +19,7 @@ fi
 echo "📦 Downloaded file: $FILE_NAME"
 
 # Restore using streaming
-gunzip -c "$FILE_NAME" | docker exec -i "$MYSQL_CONTAINER" sh -c "mysql -u$DB_USER -p$DB_PASSWORD $DB_NAME"
+gunzip -c "$FILE_NAME" | mysql -u$DB_USER -p$DB_PASSWORD $DB_NAME"
 
 echo "✅ Restore completed."
 
