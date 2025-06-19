@@ -1,4 +1,6 @@
 from flask import request, jsonify
+import subprocess
+import os
 from chit_groups import (
     chit_groups, 
     chit_lifted_member, 
@@ -349,3 +351,68 @@ def register_routes(app):
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+        
+    @app.route('/run-backup', methods=['GET'])
+    @token_required
+    def run_backup():
+        try:
+            print("Running backup script...")
+            os.chdir("/app")  # make sure we’re in the right directory
+              # Debug: List files in current dir
+            files = os.listdir('.')
+            print("Files in /app:", files)
+            result = subprocess.run(
+                'dos2unix .env && dos2unix backup_to_s3.sh && ./backup_to_s3.sh',
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            return jsonify({
+                'status': 'success',
+                'output': result.stdout
+            }), 200
+        except subprocess.CalledProcessError as e:
+            return jsonify({
+                'status': 'error',
+                'output': e.stdout,
+                'error': e.stderr
+            }), 500
+        except FileNotFoundError as e:
+            return jsonify({
+                'status': 'error',
+                'error': f"Script not found or not executable: {str(e)}"
+            }), 500
+        
+    @app.route('/run-restore', methods=['GET'])
+    @token_required
+    def run_restore():
+        try:
+            # Ensure we are in the correct working directory (e.g., /app)
+            os.chdir("/app")
+            result = subprocess.run(
+                'dos2unix .env && dos2unix backup_to_s3.sh && ./restore_from_backup.sh',
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            return jsonify({
+                'status': 'success',
+                'output': result.stdout
+            }), 200
+
+        except subprocess.CalledProcessError as e:
+            return jsonify({
+                'status': 'error',
+                'output': e.stdout,
+                'error': e.stderr
+            }), 500
+
+        except FileNotFoundError as e:
+            return jsonify({
+                'status': 'error',
+                'error': f"Script not found or not executable: {str(e)}"
+            }), 500

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Load .env if exists
 if [ -f .env ]; then
   export $(grep -v '^#' .env | xargs)
@@ -8,21 +10,21 @@ else
   exit 1
 fi
 
-# Set BACKUP_FILE_NAME dynamically in script since .env can't handle command substitution
+# Generate backup file name
 BACKUP_FILE_NAME="mysql_backup_$(date +%Y%m%d).sql.gz"
 
-# Full S3 path including filename
+# Full S3 path
 FULL_S3_PATH="$S3_PATH/$BACKUP_FILE_NAME"
 
-# Backup the database from Docker container and compress
-if docker mysqldump -u $DB_USER -p$DB_PASSWORD $DB_NAME" | gzip > "$BACKUP_FILE_NAME"; then
+# Dump MySQL database using local mysqldump
+if mysqldump -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" | gzip > "$BACKUP_FILE_NAME"; then
   echo "✅ Database backup created: $BACKUP_FILE_NAME"
 else
   echo "❌ Failed to create database backup."
   exit 1
 fi
 
-# Upload to S3 using boto3 Python script
+# Upload to S3 using boto3-based Python script
 if [ -f "$BACKUP_FILE_NAME" ]; then
   if python3 upload_to_s3.py "$BACKUP_FILE_NAME" "$S3_BUCKET" "$FULL_S3_PATH"; then
     echo "✅ Backup uploaded to S3: s3://$S3_BUCKET/$FULL_S3_PATH"
@@ -36,4 +38,5 @@ else
   echo "❌ Backup file not found: $BACKUP_FILE_NAME"
   exit 1
 fi
+
 

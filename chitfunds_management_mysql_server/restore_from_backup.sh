@@ -19,7 +19,13 @@ fi
 echo "📦 Downloaded file: $FILE_NAME"
 
 # Restore using streaming
-gunzip -c "$FILE_NAME" | mysql -u$DB_USER -p$DB_PASSWORD $DB_NAME"
+# Restore using streaming
+gunzip -c "$FILE_NAME" | mysql -h host.docker.internal -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME"
+if [ $? -ne 0 ]; then
+  echo "❌ MySQL restore failed!"
+  exit 1
+else
+  echo "✅ Restore completed."
+fi
 
-echo "✅ Restore completed."
 
