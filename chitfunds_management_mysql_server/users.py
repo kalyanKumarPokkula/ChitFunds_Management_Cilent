@@ -290,7 +290,21 @@ def get_users_chit_details(user_id):
                     "status": inst["status"]
                 })
                 current_total_amount += float(inst.get("total_amount", 0) or 0)
+        
+        overdue_lookup = {
+            (entry["chit_member_id"], entry["chit_group_id"]): {
+                "overdue_months": entry["overdue_months"],
+                "total_overdue_amount": entry["total_overdue_amount"]
+            }
+            for entry in payment_overdues
+        }
 
+        # Add overdue information to current_month_payment
+        for item in current_month_payment:
+            key = (item["chit_member_id"], item["chit_group_id"])
+            overdue_info = overdue_lookup.get(key, {"overdue_months": 0, "total_overdue_amount": 0})
+            item.update(overdue_info)
+            
         return {
             "user": user_information,
             "current_month_payment": current_month_payment,
@@ -310,19 +324,21 @@ def get_current_month_projections_data(monthly_projections_df, chit_group_df):
 def get_all_member_installments(member_id):
     db = get_db()
     try:
-        # Get all installments for a specific member
+            # Get all installments for a specific member
         installments_query = text("""
             SELECT i.*, cg.chit_name
             FROM installments i
             JOIN chit_members cm ON i.chit_member_id = cm.chit_member_id
             JOIN chit_groups cg ON cm.chit_group_id = cg.chit_group_id
             WHERE i.chit_member_id = :member_id
+            ORDER BY i.month_number ASC
         """)
-        
+
         result = db.execute(installments_query, {"member_id": member_id}).mappings()
         installments = [dict(row) for row in result]
-        
+
         return installments
+
     finally:
         db.close()
 
@@ -661,7 +677,7 @@ def get_unpaid_installments(user_id):
                 db.query(Installment)
                 .filter(
                     Installment.chit_member_id == member.chit_member_id,
-                    Installment.status == "unpaid"
+                     Installment.status.in_(["unpaid", "partial"])
                 )
                 .all()
             )

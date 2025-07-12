@@ -1,18 +1,19 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker , Session
 from base import Base
 from models.user import User, UserRole
 import uuid
 import bcrypt
+from dotenv import load_dotenv
+import os
 
-
+load_dotenv()  # Load environment variables from .env file
 # Load DB credentials
-DB_USER = os.environ.get('DB_USER', 'root')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'root')
-DB_HOST = 'host.docker.internal'  # Hard-coded to localhost
-DB_PORT = os.environ.get('DB_PORT', '3306')
-DB_NAME = os.environ.get('DB_NAME', 'chitfunds')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DB_NAME = os.getenv('DB_NAME')
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 

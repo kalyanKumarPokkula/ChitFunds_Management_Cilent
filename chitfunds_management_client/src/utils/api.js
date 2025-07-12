@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:5001';
+const BASE_URL = 'http://localhost:5001'
 
 export const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem('access_token');

@@ -1,26 +1,22 @@
-# Base image
-FROM node:20-alpine
+FROM node:20 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy the rest of the application
 COPY . .
-
-# Build the app
 RUN npm run build
 
-# Install a simple server to serve static content
-RUN npm install -g serve
+FROM nginx:alpine
 
-# Expose port
-EXPOSE 5173
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Start the application
-CMD ["serve", "-s", "dist", "-l", "5173"] 
+# Copy built frontend
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+

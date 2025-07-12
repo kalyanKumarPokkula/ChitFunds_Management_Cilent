@@ -21,6 +21,10 @@ const ActiveChits = ({ currentMonthPayments }) => {
 		return `₹${parseInt(amount).toLocaleString('en-IN')}`;
 	};
 
+	const format = (amount) => {
+		return `${parseInt(amount).toLocaleString('en-IN')}`;
+	}
+
 	const handleChitClick = (chit) => {
 		setSelectedChit(chit);
 		setIsModalOpen(true);
@@ -74,6 +78,28 @@ const ActiveChits = ({ currentMonthPayments }) => {
 											{formatCurrency(chit.total_amount)}
 										</span>
 									</div>
+
+									<div className="payment-amount">
+										<span className="label">Current Month:</span>
+										<span className="amount">
+											{format(chit.month_number)}
+										</span>
+									</div>
+
+									<div className="payment-amount">
+										<span className="label">Due Amount:</span>
+										<span className="amount">
+											{formatCurrency(chit.total_overdue_amount)}
+										</span>
+									</div>
+
+									<div className="payment-amount">
+										<span className="label">Due Months:</span>
+										<span className="amount">
+											{format(chit.overdue_months)}
+										</span>
+									</div>
+									
 
 									<div className="payment-status">
 										<span className="label">{selectedMonth} Status:</span>

@@ -232,10 +232,16 @@
 	margin-bottom: 0.25rem;
 }
 
-.investment-item .amount {
+.investment-item .paid_amount {
 	font-size: 1.125rem;
 	font-weight: 600;
-	color: #1e40af;
+	color: green;
+}
+
+.investment-item .unpaid_amount {
+	font-size: 1.125rem;
+	font-weight: 600;
+	color: red;
 }
 
 .quick-stats h3 {

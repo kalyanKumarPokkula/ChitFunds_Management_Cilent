@@ -467,24 +467,42 @@ const ChitDetails = () => {
 					</div>
 
 					<div className="chit-summary-card">
-						<h2>Chit Summary</h2>
+						{/* <h2>Chit Summary</h2> */}
 						<div className="investment-summary">
-							<h3>Current Payment Details</h3>
+							<h3>Current Month Details</h3>
 							<div className="investment-details">
 								<div className="investment-item">
 									<label>Paid Amount</label>
-									<span className="amount">
+									<span className="paid_amount">
 										{formatCurrency(chitDetails.current_month_total_paid)}
 									</span>
 								</div>
 								<div className="investment-item">
 									<label>Due Amount</label>
-									<span className="amount">
+									<span className="unpaid_amount">
 										{formatCurrency(chitDetails.current_month_total_payable - chitDetails.current_month_total_paid)}
 									</span>
 								</div>
 							</div>
+
+							<h3 style={{ paddingTop: '12px'}}>All Months Details</h3>
+
+							<div className="investment-details">
+								<div className="investment-item">
+									<label>Paid Amount</label>
+									<span className="paid_amount">
+										{formatCurrency(chitDetails.all_months_paid_total)}
+									</span>
+								</div>
+								<div className="investment-item">
+									<label>Due Amount</label>
+									<span className="unpaid_amount">
+										{formatCurrency(chitDetails.all_months_unpaid_total - chitDetails.all_months_paid_total)}
+									</span>
+								</div>
+							</div>
 						</div>
+
 
 						<div className="quick-stats">
 							<h3>Quick Stats</h3>

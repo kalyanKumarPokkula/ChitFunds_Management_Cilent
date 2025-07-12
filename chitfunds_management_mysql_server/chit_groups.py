@@ -386,13 +386,31 @@ def get_chit_by_id(chit_group_id):
         unpaid_count = installments.unpaid_count or 0
         total_payable = installments.total_payable or 0
         total_paid = installments.total_paid or 0
+        
+        all_months_unpaid = db.execute(text("""
+            SELECT 
+                SUM(total_amount) AS total_payable,
+                SUM(paid_amount) AS total_paid
+            FROM installments
+            WHERE chit_member_id IN (
+                SELECT chit_member_id FROM chit_members WHERE chit_group_id = :chit_group_id
+            )
+        """), {
+            "chit_group_id": chit_group_id
+        }).fetchone()
+
+        all_months_unpaid_total = all_months_unpaid.total_payable or 0
+        all_months_paid_total = all_months_unpaid.total_paid or 0
+
 
         # Step 7: Add to result
         result.update({
             "current_month_paid_count": paid_count,
             "current_month_unpaid_count": unpaid_count,
             "current_month_total_payable": total_payable,
-            "current_month_total_paid": total_paid
+            "current_month_total_paid": total_paid,
+            "all_months_unpaid_total": all_months_unpaid_total,
+            "all_months_paid_total": all_months_paid_total
         })
 
         return result

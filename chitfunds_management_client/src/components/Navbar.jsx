@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Navbar.css';
+import { apiRequest } from '../utils/api';
 
 const Navbar = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -38,6 +39,22 @@ const Navbar = () => {
 	const toggleMenu = () => {
 		setIsOpen(!isOpen);
 	};
+
+	const handleBackup = async () => {
+		alert('Backup functionality is not implemented yet.');
+		// try{
+
+		// 	const response = await apiRequest('/run-backup')
+
+		// 	if (!response.ok) {
+		// 		throw new Error(`HTTP error! Status: ${response.status}`);
+		// 	}		
+		// } catch (error) {
+		// 	console.error('Error during backup:', error);
+		// 	alert('Backup failed. Please try again later.');
+		// 	return;
+		// }
+	}
 
 	const handleLogout = () => {
 		// Clear all items from localStorage
@@ -111,6 +128,9 @@ const Navbar = () => {
 							<div className="profile-menu">
 								<div className="profile-info">
 									<span className="profile-name">{fullName}</span>
+								</div>
+								<div className="profile-info" style={{ cursor: 'pointer' }} onClick={handleBackup}>
+									<span className="backup">Back-Up</span>
 								</div>
 								<div className="profile-menu-divider" />
 								<button className="logout-button" onClick={handleLogout}>

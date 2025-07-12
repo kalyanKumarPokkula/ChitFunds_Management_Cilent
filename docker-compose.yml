@@ -1,42 +1,25 @@
 version: "3.8"
 
 services:
-  mysql:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: chitfunds
-      MYSQL_USER: root
-      MYSQL_PASSWORD: chitfunds_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-
   backend:
     build:
       context: ./chitfunds_management_mysql_server
     restart: always
-    environment:
-      DB_HOST: mysql
-      DB_USER: root
-      DB_PASSWORD: chitfunds_password
-      DB_NAME: chitfunds
-      DB_PORT: 3306
+    working_dir: /app
     ports:
       - "5001:5001"
-    depends_on:
-      - mysql
+    command: python main.py
+
 
   frontend:
     build:
       context: ./chitfunds_management_client
     restart: always
+    working_dir: /app
     ports:
-      - "5173:5173"  # or "3000:3000" if using create-react-app
+      - "5173:80"  # or "3000:3000" if using create-react-app
     depends_on:
       - backend
+    command: npm run dev
 
-volumes:
-  mysql_data:
+
