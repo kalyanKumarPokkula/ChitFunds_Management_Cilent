@@ -17,7 +17,7 @@ services:
     restart: always
     working_dir: /app
     ports:
-      - "5173:80"  # or "3000:3000" if using create-react-app
+      - "5173:5173"  # or "3000:3000" if using create-react-app
     depends_on:
       - backend
     command: npm run dev

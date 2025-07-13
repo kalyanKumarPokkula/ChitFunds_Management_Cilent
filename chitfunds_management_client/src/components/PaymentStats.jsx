@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from '../utils/api';
 import '../styles/PaymentStats.css';
+import "../styles/Home.css";
 import LoadingStatus from './ui/LoadingStatus';
 
 const PaymentStats = () => {
@@ -72,74 +73,75 @@ const PaymentStats = () => {
 	}
 
 	return (
-		<div className="payment-stats-wrapper">
-			<div className="payment-stats-container">
-				<div className="stats-card trust">
-					<div className="stats-icon">
-						<i className="fas fa-money-check-alt"></i>
-					</div>
-					<div className="stats-content">
-						<h3>Total Due This Month</h3>
-						<div className="stats-amount">
-							{formatCurrency(stats.total_due_this_month)}
-						</div>
+		<>
+              
+
+		<div className="key-metrics-grid">
+			<div className="metric-card trust">
+				<div className="metric-icon">
+					<i className="fas fa-money-check-alt"></i>
+				</div>
+				<div className="metric-content">
+					<h3>Total Due This Month</h3>
+					<div className="metric-value">
+						{formatCurrency(stats.total_due_this_month)}
 					</div>
 				</div>
-
-				<div className="stats-card semi-trust">
-					<div className="stats-icon">
-						<i className="fas fa-money-check-alt"></i>
-					</div>
-					<div className="stats-content">
-						<h3>Total Payout Due This Month</h3>
-						<div className="stats-amount">
-							{formatCurrency(stats.unpaid_current_month_projections)}
-						</div>
-					</div>
+			</div>
+			<div className="metric-card semi-trust">
+				<div className="metric-icon">
+					<i className="fas fa-money-bill-wave"></i>
 				</div>
-
-				<div className="stats-card paid">
-					<div className="stats-icon">
-						<i className="fas fa-check-circle"></i>
-					</div>
-					<div className="stats-content">
-						<h3>Paid Amount</h3>
-						<div className="stats-amount">
-							{formatCurrency(stats.total_paid_this_month)}
-						</div>
-						<div className="stats-percentage">{paidPercentage}% Collected</div>
-					</div>
-				</div>
-
-				<div className="stats-card due">
-					<div className="stats-icon">
-						<i className="fas fa-exclamation-circle"></i>
-					</div>
-					<div className="stats-content">
-						<h3>Unpaid Amount</h3>
-						<div className="stats-amount">
-							{formatCurrency(stats.total_unpaid_this_month)}
-						</div>
-						<div className="stats-percentage">
-							{100 - paidPercentage}% Pending
-						</div>
+				<div className="metric-content">
+					<h3>Total Payout Due This Month</h3>
+					<div className="metric-value">
+						{formatCurrency(stats.unpaid_current_month_projections)}
 					</div>
 				</div>
 			</div>
 
-			<div className="payment-progress-container">
-				<div className="progress-label">
-					<span>Collection Progress</span>
-					<span>{paidPercentage}%</span>
+			<div className="metric-card paid">
+				<div className="metric-icon">
+					<i className="fas fa-check-circle"></i>
 				</div>
-				<div className="progress-bar">
-					<div
-						className="progress-fill"
-						style={{ width: `${paidPercentage}%` }}
-					></div>
+				<div className="metric-content">
+					<h3>Total Paid This Month</h3>
+					<div className="metric-value">
+						{formatCurrency(stats.total_paid_this_month)}
+						{paidPercentage && (
+							<div className="metric-percentage">{paidPercentage}% Collected</div>
+						)}
+					</div>
+				</div>
+			</div>
+
+			<div className="metric-card due">
+				<div className="metric-icon">
+					<i className="fas fa-exclamation-circle"></i>
+				</div>
+				<div className="metric-content">
+					<h3>Unpaid Amount</h3>
+					<div className="metric-value">
+						{formatCurrency(stats.total_unpaid_this_month)}
+						{paidPercentage && (
+							<div className="metric-percentage">{100 - paidPercentage}% Pending</div>
+						)}
+					</div>
+
 				</div>
 			</div>
 		</div>
+		 <div className="collection-progress-section">
+                    <div className="progress-header">
+                        <span>Collection Progress</span>
+                        <span>{paidPercentage}%</span>
+                        </div>
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${paidPercentage}%` }}></div>
+                    </div>
+                                </div>
+
+	</>
 	);
 };
 

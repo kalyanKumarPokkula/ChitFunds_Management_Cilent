@@ -1,92 +1,83 @@
 .btn-component {
-	padding: 0.75rem 1.25rem;
-	border-radius: 0.375rem;
-	font-weight: 500;
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
 }
 
 .btn-component i {
-	font-size: 0.9rem;
+    font-size: 0.9rem;
 }
 
 /* Button variants */
 .action-button-primary {
-	background-color: #2563eb;
-	color: white;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: #2563eb;
+  color: #fff;
+  border: none;
 }
-
-.action-button-primary:hover {
-	background-color: #1d4ed8;
-}
-
 .action-button-secondary {
-	background-color: #83899542;
-	color: black;
-	font-weight: bold;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: #f3f4f6;
+  color: #23272f;
+  border: none;
 }
-
-.action-button-secondary:hover {
-	background-color: #4b556370;
-}
-
-.action-button-success {
-	background-color: #10b981;
-	color: white;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.action-button-success:hover {
-	background-color: #059669;
-}
-
 .action-button-danger {
-	background-color: #ef4444;
-	color: white;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: #ef4444;
+  color: #fff;
+  border: none;
 }
-
-.action-button-danger:hover {
-	background-color: #dc2626;
-}
-
-.action-button-outline {
-	background-color: #fff;
-	border: 1px solid #e5e7eb;
-	color: #4b5563;
-}
-
-.action-button-outline:hover {
-	background-color: #f3f4f6;
-	border-color: #d1d5db;
-}
-
-/* Button sizes */
-.action-button-small {
-	padding: 0.375rem 0.75rem;
-	font-size: 0.75rem;
-}
-
 .action-button-medium {
-	padding: 0.625rem 1rem;
-	font-size: 0.875rem;
+  font-size: 1.08rem;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 0.7rem 2.1rem;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+  cursor: pointer;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
 }
-
+.action-button-medium:hover, .action-button-medium:focus {
+  background: #1746a2;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.12);
+  transform: translateY(-1px) scale(1.01);
+}
+.action-button-secondary:hover, .action-button-secondary:focus {
+  background: #e5e7eb;
+  color: #2563eb;
+}
+.action-button-danger:hover, .action-button-danger:focus {
+  background: #b91c1c;
+}
 .action-button-large {
-	padding: 0.75rem 1.25rem;
-	font-size: 1rem;
+  font-size: 1.18rem;
+  padding: 1rem 2.5rem;
+}
+.action-button-small {
+  font-size: 0.98rem;
+  padding: 0.5rem 1.2rem;
+}
+.action-button-primary[disabled], .action-button-secondary[disabled], .action-button-danger[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* Special styling for the buttons shown in the screenshot */
-.btn-component.small {
-	padding: 0.375rem 0.75rem;
-	font-size: 0.75rem;
-	min-width: 60px;
-	justify-content: center;
+.btn-component i {
+  font-size: 1.2em;
+  margin-right: 0.5em;
+}
+
+@media (max-width: 700px) {
+  .action-button-medium, .action-button-large {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+  }
 }

@@ -34,7 +34,7 @@ const Modal = ({
 	return (
 		<div className="modal-overlay" onClick={handleOverlayClick}>
 			<div
-				className={`modal-container ${sizeClass}`}
+				className={`modal-container ${sizeClass} w-full`}
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="modal-header">

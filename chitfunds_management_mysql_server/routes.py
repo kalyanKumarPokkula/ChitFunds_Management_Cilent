@@ -26,7 +26,8 @@ from users import (
     process_payment,
     get_payments,
     get_payment_details,
-    delete_chit_member
+    delete_chit_member,
+    get_admin_by_id
 )
 from auth import token_required
 
@@ -351,10 +352,32 @@ def register_routes(app):
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-        
+
+
+    @app.route('/get-admin-details', methods=['GET'])
+    # @token_required
+    def get_admin_details():
+        try:
+            data = request.args.get("user_id")
+            print(data)
+            
+            if not data:
+                return jsonify({"error": "chit_member_id are required"}), 400
+            
+            response = get_admin_by_id(data)
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
     @app.route('/run-backup', methods=['GET'])
-    @token_required
+    # @token_required
     def run_backup():
+        # return jsonify({
+        #       'status': 'success',
+        #          # 'output': result.stdout
+        #         'output': "✅ Database backup created: mysql_backup_20250713.sql.gz\n✅ Successfully uploaded mysql_backup_20250713.sql.gz to s3://tulsi-akka-chits-backup-059/backups/mysql_backup_20250713.sql.gz\n✅ Backup uploaded to S3: s3://tulsi-akka-chits-backup-059/backups/mysql_backup_20250713.sql.gz\n✅ Local backup deleted.\n",
+        # }), 200
         try:
             print("Running backup script...")
             os.chdir("/app")  # make sure we’re in the right directory
@@ -386,13 +409,18 @@ def register_routes(app):
             }), 500
         
     @app.route('/run-restore', methods=['GET'])
-    @token_required
+    # @token_required
     def run_restore():
+        # return jsonify({
+        #       'status': 'success',
+        #          # 'output': result.stdout
+        # }), 200
         try:
             # Ensure we are in the correct working directory (e.g., /app)
             os.chdir("/app")
+
             result = subprocess.run(
-                'dos2unix .env && dos2unix backup_to_s3.sh && ./restore_from_backup.sh',
+                'dos2unix .env && dos2unix restore_from_backup.sh && ./restore_from_backup.sh',
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

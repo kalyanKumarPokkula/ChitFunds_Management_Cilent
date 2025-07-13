@@ -1058,6 +1058,35 @@ def delete_chit_member(chit_member_id):
         db.close()
 
 
+def get_admin_by_id(admin_id):
+    db = get_db()
+    try:
+        # Fetch admin by ID and ensure the user is active
+        admin = db.query(User).filter(
+            User.user_id == admin_id,
+            User.is_active == True
+        ).first()
+
+        if not admin:
+            return {"message": "Admin not found"}
+
+        # Prepare admin data as a dictionary
+        address = admin.address + " " + admin.city + " " + admin.state + " " + admin.pincode
+        return {
+            "user_id": admin.user_id,
+            "full_name": admin.full_name,
+            "email": admin.email,
+            "phone_number": admin.phone,
+            "is_active": admin.is_active,
+            "address": address,
+            "created_at": admin.created_at.strftime("%B %Y"),
+        }
+
+    finally:
+        db.close()
+
+
+
 def deactivate_user(user_id):
     db = get_db()
     try:

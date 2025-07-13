@@ -211,9 +211,9 @@
 
 .investment-summary h3 {
 	font-size: 1rem;
-	color: #1e40af;
+	color: black;
 	margin: 0 0 1rem 0;
-	font-weight: 500;
+	font-weight: 600;
 }
 
 .investment-details {

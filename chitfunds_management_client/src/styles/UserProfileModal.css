@@ -1,0 +1,232 @@
+.profile-modal-root {
+  padding: 0 0 2.5rem 0;
+  background: #f7f8fa;
+}
+
+.back-link {
+  background: none;
+  border: none;
+  color: #23272f;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 2.2rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.18s;
+}
+.back-link:hover {
+  color: #a259c6;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.profile-avatar-lg {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a259c6 0%, #6a82fb 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.2rem;
+  font-weight: 900;
+  box-shadow: 0 4px 24px rgba(160, 89, 198, 0.18);
+  margin-right: 0.5rem;
+}
+
+.profile-main-info h2 {
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #18181b;
+  margin: 0 0 0.2rem 0;
+}
+.profile-role {
+  color: #71717a;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+.profile-join-date {
+  color: #71717a;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+}
+
+.profile-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 1.1rem;
+}
+.profile-action-btn {
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  font-weight: 700;
+  font-size: 1.08rem;
+  border-radius: 10px;
+  padding: 0.55rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+  box-shadow: 0 2px 8px rgba(16, 30, 54, 0.04);
+}
+.profile-action-btn.backup {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+.profile-action-btn.restore {
+  color: #22c55e;
+  border-color: #22c55e;
+}
+.profile-action-btn.logout {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+.profile-action-btn:hover {
+  background: #f3f4f6;
+  box-shadow: 0 4px 16px rgba(16, 30, 54, 0.10);
+}
+
+.profile-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.2rem;
+  margin-top: 1.5rem;
+}
+
+.profile-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 2rem 2rem 1.5rem 2rem;
+  box-shadow: 0 2px 12px rgba(30, 41, 59, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.profile-card-title {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #18181b;
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.profile-card-title i {
+  color: #a259c6;
+  font-size: 1.2rem;
+}
+
+.profile-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.profile-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: #23272f;
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+.profile-info-item i {
+  color: #a259c6;
+  font-size: 1.15rem;
+}
+
+.profile-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+
+.profile-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+.profile-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+}
+.setting-title {
+  font-weight: 800;
+  color: #18181b;
+  font-size: 1.08rem;
+}
+.setting-desc {
+  color: #71717a;
+  font-size: 1.01rem;
+  font-weight: 500;
+}
+.setting-btn {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  color: #2563eb;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 0.45rem 1.2rem;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+}
+.setting-btn:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+@media (max-width: 900px) {
+  .profile-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .profile-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-modal-root {
+    padding: 0 0.5rem 1rem 0.5rem;
+  }
+  .profile-card {
+    padding: 1.1rem;
+  }
+  .profile-header {
+    gap: 1rem;
+  }
+  .profile-avatar-lg {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+  .profile-main-info h2 {
+    font-size: 1.3rem;
+  }
+} 

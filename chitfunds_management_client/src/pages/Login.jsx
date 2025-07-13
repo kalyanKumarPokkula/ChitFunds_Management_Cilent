@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import '../styles/Login.css';
+import { useNotification } from '../context/NotificationContext';
 
 const Login = () => {
+  const { showSuccess, showError } = useNotification();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -35,6 +37,9 @@ const Login = () => {
 
       const data = await response.json();
 
+      console.log(data);
+      
+
       if (response.ok) {
         // Store the access token in localStorage
         localStorage.setItem('access_token', data.access_token);
@@ -43,12 +48,24 @@ const Login = () => {
         localStorage.setItem('full_name', data.full_name);
         
         // Redirect to dashboard or home page
-        window.location.href = '/';
+        // window.location.href = '/';
+         // ✅ Show success notification
+        showSuccess('Login successful! Redirecting...', 4000);
+
+      // Optionally redirect after a short delay
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
       } else {
-        setError(data.message || 'Login failed. Please try again.');
+        const message = data?.error || data?.message || 'Login failed. Please try again.';
+        setError(message);
+        showError(message, 5000); // ❌ Show error notification
       }
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      const message = 'An error occurred. Please try again later.';
+      setError(message);
+      showError(message, 5000); // ❌ Show error notification
+
     }
   };
 
@@ -59,7 +76,7 @@ const Login = () => {
         <p className="subtitle">Log in to your account to continue</p>
         
         <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="error-message">{error}</div>}
+          {/* {error && <div className="error-message">{error}</div>} */}
           
           <div className="form-group">
             <label htmlFor="email">

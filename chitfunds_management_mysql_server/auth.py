@@ -111,11 +111,15 @@ def register_auth_routes(app):
             user = db.query(User).filter(User.email == email).first()
             
             if not user:
-                return jsonify({"error": "Invalid email or password"}), 401
-                
+                return jsonify({"error": "No user found with this email address."}), 404
+        
             # Verify password
             if not verify_password(password, user.password):
-                return jsonify({"error": "Invalid email or password"}), 401
+                return jsonify({"error": "Invalid password."}), 401
+
+            # Check if the user is an admin
+            if user.role.value != "admin":
+                return jsonify({"error": "Access denied. Only admin users can log in."}), 403
                 
             # Create access token
             access_token = create_access_token(
