@@ -124,7 +124,7 @@ const Members = () => {
 									>
 										<td>{member.full_name}</td>
 										<td>{`+91 ${member.phone}`}</td>
-										<td>{member.email}</td>
+										<td>{member.email ? member.email : 'Email not provided'}</td>
 										<td>{member.chit_count}</td>
 										<td onClick={(e) => e.stopPropagation()}>
 											<ActionButton

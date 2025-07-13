@@ -34,7 +34,7 @@ const Navbar = () => {
         <nav className="navbar">
             <div className="navbar-container">
                 <div className="navbar-logo">
-                    <span className="logo-gradient">ChitMate</span>
+                    <span className="logo-gradient">SLG Chit Funds</span>
                 </div>
                 <div className="nav-menu">
                     <a href="/" className={`nav-item ${activePage === '/' ? 'active' : ''}`}>Home</a>

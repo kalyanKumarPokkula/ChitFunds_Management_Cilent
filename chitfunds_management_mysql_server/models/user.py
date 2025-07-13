@@ -13,7 +13,7 @@ class User(Base):
 
     user_id = Column(String(36), primary_key=True)
     full_name = Column(String(255), nullable=False)
-    email = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=True)
     password = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=False)
     aadhaar_number = Column(String(12), nullable=True)

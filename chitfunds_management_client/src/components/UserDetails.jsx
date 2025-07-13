@@ -36,7 +36,7 @@ const UserDetails = ({ user, status = 'Active' }) => {
 					<i className="fas fa-envelope"></i>
 					<div>
 						<span className="info-label">Email</span>
-						<span className="info-value">{email}</span>
+						<span className="info-value">{email ? email : 'Email not provided'}</span>
 					</div>
 				</div>
 
