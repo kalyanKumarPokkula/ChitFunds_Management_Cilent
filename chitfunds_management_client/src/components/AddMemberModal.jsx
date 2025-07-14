@@ -10,7 +10,7 @@ const memberSchema = z.object({
 	full_name: z
 		.string()
 		.min(3, { message: 'Full name must be at least 3 characters' }),
-	email: z.string().email({ message: 'Please enter a valid email address' }),
+	email: z.string().email({ message: 'Please enter a valid email address' }).or(z.literal('')).optional(),
 	phone: z
 		.string()
 		.min(10, { message: 'Phone number must be at least 10 digits' })
@@ -30,12 +30,12 @@ const memberSchema = z.object({
 		.optional()
 		.or(z.literal('')),
 	address: z.string().min(5, { message: 'Address is required' }),
-	city: z.string().min(2, { message: 'City is required' }),
-	state: z.string().min(2, { message: 'State is required' }),
+	city: z.string().min(2, { message: 'City is required' }).or(z.literal('')).optional(),
+	state: z.string().min(2, { message: 'State is required' }).or(z.literal('')).optional(),
 	pincode: z
 		.string()
 		.min(6, { message: 'Pincode must be at least 6 digits' })
-		.regex(/^\d+$/, { message: 'Pincode must contain only digits' }),
+		.regex(/^\d+$/, { message: 'Pincode must contain only digits' }).or(z.literal('')).optional(),
 	role: z.enum(['user', 'admin'], { 
 		message: 'Role must be either "user" or "admin"' 
 	}),
@@ -195,7 +195,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 							value={formData.email}
 							onChange={handleChange}
 							placeholder="Enter email address"
-							required
 						/>
 						{errors.email && (
 							<span className="error-message">{errors.email}</span>

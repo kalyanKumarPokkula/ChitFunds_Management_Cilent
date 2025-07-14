@@ -77,6 +77,7 @@ def get_users():
         users_query = text("""
             SELECT user_id, full_name, phone
             FROM users
+            ORDER BY full_name ASC
         """)
         
         result = db.execute(users_query)
@@ -97,6 +98,7 @@ def get_members():
             LEFT JOIN chit_members cm ON u.user_id = cm.user_id
             LEFT JOIN chit_groups cg ON cm.chit_group_id = cg.chit_group_id AND cg.status = 'active'
             GROUP BY u.user_id, u.full_name, u.email, u.phone
+            ORDER BY u.full_name ASC
         """)
         
         result = db.execute(sql)

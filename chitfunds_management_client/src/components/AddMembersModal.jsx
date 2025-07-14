@@ -46,18 +46,24 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 	};
 
 	const handleSearchChange = (e) => {
-		const query = e.target.value.toLowerCase();
-		setSearchQuery(query);
+	const query = e.target.value.toLowerCase();
+	setSearchQuery(query);
 
-		const filtered = users.filter(
-			(user) =>
-				user.full_name.toLowerCase().includes(query) ||
-				user.email.toLowerCase().includes(query) ||
-				user.phone.includes(query)
+	const filtered = users.filter((user) => {
+		const fullName = user.full_name?.toLowerCase() || '';
+		const email = user.email?.toLowerCase() || '';
+		const phone = user.phone || '';
+
+		return (
+			fullName.includes(query) ||
+			email.includes(query) ||
+			phone.includes(query)
 		);
+	});
 
-		setFilteredUsers(filtered);
-	};
+	setFilteredUsers(filtered);
+};
+
 
 	const handleUserSelect = (userId) => {
 		setSelectedUsers((prevSelected) => {
@@ -87,8 +93,6 @@ const AddMembersModal = ({ isOpen, onClose, chitId, onSuccess }) => {
 
 		try {
 			setIsSubmitting(true);
-
-			print(selectedUsers, "inside the add chit members")
 
 			const payload = {
 				chit_group_id: chitId,

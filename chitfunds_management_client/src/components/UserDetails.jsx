@@ -6,7 +6,15 @@ const UserDetails = ({ user, status = 'Active' }) => {
 
 	const { full_name, phone, email, address, city, state, pincode } = user;
 
-	const fullAddress = `${address}, ${city}, ${state} ${pincode}`;
+
+	const cleanPart = (val) => val && val !== 'nan' ? val : '';
+
+	const fullAddress = [
+	cleanPart(address),
+	cleanPart(city),
+	`${cleanPart(state)} ${cleanPart(pincode)}`.trim()
+	].filter(Boolean).join(', ');
+
 
 	return (
 		<div className="user-details-container">
