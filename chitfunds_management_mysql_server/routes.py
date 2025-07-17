@@ -27,7 +27,8 @@ from users import (
     get_payments,
     get_payment_details,
     delete_chit_member,
-    get_admin_by_id
+    get_admin_by_id,
+    get_chitgroups_unpaid_list
 )
 from auth import token_required
 
@@ -333,6 +334,16 @@ def register_routes(app):
             payment_id = request.args.get("payment_id")
             user_name = request.args.get("user_name")
             response = get_payment_details(payment_id, user_name)
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route("/get_chit_groups_unpaid_list", methods=["GET"])
+    def get_chitgroups_unpaid():
+        try:
+            
+            response = get_chitgroups_unpaid_list()
 
             return jsonify(response), 200
         except Exception as e:

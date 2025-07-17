@@ -434,7 +434,7 @@ def get_current_month_payment_stats():
         overdue_query = text("""
             SELECT total_amount, paid_amount
             FROM installments
-            WHERE status = 'unpaid'
+            WHERE status in ('unpaid', 'partial') 
         """)
         overdue_rows = db.execute(overdue_query).mappings().all()
 
@@ -1123,3 +1123,61 @@ def deactivate_user(user_id):
         return {"error": str(e)}
     finally:
         db.close()
+
+
+def get_chitgroups_unpaid_list():
+    db = get_db()
+    try:
+        # --- Dashboard Summary ---
+        dashboard = {}
+
+        unpaid_query = text("""
+            SELECT COALESCE(SUM(total_amount - paid_amount), 0) AS total_unpaid_amount
+            FROM installments
+            WHERE status != 'paid'
+        """)
+        dashboard["total_unpaid_amount"] = float(db.execute(unpaid_query).scalar() or 0)
+
+        active_chits_query = text("""
+            SELECT COUNT(*) AS total_active_chits
+            FROM chit_groups
+            WHERE status = 'active'
+        """)
+        dashboard["total_active_chits"] = int(db.execute(active_chits_query).scalar() or 0)
+
+        unpaid_members_query = text("""
+            SELECT COUNT(DISTINCT chit_member_id) AS total_unpaid_members
+            FROM installments
+            WHERE status != 'paid'
+        """)
+        dashboard["total_unpaid_members"] = int(db.execute(unpaid_members_query).scalar() or 0)
+
+        # --- Chit Group Summary ---
+        chit_group_query = text("""
+            SELECT 
+                cg.chit_name,
+                cg.chit_amount AS total_amount,
+                cg.monthly_installment,
+                COALESCE(SUM(i.total_amount - i.paid_amount), 0) AS unpaid_amount,
+                COUNT(DISTINCT CASE WHEN i.status != 'paid' THEN cm.chit_member_id END) AS unpaid_members,
+                COUNT(DISTINCT cm.chit_member_id) AS total_members
+            FROM chit_groups cg
+            JOIN chit_members cm ON cm.chit_group_id = cg.chit_group_id
+            LEFT JOIN installments i ON i.chit_member_id = cm.chit_member_id
+            WHERE cg.status = 'active'
+            GROUP BY cg.chit_group_id, cg.chit_name, cg.chit_amount, cg.monthly_installment
+        """)
+
+        chit_group_result = db.execute(chit_group_query)
+        chit_group_summary = [dict(row) for row in chit_group_result.mappings().all()]
+
+        return {
+            "dashboard_summary": dashboard,
+            "chit_group_summary": chit_group_summary
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        db.close()
+
