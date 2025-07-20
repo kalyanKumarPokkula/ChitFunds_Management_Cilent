@@ -3,8 +3,12 @@ import { apiRequest } from '../utils/api';
 import '../styles/PaymentStats.css';
 import "../styles/Home.css";
 import LoadingStatus from './ui/LoadingStatus';
+import { useNavigate } from 'react-router-dom';
 
 const PaymentStats = () => {
+
+	const navigate = useNavigate()
+
 	const [stats, setStats] = useState({
 		total_due_this_month: 0,
 		total_paid_this_month: 0,
@@ -115,11 +119,11 @@ const PaymentStats = () => {
 				</div>
 			</div>
 
-			<div className="metric-card due">
+			<div className="metric-card due" onClick={() => navigate('/unpaid-amounts')} style={{ cursor: 'pointer' }}>
 				<div className="metric-icon">
 					<i className="fas fa-exclamation-circle"></i>
 				</div>
-				<div className="metric-content">
+				<div className="metric-content" >
 					<h3>Unpaid Amount</h3>
 					<div className="metric-value">
 						{formatCurrency(stats.total_unpaid_this_month)}
@@ -139,7 +143,7 @@ const PaymentStats = () => {
                     <div className="progress-bar">
                         <div className="progress-fill" style={{ width: `${paidPercentage}%` }}></div>
                     </div>
-                                </div>
+        </div>
 
 	</>
 	);

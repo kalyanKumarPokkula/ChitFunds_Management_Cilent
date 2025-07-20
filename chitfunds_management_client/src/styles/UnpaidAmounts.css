@@ -1,0 +1,507 @@
+/* Font and background */
+.unpaid-amounts-page {
+  min-height: 100vh;
+  background: #f7f8fa;
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, 'Liberation Sans', 'Noto Sans', system-ui, sans-serif;
+  font-feature-settings: 'ss01' on, 'cv01' on;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.unpaid-amounts-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 2rem 1.5rem;
+}
+
+.unpaid-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 1.5rem;
+}
+
+.back-link {
+  background: none;
+  border: none;
+  color: #222;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 0 8px 0 0;
+  transition: color 0.2s;
+}
+.back-link:hover {
+  color: #e53935;
+}
+
+.center-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2.2rem;
+}
+.center-header h1 {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #18181b;
+  margin-bottom: 0.2rem;
+  text-align: center;
+}
+.center-header p {
+  font-size: 1.08rem;
+  color: #71717a;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+.unpaid-summary-cards {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  margin-bottom: 2.2rem;
+  width: 100%;
+}
+.chit-metrics-row {
+  display: flex;
+  gap: 1.2rem;
+  justify-content: space-between;
+  align-items: stretch;
+  width: 100%;
+}
+.metrics-left-align .chit-metric-card {
+  align-items: flex-start;
+  text-align: left;
+}
+.chit-metric-card {
+  flex: 1 1 0;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px 0 rgba(16, 30, 54, 0.06);
+  padding: 1.2rem 1.4rem 1.1rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  min-width: 0;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.chit-metric-card.unpaid {
+  background: #fff5f5;
+}
+.chit-metric-card.members {
+  background: #fff7ed;
+}
+.chit-metric-card.date {
+  background: #f1f6fd;
+}
+.chit-metric-label {
+  font-size: 1.01rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.chit-metric-card.unpaid .chit-metric-label,
+.chit-metric-card.unpaid .chit-metric-value {
+  color: #c62828;
+}
+.chit-metric-card.members .chit-metric-label,
+.chit-metric-card.members .chit-metric-value {
+  color: #b45309;
+}
+.chit-metric-card.date .chit-metric-label,
+.chit-metric-card.date .chit-metric-value {
+  color: #174fc1;
+}
+.chit-metric-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+}
+.chit-metric-icon {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+.chit-metric-card.unpaid .chit-metric-icon {
+  background: #ffeaea;
+  color: #c62828;
+}
+.chit-metric-card.members .chit-metric-icon {
+  background: #ffedd5;
+  color: #b45309;
+}
+.chit-metric-card.date .chit-metric-icon {
+  background: #e3edfd;
+  color: #174fc1;
+}
+@media (max-width: 900px) {
+  .chit-metrics-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .chit-metric-card {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.unpaid-summary-card.exact-match {
+  background: #e53935;
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(16, 30, 54, 0.06);
+  padding: 2.2rem 1.5rem 1.7rem 1.5rem;
+  min-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.unpaid-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  width: 100%;
+}
+.unpaid-summary-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.unpaid-summary-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  opacity: 0.95;
+  text-align: center;
+}
+.unpaid-summary-metric-group {
+  display: flex;
+  gap: 3.5rem;
+}
+.unpaid-summary-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.unpaid-summary-metric span:first-child {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.unpaid-summary-metric span:last-child {
+  font-size: 1.08rem;
+  font-weight: 500;
+  color: #fff;
+  opacity: 0.95;
+}
+
+.unpaid-chits-section.exact-match {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(16, 30, 54, 0.06);
+  padding: 2.2rem 0 1.7rem 0;
+}
+.unpaid-chits-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 32px;
+  margin-bottom: 1.1rem;
+}
+.unpaid-chits-header .dot {
+  width: 10px;
+  height: 28px;
+  background: #2563eb;
+  border-radius: 6px;
+  display: inline-block;
+}
+.unpaid-chits-header h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #18181b;
+  margin: 0;
+}
+
+.unpaid-chits-table-wrapper {
+  overflow-x: auto;
+  padding: 0 24px;
+}
+.unpaid-chits-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: none;
+}
+.unpaid-chits-table th, .unpaid-chits-table td {
+  padding: 1rem 1.2rem;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 1.05rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.unpaid-chits-table th {
+  color: #23272e;
+  font-weight: 700;
+  background: none;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+.unpaid-chits-table td {
+  font-weight: 500;
+  color: #23272e;
+  background: #fff;
+}
+.unpaid-chits-table tr {
+  background: #fff;
+}
+.unpaid-chits-table tr.unpaid-row-yellow td,
+.unpaid-chits-table tr.unpaid-row-orange td,
+.unpaid-chits-table tr.unpaid-row-red td {
+  background: #fff;
+}
+.unpaid-chits-table td.actions-cell {
+  text-align: center;
+}
+.unpaid-chits-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.chit-name {
+  font-weight: 700;
+  color: #18181b;
+  font-size: 1.08rem;
+}
+.chit-name-link {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  color: #23272e;
+  font-size: 1.01rem;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s, text-decoration 0.15s;
+  display: inline-block;
+}
+.chit-name-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.chit-status.active {
+  color: #10b981;
+  font-size: 1.01rem;
+  font-weight: 600;
+}
+.unpaid-amount {
+  color: #e53935;
+  font-weight: 800;
+}
+.unpaid-members-badge {
+  background: none;
+  color: #f59e0b;
+  font-size: 1.01rem;
+  font-weight: 700;
+  border-radius: 16px;
+  padding: 4px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  border: none;
+}
+.unpaid-status-red {
+  color: #e53935 !important;
+  background: #fee2e2;
+}
+.unpaid-status-orange {
+  color: #f59e0b !important;
+  background: #fff7ed;
+}
+.unpaid-status-yellow {
+  color: #eab308 !important;
+  background: #fef9c3;
+}
+.unpaid-members-badge i {
+  font-size: 1.1em;
+  margin-right: 0.3em;
+}
+.next-due-date {
+  color: #71717a;
+  font-size: 1.08rem;
+}
+
+.loading, .error {
+  text-align: center;
+  color: #7b7b93;
+  font-size: 1.1rem;
+  padding: 32px 0;
+}
+
+.summary-row-gradient {
+  background: linear-gradient(90deg, #f85757 0%, #e53935 100%);
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(16, 30, 54, 0.06);
+  padding: 2.2rem 0 1.7rem 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+.unpaid-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  align-items: center;
+  justify-items: center;
+  gap: 0;
+}
+.unpaid-summary-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.unpaid-summary-value {
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.unpaid-summary-label {
+  font-size: 1.08rem;
+  font-weight: 500;
+  opacity: 0.95;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .summary-row-gradient {
+    padding: 1.2rem 0.2rem 1rem 0.2rem;
+  }
+  .unpaid-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .unpaid-amounts-container {
+    padding: 16px 0 32px 0;
+  }
+  .unpaid-summary-card.exact-match {
+    min-width: 0;
+    width: 100%;
+    padding: 1.2rem 0.5rem 1rem 0.5rem;
+  }
+  .unpaid-chits-section.exact-match {
+    padding: 1.2rem 0 1rem 0;
+  }
+  .unpaid-chits-header {
+    margin-left: 12px;
+  }
+  .unpaid-chits-table-wrapper {
+    padding: 0 4px;
+  }
+  .unpaid-chits-table th, .unpaid-chits-table td {
+    padding: 0.7rem 0.4rem;
+    font-size: 0.97rem;
+  }
+} 
+
+.view-btn-black {
+  background: #181818;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  padding: 0.6em 1.6em;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.view-btn-black:hover, .view-btn-black:focus {
+  background: #174fc1;
+  color: #fff;
+} 
+
+.unpaid-row-red {
+  background: #fff5f5;
+  color: #c62828;
+}
+.unpaid-row-orange {
+  background: #fff7ed;
+  color: #b45309;
+}
+.unpaid-row-yellow {
+  background: #fffde7;
+  color: #b59b09;
+}
+.unpaid-due-amount {
+  color: #e53935;
+  font-weight: 800;
+}
+.unpaid-status-red {
+  color: #e53935;
+  font-weight: 700;
+}
+.unpaid-status-orange {
+  color: #f59e0b;
+  font-weight: 700;
+}
+.unpaid-status-yellow {
+  color: #eab308;
+  font-weight: 700;
+} 
+
+.mark-paid-btn {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 0.5rem 1.2rem;
+  min-width: 90px;
+  transition: background 0.18s;
+  box-shadow: none;
+}
+.mark-paid-btn:hover, .mark-paid-btn:focus {
+  background: #16a34a;
+} 
+
+.member-link {
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.15s;
+  text-decoration: none;
+}
+.member-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+} 

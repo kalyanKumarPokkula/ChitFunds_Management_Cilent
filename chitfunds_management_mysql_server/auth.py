@@ -9,7 +9,7 @@ from models.user import User
 import uuid
 
 # Get secret key from environment variable or use a default for development
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'chitfunds_secret_key')
+SECRET_KEY = "chitfunds_secret_key"
 ALGORITHM = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 

@@ -1155,6 +1155,7 @@ def get_chitgroups_unpaid_list():
         # --- Chit Group Summary ---
         chit_group_query = text("""
             SELECT 
+                cg.chit_group_id,
                 cg.chit_name,
                 cg.chit_amount AS total_amount,
                 cg.monthly_installment,
@@ -1181,3 +1182,44 @@ def get_chitgroups_unpaid_list():
     finally:
         db.close()
 
+
+def get_particular_chitgroup_unpaid_installments(chit_group_id):
+
+    db = get_db()
+    try:
+        # --- Chit Group Installments ---
+        query = text("""
+            SELECT
+                cg.chit_name,
+                u.user_id,
+                u.phone,
+                u.full_name,
+                cm.chit_member_id,
+                cg.chit_group_id,
+                SUM(CASE WHEN i.status != 'paid' THEN (i.total_amount - i.paid_amount) ELSE 0 END) AS due_amount,
+                COUNT(CASE WHEN i.status != 'paid' THEN 1 END) AS months_due
+            FROM chit_groups cg
+            JOIN chit_members cm ON cm.chit_group_id = cg.chit_group_id
+            JOIN users u ON u.user_id = cm.user_id
+            LEFT JOIN installments i ON i.chit_member_id = cm.chit_member_id
+            WHERE cg.chit_group_id = :chit_group_id
+              AND cg.status = 'active'
+              AND i.status != 'paid'
+            GROUP BY cg.chit_name, u.phone, u.full_name, cm.chit_member_id, cg.chit_group_id
+            HAVING due_amount > 0
+        """)
+
+        result = db.execute(query, {"chit_group_id": chit_group_id})
+        unpaid_details = [dict(row) for row in result.mappings().all()]
+
+        return {
+            "unpaid_member_details": unpaid_details
+        }
+
+
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+    

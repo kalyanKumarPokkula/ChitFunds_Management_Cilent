@@ -7,6 +7,8 @@ import Chits from './pages/Chits';
 import ChitDetails from './pages/ChitDetails';
 import Payments from './pages/Payments';
 import Login from './pages/Login';
+import UnpaidAmounts from './pages/UnpaidAmounts';
+import UnpaidInstallments from './pages/UnpaidInstallments';
 import './App.css';
 
 // Protected Route component
@@ -65,6 +67,18 @@ function App() {
 				<Route path="/payments" element={
 					<ProtectedRoute>
 						<Payments />
+					</ProtectedRoute>
+				} />
+
+				<Route path="/unpaid-amounts" element={
+					<ProtectedRoute>
+						<UnpaidAmounts />
+					</ProtectedRoute>
+				} />
+
+				<Route path="/unpaid-installments/:chitGroupId" element={
+					<ProtectedRoute>
+						<UnpaidInstallments />
 					</ProtectedRoute>
 				} />
 				

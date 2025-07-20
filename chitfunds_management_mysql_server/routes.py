@@ -28,7 +28,7 @@ from users import (
     get_payment_details,
     delete_chit_member,
     get_admin_by_id,
-    get_chitgroups_unpaid_list
+    get_chitgroups_unpaid_list,get_particular_chitgroup_unpaid_installments
 )
 from auth import token_required
 
@@ -376,6 +376,22 @@ def register_routes(app):
                 return jsonify({"error": "chit_member_id are required"}), 400
             
             response = get_admin_by_id(data)
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+
+    @app.route('/get-single-chitgroup-unpaid-installments-details', methods=['GET'])
+    # @token_required
+    def get_single_unpaid_installments():
+        try:
+            data = request.args.get("chit_group_id")
+            print(data)
+            
+            if not data:
+                return jsonify({"error": "chit_member_id are required"}), 400
+            
+            response = get_particular_chitgroup_unpaid_installments(data)
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
