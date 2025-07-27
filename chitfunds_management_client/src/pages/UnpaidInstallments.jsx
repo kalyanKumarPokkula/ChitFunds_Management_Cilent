@@ -91,6 +91,7 @@ const UnpaidInstallments = () => {
             <table className="unpaid-chits-table">
               <thead>
                 <tr>
+                  <th>Token-N</th>
                   <th>Member Name</th>
                   <th>Contact</th>
                   <th>Amount Due</th>
@@ -123,6 +124,7 @@ const UnpaidInstallments = () => {
                     }
                     return (
                       <tr key={idx} className={rowClass} style={{cursor:'pointer'}} onClick={() => { setSelectedMember(m); setModalOpen(true); }}>
+                        <td>{m.token}</td>
                         <td>
                           <span
                             className="member-link"

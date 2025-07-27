@@ -1,6 +1,7 @@
 from db import get_db
 from models.chit_group import ChitGroup
 from models.chit_member import ChitMember
+from models.monthlyprojectiontemplate import MonthlyProjectionsTemplate
 from models.user import User
 from models.projection import MonthlyProjection
 from models.installment import Installment
@@ -8,7 +9,7 @@ from models.payment_installment import PaymentInstallment
 import pandas as pd
 from flask import jsonify
 import uuid
-from sqlalchemy import text
+from sqlalchemy import func, text
 from datetime import datetime, timedelta
 
 
@@ -60,8 +61,28 @@ def add_chit(data):
     """
     db = get_db()
     try:
-        chit_group_id = str(uuid.uuid4().hex[:12])
+        # chit_group_id = str(uuid.uuid4().hex[:12])
         
+        # new_chit_group = ChitGroup(
+        #     chit_group_id=chit_group_id,
+        #     chit_name=str(data.get("chit_name", "")),
+        #     chit_amount=float(data.get("chit_amount", 0)),
+        #     duration_months=int(data.get("duration_months", 0)),
+        #     total_members=int(data.get("total_members", 0)),
+        #     monthly_installment=float(data.get("monthly_installment", 0)),
+        #     status=str(data.get("status", "")),
+        #     start_date=str(data.get("start_date", "")),
+        #     end_date=str(data.get("end_date", ""))
+        # )
+        
+        # db.add(new_chit_group)
+        # db.commit()
+        
+        # return {"message": "Chit group added successfully", "chit_group_id": chit_group_id}
+
+        chit_group_id = str(uuid.uuid4().hex[:12])
+
+        # Step 1: Create new ChitGroup
         new_chit_group = ChitGroup(
             chit_group_id=chit_group_id,
             chit_name=str(data.get("chit_name", "")),
@@ -73,10 +94,29 @@ def add_chit(data):
             start_date=str(data.get("start_date", "")),
             end_date=str(data.get("end_date", ""))
         )
-        
         db.add(new_chit_group)
+
+        # Step 2: Optional - Add monthly projections from template
+        projection_template_id = data.get("projectionTemplate_id")
+        if projection_template_id:
+            template_rows = db.query(MonthlyProjectionsTemplate).filter_by(
+                projectionTemplate_id=projection_template_id
+            ).all()
+
+            for row in template_rows:
+                monthly_projection = MonthlyProjection(
+                    monthly_projections_id=str(uuid.uuid4().hex[:16]),
+                    chit_group_id=chit_group_id,
+                    month_number=row.month_number,
+                    monthly_subcription=row.monthly_subscription,
+                    total_payout=row.total_payout,
+                    user_id=None,
+                    lifted_date=None,
+                    note=None,
+                )
+                db.add(monthly_projection)
+
         db.commit()
-        
         return {"message": "Chit group added successfully", "chit_group_id": chit_group_id}
     except Exception as e:
         db.rollback()
@@ -104,6 +144,9 @@ def add_members(data):
         
         # Verify chit group exists
         chit_group = db.query(ChitGroup).filter(ChitGroup.chit_group_id == chit_group_id).first()
+
+        next_token = (db.query(func.max(ChitMember.token)).filter_by(chit_group_id=chit_group_id).scalar() or 0) + 1
+ 
         if not chit_group:
             return {"message": "Chit group not found"}
         
@@ -125,9 +168,11 @@ def add_members(data):
             new_member = ChitMember(
                 chit_member_id=chit_member_id,
                 chit_group_id=chit_group_id,
-                user_id=user_id
+                user_id=user_id,
+                token=next_token
             )
             db.add(new_member)
+            next_token += 1
             
             # Create installments for this member
             # start_date = datetime.strptime(chit_group.start_date, "%Y-%m-%d") if chit_group.start_date else datetime.now()
@@ -521,9 +566,10 @@ def get_users_by_chit_group(chit_group_id):
     try:
         # Step 1: Get chit members in the given group
         query = text("""
-            SELECT chit_member_id, user_id, chit_group_id
+            SELECT chit_member_id, user_id, chit_group_id, token
             FROM chit_members
             WHERE chit_group_id = :chit_group_id
+            ORDER BY token ASC
         """)
         result = db.execute(query, {"chit_group_id": chit_group_id})
         matched_members = [dict(row._mapping) for row in result]
@@ -590,6 +636,7 @@ def get_users_by_chit_group(chit_group_id):
                 "user_id": uid,
                 "chit_member_id": cm_id,
                 "chit_group_id": cm["chit_group_id"],
+                "token": cm["token"],
                 "full_name": user_info.get("full_name", ""),
                 "phone": user_info.get("phone", ""),
                 "month_number": projection["month_number"],

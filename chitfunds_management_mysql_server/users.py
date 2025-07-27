@@ -2,6 +2,8 @@ import enum
 
 from flask import jsonify
 from db import get_db
+from models import ProjectionTemplate
+from models.monthlyprojectiontemplate import MonthlyProjectionsTemplate
 from models.payment_installment import PaymentInstallment
 from models.user import User
 from models.chit_member import ChitMember
@@ -63,6 +65,67 @@ def create_new_user(data):
         raise e
     finally:
         db.close()
+
+def update_user_by_id(data):
+    if not data:
+        return {"message": "No data provided to update the user."}
+
+    db = get_db()
+    try:
+        user_id = data.get("user_id")
+        if not user_id:
+            return {"message": "User ID is required to update the user."}
+
+        user = db.query(User).filter(User.user_id == user_id).first()
+        if not user:
+            return {"message": f"No user found with user_id: {user_id}"}
+
+        updated_fields = []
+
+        # Only update if value is different
+        def update_field(field, new_value, cast_to_str=True):
+            if new_value is not None:
+                current_value = getattr(user, field)
+                if cast_to_str:
+                    new_value = str(new_value)
+                    current_value = str(current_value)
+                if new_value != current_value:
+                    setattr(user, field, new_value)
+                    updated_fields.append(field)
+
+        update_field("full_name", data.get("full_name"))
+        update_field("email", data.get("email"))
+        update_field("phone", data.get("phone"))
+        update_field("aadhaar_number", data.get("aadhaar_number"))
+        update_field("pan_number", data.get("pan_number"))
+        update_field("address", data.get("address"))
+        update_field("city", data.get("city"))
+        update_field("state", data.get("state"))
+        update_field("pincode", data.get("pincode"))
+        update_field("role", data.get("role"), cast_to_str=False)
+        update_field("is_verified", data.get("is_verified"), cast_to_str=False)
+
+
+        if updated_fields:
+            db.commit()
+            return {
+                "message": f"User with user_id {user_id} updated successfully.",
+                "updated_fields": updated_fields
+            }
+        else:
+            return {
+                "message": f"No changes detected for user with user_id {user_id}."
+            }
+
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+
+
+
+
 
 def get_users():
     """
@@ -168,7 +231,7 @@ def get_users_chit_details(user_id):
             return {}
 
         user = dict(result._mapping)
-        user_info_fields = ["full_name", "email", "phone", "address", "state", "city", "user_id", "pincode", "is_verified"]
+        user_info_fields = ["full_name", "email", "phone", "address", "state", "city", "user_id", "pincode", "is_verified", "role"]
         user_information = {key: user[key] for key in user_info_fields}
 
         print(user_information)
@@ -995,44 +1058,42 @@ def delete_chit_member(chit_member_id):
     db = get_db()
     try:
         # Step 1: Fetch chit member
-        print(chit_member_id)
         chit_member = db.query(ChitMember).filter(
             ChitMember.chit_member_id == chit_member_id
         ).first()
         if not chit_member:
-            return {"message": "Chit member not found"}
-        
+            return {"message": "Chit member not found", "status_code": 404}
 
         # Step 2: Get chit_group to find start_date
         chit_group = db.query(ChitGroup).filter(
             ChitGroup.chit_group_id == chit_member.chit_group_id
         ).first()
         if not chit_group or not chit_group.start_date:
-            return {"message": "Chit group or start date not found"}
-        
+            return {"message": "Chit group or start date not found", "status_code": 404}
 
         # Step 3: Calculate month difference
         today = datetime.today()
         start_date = chit_group.start_date
         current_month = ((today.year - start_date.year) * 12) + (today.month - start_date.month) + 1
-    
 
         if current_month > 1:
-            return {"message": "Cannot delete: More than 1 month has passed since group start"}
+            return {
+                "message": "Cannot delete: More than 1 month has passed since group start",
+                "status_code": 403
+            }
 
         # Step 4: Fetch member's installments
         installments = db.query(Installment).filter(
             Installment.chit_member_id == chit_member_id
         ).all()
 
-        for i in installments:
-            print({k: v for k, v in i.__dict__.items() if not k.startswith('_')})
-
         # Step 5: Check for PAID status
         for inst in installments:
-            status = inst.status
-            if status.value == 'paid':
-                return {"message": "Cannot delete: Member has paid the installment"}
+            if inst.status.value == 'paid':
+                return {
+                    "message": "Cannot delete: Member has paid the installment",
+                    "status_code": 403
+                }
 
         # Step 6: Delete unpaid/partial installments and related payment_installments
         for inst in installments:
@@ -1051,11 +1112,11 @@ def delete_chit_member(chit_member_id):
         ).delete()
 
         db.commit()
-        return {"message": "Chit member deleted successfully"}
+        return {"message": "Chit member deleted successfully", "status_code": 200}
 
     except Exception as e:
         db.rollback()
-        raise e
+        return {"message": f"Internal server error: {str(e)}", "status_code": 500}
     finally:
         db.close()
 
@@ -1157,6 +1218,7 @@ def get_chitgroups_unpaid_list():
             SELECT 
                 cg.chit_group_id,
                 cg.chit_name,
+                DATE_FORMAT(cg.start_date, '%d - %M - %y') AS start_date,
                 cg.chit_amount AS total_amount,
                 cg.monthly_installment,
                 COALESCE(SUM(i.total_amount - i.paid_amount), 0) AS unpaid_amount,
@@ -1167,6 +1229,8 @@ def get_chitgroups_unpaid_list():
             LEFT JOIN installments i ON i.chit_member_id = cm.chit_member_id
             WHERE cg.status = 'active'
             GROUP BY cg.chit_group_id, cg.chit_name, cg.chit_amount, cg.monthly_installment
+            HAVING unpaid_amount > 0
+            ORDER BY cg.chit_name ASC
         """)
 
         chit_group_result = db.execute(chit_group_query)
@@ -1194,6 +1258,7 @@ def get_particular_chitgroup_unpaid_installments(chit_group_id):
                 u.user_id,
                 u.phone,
                 u.full_name,
+                cm.token,
                 cm.chit_member_id,
                 cg.chit_group_id,
                 SUM(CASE WHEN i.status != 'paid' THEN (i.total_amount - i.paid_amount) ELSE 0 END) AS due_amount,
@@ -1207,6 +1272,8 @@ def get_particular_chitgroup_unpaid_installments(chit_group_id):
               AND i.status != 'paid'
             GROUP BY cg.chit_name, u.phone, u.full_name, cm.chit_member_id, cg.chit_group_id
             HAVING due_amount > 0
+            ORDER BY cm.token ASC
+            
         """)
 
         result = db.execute(query, {"chit_group_id": chit_group_id})
@@ -1223,3 +1290,198 @@ def get_particular_chitgroup_unpaid_installments(chit_group_id):
         db.close()
 
     
+def get_user_details(user_id):
+    db = get_db()
+    try:
+        # Fetch admin by ID and ensure the user is active
+        admin = db.query(User).filter(
+            User.user_id == user_id,
+        ).first()
+
+        if not admin:
+            return {"message": "User not found"}
+
+        # Prepare admin data as a dictionary
+        return {
+            "user_id": admin.user_id,
+            "full_name": admin.full_name,
+            "email": admin.email,
+            "phone_number": admin.phone,
+            "is_active": admin.is_active,
+            "address": admin.address,
+            "city" : admin.city,
+            "state" : admin.state,
+            "pincode" : admin.pincode
+        }
+
+    finally:
+        db.close()
+
+
+
+def create_projection_template(data):
+    db = get_db()
+    try:
+        projection_template = ProjectionTemplate(
+            projectionTemplate_id=str(uuid.uuid4().hex[:8]),
+            name=data["name"],
+            total_value=float(data["total_value"]),
+            monthly_subscription=float(data["monthly"]),
+            months=int(data["duration"]),
+        )
+        db.add(projection_template)
+        db.commit()
+
+        for item in data.get("projections", []):
+            monthly_projection = MonthlyProjectionsTemplate(
+                monthlyprojection_id=str(uuid.uuid4().hex[:36]),
+                projectionTemplate_id=projection_template.projectionTemplate_id,
+                month_number=item["month"],
+                monthly_subscription=item["subscription"],
+                total_payout=item["payout"],
+            )
+            db.add(monthly_projection)
+
+        db.commit()
+        return {
+            "message": "Projection template and monthly projections created successfully",
+            "projectionTemplateId": projection_template.projectionTemplate_id
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+
+
+def get_all_projection_templates():
+    db = get_db()
+    try:
+        templates = db.query(ProjectionTemplate).all()
+
+        result = []
+        for template in templates:
+            monthly_projections = []
+            for mp in template.monthly_projection_template:
+                monthly_projections.append({
+                    "monthlyprojection_id": mp.monthlyprojection_id,
+                    "projectionTemplate_id": mp.projectionTemplate_id,
+                    "month_number": mp.month_number,
+                    "total_payout": mp.total_payout,
+                    "monthly_subscription": mp.monthly_subscription,
+                })
+
+            result.append({
+                "projectionTemplate_id": template.projectionTemplate_id,
+                "name": template.name,
+                "total_value": template.total_value,
+                "monthly_subscription": template.monthly_subscription,
+                "months": template.months,
+                "monthly_projections": monthly_projections
+            })
+
+        return {"templates": result}
+
+    except Exception as e:
+        raise e
+    finally:
+        db.close()
+
+
+def delete_projection_template(template_id):
+    db = get_db()
+    try:
+        # Step 1: Fetch the template
+        template = db.query(ProjectionTemplate).filter_by(projectionTemplate_id=template_id).first()
+        if not template:
+            return {"message": "Projection template not found."}
+
+        # Step 2: Delete related monthly projections
+        db.query(MonthlyProjectionsTemplate).filter_by(projectionTemplate_id=template_id).delete()
+
+        # Step 3: Delete the main projection template
+        db.delete(template)
+        db.commit()
+
+        return {"message": "Projection template and related monthly projections deleted successfully."}
+
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+
+
+
+def update_projection_template(data):
+    db = get_db()
+    try:
+        projection_id = data.get("projectionTemplate_id")
+        if not projection_id:
+            return {"error": "projectionTemplate_id is required"}, 400
+
+        # Fetch the template
+        template = db.query(ProjectionTemplate).filter_by(projectionTemplate_id=projection_id).first()
+        if not template:
+            return {"error": "Projection template not found"}, 404
+
+        # Partial update of template fields
+        if "name" in data:
+            template.name = data["name"]
+        if "total_value" in data:
+            template.total_value = data["total_value"]
+        if "monthly_subscription" in data:
+            template.monthly_subscription = data["monthly_subscription"]
+        if "months" in data:
+            template.months = data["months"]
+
+        # Optional: Replace monthly projections if provided
+        if "projections" in data:
+            # Delete old projections
+            db.query(MonthlyProjectionsTemplate).filter_by(projectionTemplate_id=projection_id).delete()
+
+            # Add new projections
+            for mp_data in data["projections"]:
+                new_mp = MonthlyProjectionsTemplate(
+                    monthlyprojection_id=str(uuid.uuid4().hex[:36]),
+                    projectionTemplate_id=projection_id,
+                    month_number=mp_data["month_number"],
+                    total_payout=mp_data["total_payout"],
+                    monthly_subscription=mp_data["monthly_subscription"]
+                )
+                db.add(new_mp)
+
+        db.commit()
+        return {"message": "Projection template updated successfully"}, 200
+
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}, 500
+    finally:
+        db.close()
+
+
+def get_projections_template_for_chitgroup():
+    db = get_db()
+    try:
+        templates = db.query(ProjectionTemplate).all()
+
+        # Convert each SQLAlchemy object to a dictionary
+        result = []
+        for t in templates:
+            result.append({
+                "projectionTemplate_id": t.projectionTemplate_id,
+                "name": t.name,
+                "total_value": t.total_value,
+                "months": t.months,
+                "monthly_subscription": t.monthly_subscription
+            })
+
+        return result  # return raw list of dicts
+
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        db.close()
+

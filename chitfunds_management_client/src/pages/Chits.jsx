@@ -6,6 +6,7 @@ import ActionButton from '../components/ActionButton';
 import ChitCard from '../components/ChitCard';
 import CreateChitModal from '../components/CreateChitModal';
 import LoadingStatus from '../components/ui/LoadingStatus';
+import TemplateModal from '../components/TemplateModal';
 import '../styles/Chits.css';
 
 const Chits = () => {
@@ -16,6 +17,7 @@ const Chits = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
 	useEffect(() => {
 		fetchChits();
@@ -88,6 +90,12 @@ const Chits = () => {
 					</div>
 					<div className="header-right">
 						<ActionButton
+							label="Template"
+							icon="file-alt"
+							variant="primary"
+							onClick={() => setIsTemplateModalOpen(true)}
+						/>
+						<ActionButton
 							label="Create New Scheme"
 							icon="plus"
 							variant="primary"
@@ -144,6 +152,11 @@ const Chits = () => {
 				isOpen={isModalOpen}
 				onClose={() => setIsModalOpen(false)}
 				onSuccess={handleCreateSuccess}
+			/>
+
+			<TemplateModal
+				isOpen={isTemplateModalOpen}
+				onClose={() => setIsTemplateModalOpen(false)}
 			/>
 		</div>
 	);

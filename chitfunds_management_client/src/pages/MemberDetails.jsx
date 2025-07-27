@@ -6,6 +6,7 @@ import UserDetails from '../components/UserDetails';
 import ChitFundSummary from '../components/ChitFundSummary';
 import ActiveChits from '../components/ActiveChits';
 import LoadingStatus from '../components/ui/LoadingStatus';
+import UpdateMemberModal from '../components/UpdateMemberModal';
 import '../styles/MemberDetails.css';
 
 const MemberDetails = () => {
@@ -13,6 +14,7 @@ const MemberDetails = () => {
 	const [memberData, setMemberData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
 	useEffect(() => {
 		fetchMemberDetails();
@@ -53,15 +55,24 @@ const MemberDetails = () => {
 		}
 	};
 
+	const handleEditSuccess = () => {
+		fetchMemberDetails();
+	};
+
 	return (
 		<div className="member-details-page">
 			<Navbar />
 
 			<div className="page-container">
-				<div className="back-link">
-					<Link to="/members">
-						<i className="fas fa-arrow-left"></i> Back to Members
-					</Link>
+				<div className="back-link-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem' }}>
+					<div className="back-link">
+						<Link to="/members">
+							<i className="fas fa-arrow-left"></i> Back to Members
+						</Link>
+					</div>
+					<button className="edit-member-btn" onClick={() => setIsEditModalOpen(true)}>
+						<i className="fas fa-edit"></i> Edit Member
+					</button>
 				</div>
 
 				<h1>Member Details</h1>
@@ -90,6 +101,12 @@ const MemberDetails = () => {
 
 						<ActiveChits
 							currentMonthPayments={memberData.current_month_payment}
+						/>
+						<UpdateMemberModal
+							isOpen={isEditModalOpen}
+							onClose={() => setIsEditModalOpen(false)}
+							onSuccess={handleEditSuccess}
+							memberData={memberData.user}
 						/>
 					</div>
 				) : (

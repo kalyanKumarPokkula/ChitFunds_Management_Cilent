@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, String, Text, DateTime, Boolean, Enum,ForeignKey, func
+from sqlalchemy import Column, String, Text,Integer, DateTime, Boolean, Enum,ForeignKey, func
 from sqlalchemy.orm import relationship
 from base import Base
 
@@ -9,6 +9,7 @@ class ChitMember(Base):
     chit_member_id = Column(String(36), primary_key=True)
     chit_group_id = Column(String(36), ForeignKey("chit_groups.chit_group_id"), nullable=False)
     user_id = Column(String(36), ForeignKey("users.user_id"), nullable=False)
+    token = Column(Integer, nullable=False)  # Just this line added
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     

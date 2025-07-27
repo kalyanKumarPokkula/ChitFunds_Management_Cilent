@@ -294,7 +294,7 @@
 }
 .chit-name-link {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  font-weight: 700;
+  font-weight: 00;
   color: #23272e;
   font-size: 1.01rem;
   text-align: center;
@@ -310,17 +310,17 @@
 .chit-status.active {
   color: #10b981;
   font-size: 1.01rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 .unpaid-amount {
   color: #e53935;
-  font-weight: 800;
+  font-weight: 700;
 }
 .unpaid-members-badge {
   background: none;
   color: #f59e0b;
   font-size: 1.01rem;
-  font-weight: 700;
+  font-weight: 00;
   border-radius: 16px;
   padding: 4px 14px;
   display: inline-flex;

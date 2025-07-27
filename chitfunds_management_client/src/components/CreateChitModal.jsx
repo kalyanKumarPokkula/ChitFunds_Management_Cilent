@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import ActionButton from './ActionButton';
 import Modal from './Modal';
@@ -42,10 +42,27 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 		start_date: '',
 		end_date: '',
 	});
+	const [templateOptions, setTemplateOptions] = useState([]);
+	const [selectedTemplate, setSelectedTemplate] = useState('');
 
 	const [errors, setErrors] = useState({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { showSuccess, showError } = useNotification();
+
+	useEffect(() => {
+		// Fetch projection templates for dropdown
+		const fetchTemplates = async () => {
+			try {
+				const response = await apiRequest('/get-projections-template');
+				if (!response.ok) throw new Error('Failed to fetch templates');
+				const data = await response.json();
+				setTemplateOptions(data);
+			} catch (err) {
+				showError(err.message || 'Error loading templates');
+			}
+		};
+		fetchTemplates();
+	}, [showError]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -143,6 +160,7 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 			duration_months: Number(formData.duration_months),
 			total_members: Number(formData.total_members),
 			monthly_installment: Number(formData.monthly_installment),
+			projectionTemplate_id: formData.projectionTemplate_id || undefined,
 		};
 
 		try {
@@ -181,6 +199,29 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 			showError('Network error. Please try again.');
 		} finally {
 			setIsSubmitting(false);
+		}
+	};
+
+	// When a template is selected, update form fields
+	const handleTemplateSelect = (e) => {
+		const id = e.target.value;
+		setSelectedTemplate(id);
+		if (!id) {
+			setFormData(prev => {
+				const { projectionTemplate_id, ...rest } = prev;
+				return rest;
+			});
+			return;
+		}
+		const tpl = templateOptions.find(t => t.projectionTemplate_id === id);
+		if (tpl) {
+			setFormData(prev => ({
+				...prev,
+				chit_amount: tpl.total_value,
+				duration_months: tpl.months,
+				monthly_installment: tpl.monthly_subscription,
+				projectionTemplate_id: tpl.projectionTemplate_id,
+			}));
 		}
 	};
 
@@ -229,6 +270,22 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 						{errors.chit_name && (
 							<span className="error-message">{errors.chit_name}</span>
 						)}
+					</div>
+
+					<div className="form-group">
+						<label htmlFor="template_select">Projection Template</label>
+						<select
+							id="template_select"
+							value={selectedTemplate}
+							onChange={handleTemplateSelect}
+						>
+							<option value="">Create Projection After Chit Creation</option>
+							{templateOptions.map((tpl) => (
+								<option key={tpl.projectionTemplate_id} value={tpl.projectionTemplate_id}>
+									{tpl.name} (₹{tpl.total_value})
+								</option>
+							))}
+						</select>
 					</div>
 
 					<div className="form-group">
@@ -345,6 +402,8 @@ const CreateChitModal = ({ isOpen, onClose, onSuccess }) => {
 							<span className="error-message">{errors.end_date}</span>
 						)}
 					</div>
+
+				
 				</div>
 			</form>
 		</Modal>

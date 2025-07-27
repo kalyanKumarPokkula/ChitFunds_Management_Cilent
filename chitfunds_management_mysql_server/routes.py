@@ -13,7 +13,9 @@ from chit_groups import (
     add_members
 )
 from users import (
-    create_new_user, 
+    update_projection_template,
+    create_new_user,
+    get_all_projection_templates, 
     get_users_chit_details, 
     get_members, 
     get_current_month_payment_stats, 
@@ -28,7 +30,13 @@ from users import (
     get_payment_details,
     delete_chit_member,
     get_admin_by_id,
-    get_chitgroups_unpaid_list,get_particular_chitgroup_unpaid_installments
+    get_chitgroups_unpaid_list,
+    get_particular_chitgroup_unpaid_installments,
+    get_user_details,
+    update_user_by_id,
+    create_projection_template,
+    delete_projection_template,
+    get_projections_template_for_chitgroup
 )
 from auth import token_required
 
@@ -210,6 +218,18 @@ def register_routes(app):
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+    @app.route("/update-user-details", methods=['PATCH'])
+    @token_required
+    def update_user_details():
+        try:
+            data = request.get_json()
+            print(type(data), data)  # Debugging
+            if not data:  
+                return jsonify({"error": "Invalid format, expected a list under 'data'"}), 400
+            response = update_user_by_id(data)
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @app.route('/get_users', methods=['GET'])
     @token_required
@@ -350,7 +370,7 @@ def register_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route("/delete-chit-member", methods=["DELETE"])
-    @token_required
+    # @token_required
     def remove_chit_member():
         try:
             data = request.args.get("chit_member_id")
@@ -360,7 +380,7 @@ def register_routes(app):
                 return jsonify({"error": "chit_member_id are required"}), 400
             
             response = delete_chit_member(data)
-            return jsonify(response), 200
+            return jsonify(response)
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
@@ -395,7 +415,79 @@ def register_routes(app):
             return jsonify(response), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+        
+    @app.route("/create-projection-template" , methods=['POST'])
+    @token_required
+    def projections_template():
+        try:
+            data = request.get_json()
+            print(data)
+            response = create_projection_template(data)
 
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route("/delete-projections-template" , methods=['DELETE'])
+    @token_required
+    def delete_the_projection_template():
+        try:
+
+            template_id = request.args.get("projectionTemplate_id")
+            response = delete_projection_template(template_id)
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route("/get-all-projections-template" , methods=['GET'])
+    # @token_required
+    def get_projections_template():
+        try:
+            response = get_all_projection_templates()
+
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route("/update-projection-template" , methods=["PUT"])
+    def update_projections():
+        try:
+            data = request.get_json()
+
+            print(data)
+
+            response = update_projection_template(data)
+
+            return jsonify(response) , 200
+        except Exception as e:
+            return jsonify({"error" : str(e)}), 500
+        
+    @app.route('/get-user-details', methods=['GET'])
+    # @token_required
+    def get_route_user_details():
+        try:
+            data = request.args.get("user_id")
+            print(data)
+            
+            if not data:
+                return jsonify({"error": "user_id are required"}), 400
+            
+            response = get_user_details(data)
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route('/get-projections-template', methods=['GET'])
+    # @token_required
+    def get_projections():
+        try:  
+            print("inside the projections")   
+            response = get_projections_template_for_chitgroup()
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
 
     @app.route('/run-backup', methods=['GET'])
     # @token_required

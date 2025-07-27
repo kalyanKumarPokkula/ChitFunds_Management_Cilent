@@ -5,5 +5,7 @@ from models.installment import Installment, PaymentStatus
 from models.payment import Payment, PaymentStatusEnum, PaymentMethodEnum
 from models.projection import MonthlyProjection
 from models.payment_installment import PaymentInstallment
+from models.monthlyprojectiontemplate import MonthlyProjectionsTemplate
+from models.projectionTemplate import ProjectionTemplate
 
 

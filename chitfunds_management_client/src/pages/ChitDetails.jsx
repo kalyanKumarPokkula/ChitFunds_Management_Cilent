@@ -113,28 +113,56 @@ const ChitDetails = () => {
 		}
 	};
 
-	const handleSearchChange = (e) => {
-		const query = e.target.value.toLowerCase();
-		setSearchQuery(query);
+	// const handleSearchChange = (e) => {
+	// 	const query = e.target.value.toLowerCase();
+	// 	setSearchQuery(query);
 
-		if (activeTab === 'members') {
-			const filtered = members.filter(
-				(member) =>
-					member.full_name.toLowerCase().includes(query) ||
-					member.email.toLowerCase().includes(query) ||
-					member.phone.includes(query)
-			);
-			setFilteredMembers(filtered);
-		} else if (activeTab === 'payments') {
-			const filtered = payments.filter(
-				(payment) =>
-					payment.full_name.toLowerCase().includes(query) ||
-					payment.payment_method.toLowerCase().includes(query) ||
-					payment.reference_number.toLowerCase().includes(query)
-			);
-			setFilteredPayments(filtered);
-		}
-	};
+	// 	if (activeTab === 'members') {
+	// 		const filtered = members.filter(
+	// 			(member) =>
+	// 				member.full_name.toLowerCase().includes(query) ||
+	// 				member.email.toLowerCase().includes(query) ||
+	// 				member.phone.includes(query)
+	// 		);
+	// 		setFilteredMembers(filtered);
+	// 	} else if (activeTab === 'payments') {
+	// 		const filtered = payments.filter(
+	// 			(payment) =>
+	// 				payment.full_name.toLowerCase().includes(query) ||
+	// 				payment.payment_method.toLowerCase().includes(query) ||
+	// 				payment.reference_number.toLowerCase().includes(query)
+	// 		);
+	// 		setFilteredPayments(filtered);
+	// 	}
+	// };
+
+	const handleSearchChange = (e) => {
+	const query = e.target.value.toLowerCase();
+	setSearchQuery(query);
+
+	if (!query.trim()) {
+		setFilteredMembers(members);
+		setFilteredPayments(payments);
+		return;
+	}
+
+	if (activeTab === 'members') {
+		const filtered = members.filter((member) =>
+			(member.full_name?.toLowerCase() || '').includes(query) ||
+			(member.email?.toLowerCase() || '').includes(query) ||
+			(member.phone || '').includes(query)
+		);
+		setFilteredMembers(filtered);
+	} else if (activeTab === 'payments') {
+		const filtered = payments.filter((payment) =>
+			(payment.full_name?.toLowerCase() || '').includes(query) ||
+			(payment.payment_method?.toLowerCase() || '').includes(query) ||
+			(payment.reference_number?.toLowerCase() || '').includes(query)
+		);
+		setFilteredPayments(filtered);
+	}
+};
+
 
 	const handleTabChange = (tab) => {
 		setActiveTab(tab);
@@ -321,6 +349,50 @@ const ChitDetails = () => {
 			showError('Failed to generate installments. Please try again.');
 		}
 	};
+
+	const handleDeleteMember = async (chitMemberId) => {
+		if (!window.confirm('Are you sure you want to delete this member?')) return;
+	
+		try {
+			const response = await apiRequest(
+				`/delete-chit-member?chit_member_id=${chitMemberId}`,
+				{
+					method: 'DELETE',
+				}
+			);
+	
+			const data = await response.json(); // Always parse response body
+	
+			switch (data.status_code) {
+				case 200:
+					showSuccess(data.message || 'Member deleted successfully');
+					fetchChitMembers(); // Refresh member list
+					break;
+	
+				case 403:
+					console.warn('Forbidden:', data.message);
+					showError(data.message || 'Action forbidden');
+					break;
+	
+				case 404:
+					console.warn('Not Found:', data.message);
+					showError(data.message || 'Member not found');
+					break;
+	
+				default:
+					console.error('Unhandled error:', data.message);
+					showError(data.message || 'Failed to delete member. Please try again.');
+			}
+		} catch (error) {
+			console.error('Network or server error:', error);
+			showError(error.message || 'Something went wrong. Please try again.');
+		}
+	};
+	
+	
+	
+	
+	
 
 	if (isLoading) {
 		return (
@@ -677,6 +749,7 @@ const ChitDetails = () => {
 									<table className="data-table">
 										<thead>
 											<tr>
+												<th>T-N</th>
 												<th>Name</th>
 												<th>Contact</th>
 												{/* <th>Email</th> */}
@@ -685,6 +758,7 @@ const ChitDetails = () => {
 												<th>Lifted Amount</th>
 												<th>Pending Installments</th>
 												<th>Pending Amount</th>
+												<th>Actions</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -723,7 +797,8 @@ const ChitDetails = () => {
 																: ''
 														}`}
 														title="Click to view payment history"
-													>
+													>   
+														<td>{member.token}</td>
 														<td>{member.full_name}</td>
 														<td>{member.phone}</td>
 														{/* <td>{member.email}</td> */}
@@ -739,6 +814,19 @@ const ChitDetails = () => {
 														<td>{formatCurrency(member.total_payout)}</td>
 														<td>{member.pending_months}</td>
 														<td>{member.total_pending_amount}</td>
+														{/* Delete Icon Button */}
+														<td>
+															<button
+																className="action-icon-button"
+																title="Delete Member"
+																onClick={(e) => {
+																	e.stopPropagation(); // Prevent triggering row click
+																	handleDeleteMember(member.chit_member_id);
+																}}
+															>
+																<i className="fas fa-trash"></i>
+															</button>
+														</td>
 													</tr>
 												))
 											)}

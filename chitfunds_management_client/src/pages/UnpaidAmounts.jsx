@@ -76,6 +76,7 @@ const UnpaidAmounts = () => {
               <thead>
                 <tr>
                   <th>Chit Name</th>
+                  <th>Started At</th>
                   <th>Unpaid Amount</th>
                   <th>Unpaid Members</th>
                   <th>Actions</th>
@@ -98,10 +99,11 @@ const UnpaidAmounts = () => {
                         </span><br />
                         <span className="chit-status active">Active</span>
                       </td>
+                      <td>{chit.start_date}</td>
                       {/* <td  className="chit-name"><b>₹{chit.total_amount.toLocaleString('en-IN')}</b></td> */}
                       <td className="unpaid-amount" style={{color:'red'}}><b>₹{chit.unpaid_amount.toLocaleString('en-IN')}</b></td>
                       <td>
-                        <span className="unpaid-members-badge">{chit.unpaid_members} of {chit.total_members} Members</span>
+                        <span className="unpaid-members-badge">{chit.unpaid_members} of {chit.total_members} <span style={{"color" : "black"}}>Members</span></span>
                       </td>
                       <td className="actions-cell">
                         <button className="view-btn-black" onClick={() => navigate(`/unpaid-installments/${chit.chit_group_id}`)}>
